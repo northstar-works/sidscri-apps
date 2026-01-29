@@ -566,7 +566,8 @@ object WebAppSync {
                         sourceFile = dObj.optString("sourceFile", null),
                         cardCount = dObj.optInt("cardCount", 0),
                         createdAt = dObj.optLong("createdAt", 0),
-                        updatedAt = dObj.optLong("updatedAt", 0)
+                        updatedAt = dObj.optLong("updatedAt", 0),
+                        logoPath = dObj.optString("logoPath", null)
                     ))
                 }
                 
@@ -605,6 +606,7 @@ object WebAppSync {
                     put("cardCount", deck.cardCount)
                     put("createdAt", deck.createdAt)
                     put("updatedAt", deck.updatedAt)
+                    put("logoPath", deck.logoPath)
                 }
                 decksArray.put(dObj)
             }
@@ -775,7 +777,6 @@ object WebAppSync {
             VocabularySyncResult(success = false, error = e.message ?: "Pull failed")
         }
     }
-}
 
 /**
  * SERVER IMPLEMENTATION GUIDE
@@ -1024,3 +1025,4 @@ object WebAppSync {
         val text = (if (code in 200..299) conn.inputStream else conn.errorStream).bufferedReader().readText()
         JSONObject(text)
     }
+}

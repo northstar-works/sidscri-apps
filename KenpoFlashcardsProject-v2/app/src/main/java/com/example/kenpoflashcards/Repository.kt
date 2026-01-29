@@ -507,15 +507,10 @@ suspend fun deleteBreakdown(cardId: String) = store.deleteBreakdown(cardId)
             WebAppSync.SyncResult(success = false, error = errors.joinToString("; "))
         }
     }
-}
-
-data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val deleted: Int) {
-    val total: Int get() = active + unsure + learned + deleted
-
-
     // =========================
     // GEN8 Admin / Deck Access wrappers
     // =========================
+
     suspend fun refreshAdminStatus(): Boolean {
         val s = adminSettingsFlow().first()
         if (!s.isLoggedIn || s.authToken.isBlank()) return false
@@ -524,7 +519,9 @@ data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val 
             val isAdmin = resp.optBoolean("isAdmin", false)
             store.saveAdminSettings(s.copy(isAdmin = isAdmin))
             true
-        } catch (_: Exception) { false }
+        } catch (_: Exception) {
+            false
+        }
     }
 
     suspend fun redeemInviteCode(inviteCode: String): JSONObject {
@@ -552,52 +549,43 @@ data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val 
         return WebAppSync.syncAdminDeleteInviteCode(s.webAppUrl, s.authToken, code)
     }
 
+    /**
+     * Pull decks using the currently-stored admin/server settings.
+     * Returns a JSON payload shaped similarly to the server response:
+     * { success, activeDeckId, decks:[...], error? }
+     */
     suspend fun syncPullDecksAuthoritative(): JSONObject {
         val s = adminSettingsFlow().first()
-        val resp = WebAppSync.pullDecks(s.webAppUrl, s.authToken)
-        val decksArr = resp.optJSONArray("decks") ?: JSONArray()
-        val decks = mutableListOf<StudyDeck>()
-        for (i in 0 until decksArr.length()) {
-            val o = decksArr.optJSONObject(i) ?: continue
-            decks.add(
-                StudyDeck(
-                    id = o.optString("id",""),
-                    name = o.optString("name",""),
-                    description = o.optString("description",""),
-                    isDefault = o.optBoolean("isDefault", false),
-                    isBuiltIn = o.optBoolean("isBuiltIn", false),
-                    sourceFile = o.optString("sourceFile", null)?.takeIf { it.isNotBlank() },
-                    cardCount = o.optInt("cardCount", 0),
-                    createdAt = o.optLong("createdAt", 0),
-                    updatedAt = o.optLong("updatedAt", 0),
-                    logoPath = o.optString("logoPath", null)?.takeIf { it.isNotBlank() }
-                )
-            )
+        val result = syncPullDecks(s.authToken, s.webAppUrl)
+
+        val out = JSONObject()
+        out.put("success", result.success)
+        out.put("activeDeckId", result.activeDeckId)
+
+        if (result.success) {
+            val decksArr = JSONArray()
+            result.decks.forEach { d ->
+                val o = JSONObject()
+                o.put("id", d.id)
+                o.put("name", d.name)
+                o.put("description", d.description)
+                o.put("isDefault", d.isDefault)
+                o.put("isBuiltIn", d.isBuiltIn)
+                o.put("sourceFile", d.sourceFile)
+                o.put("cardCount", d.cardCount)
+                o.put("createdAt", d.createdAt)
+                o.put("updatedAt", d.updatedAt)
+                o.put("logoPath", d.logoPath)
+                decksArr.put(o)
+            }
+            out.put("decks", decksArr)
+        } else {
+            out.put("error", result.error)
         }
-        store.replaceDecksFromServer(decks)
-        val ds = deckSettingsFlow().first()
-        val ids = decks.map { it.id }
-        store.saveDeckSettings(ds.copy(availableDecks = ids, activeDeckId = ds.activeDeckId.takeIf { it in ids } ?: "kenpo"))
-        return resp
+        return out
     }
 
-    // Option2 wrappers
-    suspend fun adminGetUsers(): JSONObject {
-        val s = adminSettingsFlow().first()
-        return WebAppSync.syncAdminGetUsers(s.webAppUrl, s.authToken)
-    }
-
-    suspend fun adminGetStats(): JSONObject {
-        val s = adminSettingsFlow().first()
-        return WebAppSync.syncAdminGetStats(s.webAppUrl, s.authToken)
-    }
-
-    suspend fun adminGetLogs(type: String = "all", limit: Int = 200): JSONObject {
-        val s = adminSettingsFlow().first()
-        return WebAppSync.syncAdminGetLogs(s.webAppUrl, s.authToken, type, limit)
-    }
-
-    suspend fun adminClearLogs(type: String = "all"): JSONObject {
+    suspend fun adminClearLogs(type: String): JSONObject {
         val s = adminSettingsFlow().first()
         return WebAppSync.syncAdminClearLogs(s.webAppUrl, s.authToken, type)
     }
@@ -621,5 +609,8 @@ data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val 
         val s = adminSettingsFlow().first()
         return WebAppSync.syncAdminResetPassword(s.webAppUrl, s.authToken, userId)
     }
+}
 
+data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val deleted: Int) {
+    val total: Int get() = active + unsure + learned + deleted
 }
