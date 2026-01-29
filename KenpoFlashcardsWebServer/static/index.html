@@ -564,7 +564,17 @@
                   <span>Description</span>
                   <input id="newDeckDescription" placeholder="Brief description..." />
                 </label>
-                <button id="createDeckBtn" class="appBtn success">Create Deck</button>
+                
+                <label class="field">
+                  <span>Add cards after creating</span>
+                  <select id="newDeckAddMethod">
+                    <option value="none" selected>None (create empty deck)</option>
+                    <option value="keywords">Keywords (auto-generate up to 25)</option>
+                    <option value="photo">Photo (upload)</option>
+                    <option value="document">Document (upload)</option>
+                  </select>
+                </label>
+<button id="createDeckBtn" class="appBtn success">Create Deck</button>
               </div>
               
               <div class="settingsSectionTitle" style="margin-top: 24px;">🎟️ Redeem Invite Code</div>
@@ -1007,12 +1017,8 @@
           </label>
           <div id="loginResetBox" class="hidden" style="margin-top:12px;">
             <div class="modalDivider"></div>
-            <div style="color:#fbbf24;font-size:13px;margin-bottom:8px;">Password change required. Enter the temporary password, then choose a new password.</div>
-            <label class="field">
-              <span>Temporary Password</span>
-              <input id="loginTempPassword" type="password" autocomplete="one-time-code" placeholder="Temporary password" />
-            </label>
-            <label class="field">
+            <div style="color:#fbbf24;font-size:13px;margin-bottom:8px;">Password change required. Please set a new password below.</div>
+<label class="field">
               <span>New Password</span>
               <input id="loginNewPassword" type="password" autocomplete="new-password" placeholder="New password" />
             </label>

@@ -1083,10 +1083,23 @@ async function unlockDeckForUser() {
     }
     
     document.addEventListener('DOMContentLoaded', async () => {
-      await loadStats();
-      await loadDeckConfig();
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
+      try {
+        await loadStats();
+        await loadDeckConfig();
+      } catch (e) {
+        console.error("Admin dashboard init failed:", e);
+        const loading = document.getElementById('loading');
+        if(loading){
+          loading.innerHTML = '<div style="color:#f87171;font-weight:600;margin-bottom:8px;">Failed to load admin dashboard</div>' +
+                              '<div style="color:#cbd5e1;font-size:13px;">' + (e && e.message ? e.message : String(e)) + '</div>';
+        }
+        // Still show the dashboard shell so you can navigate other tabs if some calls worked.
+      } finally {
+        const loading = document.getElementById('loading');
+        const dash = document.getElementById('dashboard');
+        if(loading) loading.style.display = 'none';
+        if(dash) dash.style.display = 'block';
+      }
     });
   
     function closeOverviewDetail(e){

@@ -725,7 +725,7 @@ def _access_log_and_optional_allowlist():
     if uid:
         u = _get_user(uid) or {}
         if u.get("password_reset_required") and request.path.startswith("/api/"):
-            allowed = {"/api/login", "/api/login_reset_password", "/api/logout", "/api/version", "/api/whoami", "/api/user/change_password"}
+                        allowed = {"/api/login", "/api/logout", "/api/version", "/api/whoami", "/api/me", "/api/user/change_password"}
             if request.path not in allowed:
                 return jsonify({"error": "password_reset_required"}), 403
 
@@ -1259,6 +1259,16 @@ def api_login():
     user_id, user_data = result
     stored_hash = (user_data.get("password_hash") or "").strip()
 
+    # If an admin forced a password reset, require the temporary password for login.
+    # This provides a clear error to the user and prevents confusion with "invalid_credentials".
+    if user_data.get("password_reset_required"):
+        if password != "123456789":
+            return jsonify({
+                "error": "password_change_required",
+                "message": "Password reset required. Log in with the temporary password to set a new password.",
+                "temp_password_required": True
+            }), 403
+
     # Admin LAN login with blank password: accept (even if a password_hash exists)
     if is_admin and from_private_net and password == "":
         _ensure_user_progress(user_id)
@@ -1276,9 +1286,8 @@ def api_login():
     _ensure_user_progress(user_id)
     session["user_id"] = user_id
     log_activity("info", f"User logged in: {username}", username)
-    return jsonify({"ok": True, "user": _get_user(user_id)})
-
-
+    force_pw = bool((_get_user(user_id) or {}).get("password_reset_required"))
+    return jsonify({"ok": True, "user": _get_user(user_id), "force_password_change": force_pw})
 @app.post("/api/logout")
 def api_logout():
     uid = current_user_id()

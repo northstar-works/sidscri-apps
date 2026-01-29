@@ -1291,6 +1291,10 @@ fun AdminScreen(nav: NavHostController, repo: Repository) {
             var inviteDeckId by remember { mutableStateOf("kenpo") }
             var inviteCodeResult by remember { mutableStateOf("") }
 
+            // Needed for starting intents + clipboard in Compose
+            val context = androidx.compose.ui.platform.LocalContext.current
+
+
             if (isAdmin) {
                 Spacer(Modifier.height(16.dp))
                 Text("Deck Admin (Server)", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
