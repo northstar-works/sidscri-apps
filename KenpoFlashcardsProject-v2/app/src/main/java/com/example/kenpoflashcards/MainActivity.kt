@@ -1,6 +1,5 @@
 package com.example.kenpoflashcards
 
-private const val GEN8_FULL_ADMIN_UI: Boolean = false
 
 import android.content.res.Configuration
 import android.net.Uri
@@ -45,6 +44,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.absoluteValue
+
+private const val GEN8_FULL_ADMIN_UI: Boolean = false
 
 private val DarkBg = Color(0xFF0F1217)
 private val DarkPanel = Color(0xFF151A22)
@@ -1221,8 +1222,8 @@ private fun SettingToggle(label: String, checked: Boolean, onCheckedChange: (Boo
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(nav: NavHostController, repo: Repository) {
+    val decks by repo.decksFlow().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val adminSettings by repo.adminSettingsFlow().collectAsState(initial = AdminSettings())
     LaunchedEffect(Unit) { repo.refreshAdminStatus() }
     
@@ -1341,7 +1342,7 @@ fun AdminScreen(nav: NavHostController, repo: Repository) {
 
                         Spacer(Modifier.height(8.dp))
                         Text("Built-in Decks", color = DarkMuted, fontSize = 12.sp)
-                        decks.forEach { d ->
+                        for (d in decks) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                 val checked = builtInDecks.contains(d.id)
                                 Checkbox(checked = checked, onCheckedChange = {
@@ -1381,7 +1382,7 @@ fun AdminScreen(nav: NavHostController, repo: Repository) {
                                 modifier = Modifier.menuAnchor().fillMaxWidth()
                             )
                             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                decks.forEach { d ->
+                                for (d in decks) {
                                     DropdownMenuItem(text = { Text("${d.name} (${d.id})") }, onClick = {
                                         inviteDeckId = d.id
                                         expanded = false

@@ -563,11 +563,10 @@ object WebAppSync {
                         description = dObj.optString("description", ""),
                         isDefault = dObj.optBoolean("isDefault", false),
                         isBuiltIn = dObj.optBoolean("isBuiltIn", false),
-                        sourceFile = dObj.optString("sourceFile", null)?.takeIf { it.isNotBlank() },
+                        sourceFile = dObj.optString("sourceFile", null),
                         cardCount = dObj.optInt("cardCount", 0),
                         createdAt = dObj.optLong("createdAt", 0),
-                        updatedAt = dObj.optLong("updatedAt", 0),
-                        logoPath = dObj.optString("logoPath", null)?.takeIf { it.isNotBlank() }
+                        updatedAt = dObj.optLong("updatedAt", 0)
                     ))
                 }
                 
@@ -776,6 +775,7 @@ object WebAppSync {
             VocabularySyncResult(success = false, error = e.message ?: "Pull failed")
         }
     }
+}
 
 /**
  * SERVER IMPLEMENTATION GUIDE
@@ -1024,4 +1024,3 @@ object WebAppSync {
         val text = (if (code in 200..299) conn.inputStream else conn.errorStream).bufferedReader().readText()
         JSONObject(text)
     }
-}
