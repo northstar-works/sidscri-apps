@@ -507,12 +507,6 @@ suspend fun deleteBreakdown(cardId: String) = store.deleteBreakdown(cardId)
             WebAppSync.SyncResult(success = false, error = errors.joinToString("; "))
         }
     }
-}
-
-data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val deleted: Int) {
-    val total: Int get() = active + unsure + learned + deleted
-
-
     // =========================
     // GEN8 Admin / Deck Access wrappers
     // =========================
@@ -622,4 +616,8 @@ data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val 
         return WebAppSync.syncAdminResetPassword(s.webAppUrl, s.authToken, userId)
     }
 
+}
+
+data class StatusCounts(val active: Int, val unsure: Int, val learned: Int, val deleted: Int) {
+    val total: Int get() = active + unsure + learned + deleted
 }
