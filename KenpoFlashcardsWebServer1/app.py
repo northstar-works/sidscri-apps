@@ -725,7 +725,7 @@ def _access_log_and_optional_allowlist():
     if uid:
         u = _get_user(uid) or {}
         if u.get("password_reset_required") and request.path.startswith("/api/"):
-            allowed = {"/api/login", "/api/login_reset_password", "/api/logout", "/api/version", "/api/whoami", "/api/user/change_password"}
+            allowed = {"/api/login", "/api/logout", "/api/version", "/api/whoami", "/api/user/change_password"}
             if request.path not in allowed:
                 return jsonify({"error": "password_reset_required"}), 403
 
@@ -1209,7 +1209,7 @@ def api_register():
     
     profiles["users"][user_id] = {
         "username": username,
-        "password_hash": generate_password_hash(password, method="pbkdf2:sha256"),
+        "password_hash": generate_password_hash(password),
         "display_name": display_name or username,
         "created_at": _now()
     }
@@ -1246,7 +1246,7 @@ def api_login():
             profiles.setdefault("users", {})[user_id] = {
                 "user_id": user_id,
                 "username": username,
-                "password_hash": generate_password_hash(password, method="pbkdf2:sha256") if password else "",
+                "password_hash": generate_password_hash(password) if password else "",
                 "display_name": username,
                 "created_at": _now(),
             }
@@ -1315,7 +1315,7 @@ def api_user_change_password():
         if stored and (not check_password_hash(stored, old_password)):
             return jsonify({"error": "invalid_old_password"}), 401
 
-    udata["password_hash"] = generate_password_hash(new_password, method="pbkdf2:sha256")
+    udata["password_hash"] = generate_password_hash(new_password)
     udata["password_reset_required"] = False
     profiles["users"][uid] = udata
     _save_profiles(profiles)
@@ -1342,29 +1342,9 @@ def health():
     })
 
 
-def get_install_type():
-    """
-    Return install type string:
-      - "packaged" when running from the packaged EXE/MSI project
-      - "webserver" when running the standalone web server project
-    Controlled by data/install_type.txt (optional). Defaults to "webserver".
-    """
-    try:
-        p = os.path.join(DATA_DIR, "install_type.txt")
-        if os.path.exists(p):
-            val = (open(p, "r", encoding="utf-8").read() or "").strip().lower()
-            if val:
-                return val
-    except Exception:
-        pass
-    return "webserver"
-
-
 @app.get("/api/version")
 def api_version():
-    v = get_version() or {}
-    v["install_type"] = get_install_type()
-    return jsonify(v)
+    return jsonify(get_version())
 @app.get("/api/groups")
 def api_groups():
     uid, _ = require_user()
@@ -2169,7 +2149,7 @@ def api_admin_user_reset_password():
     
     # Set password to default and flag for reset
     default_password = "123456789"
-    profiles["users"][target_user_id]["password_hash"] = generate_password_hash(default_password, method="pbkdf2:sha256")
+    profiles["users"][target_user_id]["password_hash"] = generate_password_hash(default_password)
     profiles["users"][target_user_id]["password_reset_required"] = True
     
     _save_profiles(profiles)

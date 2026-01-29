@@ -1958,20 +1958,7 @@ async function main(){
       }).then(r => r.json());
       
       if(res.error){
-        if(res.error === "password_change_required"){
-          $("authMessage").textContent = "Password change required. Use the temporary password, then set a new one below.";
-          $("loginResetBox").classList.remove("hidden");
-          return;
-        }
         $("authMessage").textContent = getErrorMessage({message: res.error});
-        return;
-      }
-
-      if(res.force_password_change){
-        $("authMessage").textContent = "Password change required. Please set a new password below.";
-        $("loginResetBox").classList.remove("hidden");
-        // Pre-fill temp password to make it easy
-        if($("loginTempPassword")) $("loginTempPassword").value = "";
         return;
       }
       
@@ -1985,50 +1972,6 @@ async function main(){
       $("authMessage").textContent = getErrorMessage(e);
     }
   });
-
-  bind("btnLoginResetPw","click", async ()=>{
-    const username = ($("loginUsername").value || "").trim();
-    const temp_password = ($("loginTempPassword").value || "");
-    const new_password = ($("loginNewPassword").value || "");
-    const new_password2 = ($("loginNewPassword2").value || "");
-    if(!username || !temp_password || !new_password){
-      $("authMessage").textContent = "Please fill in username, temporary password, and new password.";
-      return;
-    }
-    if(new_password !== new_password2){
-      $("authMessage").textContent = "New passwords do not match.";
-      return;
-    }
-    try{
-      const res = await fetch("/api/login_reset_password", {
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({username, temp_password, new_password})
-      }).then(async r => {
-        const j = await r.json().catch(()=>({}));
-        if(!r.ok && !j.error) j.error = "reset_failed";
-        return j;
-      });
-      if(res.error){
-        $("authMessage").textContent = getErrorMessage({message: res.error});
-        return;
-      }
-      currentUser = res.user;
-      setUserLine();
-      hideAuthOverlay();
-      appInitialized = false;
-      await postLoginInit();
-      await refresh();
-      $("loginResetBox").classList.add("hidden");
-      $("loginTempPassword").value = "";
-      $("loginNewPassword").value = "";
-      $("loginNewPassword2").value = "";
-      $("authMessage").textContent = "";
-    } catch(e){
-      $("authMessage").textContent = "Error: " + e.message;
-    }
-  });
-
 
   // Switch to register view
   bind("btnShowRegister","click", ()=>{

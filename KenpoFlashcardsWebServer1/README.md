@@ -5,7 +5,7 @@
 
 Flask-based web application providing sync API and web UI for Advanced Flashcards WebApp.
 
-**Current Version:** v8.2.0 (build 50)  
+**Current Version:** v8.1.0 (build 48)  
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
@@ -236,17 +236,6 @@ Upload PDF, TXT, or MD files. AI reads the content and generates flashcards from
 | `KENPO_ROOT` | Root path for auto-discovering `kenpo_words.json` |
 | `KENPO_JSON_PATH` | Direct path to card data JSON |
 
-### Kenpo Vocabulary Data (`kenpo_words.json`)
-- **Canonical location (server install):** `KenpoFlashcardsWebServer/data/kenpo_words.json`
-- The server will load from `data/kenpo_words.json` by default.
-- Optional overrides:
-  - `KENPO_JSON_PATH` (direct file path)
-  - `KENPO_ROOT` (auto-discovery root for development)
-
-### Packaged Install Marker
-- Packaged installs include `data/install_type.txt` containing `packaged`.
-- When present, the UI shows **Web Server Version: v8.2.0 (build 50)** in the User menu, About, and Admin > System.
-
 **Note:** API keys are now stored encrypted in `data/api_keys.enc`. You no longer need to set `OPENAI_API_KEY` in the batch file - keys are loaded from the encrypted file on startup.
 
 ### Auto-Path Discovery
@@ -456,8 +445,3 @@ KenpoFlashcardsWebServer/
 Personal/educational use for learning American Kenpo Karate vocabulary.
 
 **Kenpo vocab source:** `data/kenpo_words.json` (server-side). Set `KENPO_JSON_PATH` env var only if you need a custom location.
-
-
-## Web Server Version
-
-- Web Server: v8.2.0 (build 50)

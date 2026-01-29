@@ -1222,6 +1222,7 @@ private fun SettingToggle(label: String, checked: Boolean, onCheckedChange: (Boo
 @Composable
 fun AdminScreen(nav: NavHostController, repo: Repository) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val adminSettings by repo.adminSettingsFlow().collectAsState(initial = AdminSettings())
     LaunchedEffect(Unit) { repo.refreshAdminStatus() }
     

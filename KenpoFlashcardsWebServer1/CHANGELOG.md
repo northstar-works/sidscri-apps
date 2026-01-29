@@ -12,30 +12,6 @@ The format is simple and practical:
 
 ## Unreleased
 
-- (Add changes here as you work. Move them into a release when you publish.)
-
----
-
-## 8.2.0 (build 50) — 2026-01-29
-
-### Added
-- Packaged install marker: include `data/install_type.txt` (set to `packaged`) so the UI can show **Web Server Version** only in packaged installs.
-- Admin > Decks: add built-in decks back via dropdown + **Add Built-In** action.
-- Admin > User Deck Access: show access status for the selected user + deck and enable only valid actions (Unlock/Lock, Enable/Disable Built-In).
-- Login UI: show version/build on the login panel; add password-reset fields for users required to change password.
-- Create Deck: choose an add-cards method (Keyword/Photo/Document) directly under Description and auto-jump after create.
-
-### Changed
-- Create Deck (Keyword method): auto-search uses deck name + description; default max = 25.
-- Packaged-only display: Web Server Version appears in User menu, About, and Admin > System only when install_type is packaged.
-
-### Fixed
-- Custom Set Randomization layout: shorter number field and renamed button to **Add Random Cards**.
-- Forced password reset: login flow communicates password-change-required and guides users into resetting before entering the app.
-- Documentation and version metadata updated for 8.2.0 (build 50).
-
----
-
 ## 8.1.1 (build 49) - 2026-01-29
 - Fix: Admin deck dropdowns now populate correctly (stats includes full deck list + user ids).
 - Fix: Deck ownership/access logic (owned vs shared) and Edit/Delete button visibility.

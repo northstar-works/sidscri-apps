@@ -306,12 +306,6 @@
         <div class="section-card danger-section">
           <div class="section-title"><span>⚠️</span> Built-In Deck Management</div>
           <p class="section-desc">Manage which decks are considered "built-in" and available to all users by default.</p>
-          <div class="user-access-form" style="margin-bottom:10px;">
-            <select id="addBuiltInDeckSelect" class="form-select">
-              <option value="">Add built-in deck...</option>
-            </select>
-            <button class="btn btn-primary btn-sm" onclick="addBuiltInDeck()">Add Built-In</button>
-          </div>
           <div class="built-in-list" id="builtInDecksList">
             <div class="loading">Loading...</div>
           </div>
@@ -542,7 +536,7 @@
       }).join('');
     }
     
-    async async function loadServerInfo() {
+    async function loadServerInfo() {
       try {
         const v = await jget('/api/version');
         const w = await jget('/api/whoami');
@@ -810,7 +804,6 @@ async function loadEditUserDeckAccess(userId){
       try {
         const data = await jget('/api/admin/deck-config');
         deckConfig = data.config || {};
-        deckAccess = { inviteCodes: data.inviteCodes || {}, userUnlocks: data.userUnlocks || {}, userBuiltInDisabled: data.userBuiltInDisabled || [] };
         
         // Update checkboxes
         document.getElementById('cfgNewUsersGetBuiltIn').checked = deckConfig.newUsersGetBuiltInDecks !== false;
@@ -825,7 +818,6 @@ async function loadEditUserDeckAccess(userId){
         // Populate deck selects
         allDecks = statsData?.decks?.list || [];
         populateDeckSelects();
-        updateUserDeckAccessUI();
         
         // Populate user selects
         allUsers = statsData?.users?.list || [];
@@ -854,7 +846,6 @@ async function loadEditUserDeckAccess(userId){
         return;
       }
       
-      populateAddBuiltInSelect(builtInIds);
       container.innerHTML = builtInIds.map(id => {
         const deck = allDecks.find(d => d.id === id) || { id, name: id };
         return `
@@ -867,36 +858,9 @@ async function loadEditUserDeckAccess(userId){
           </div>
         `;
       }).join('');
-    
-    function populateAddBuiltInSelect(builtInIds){
-      const sel = document.getElementById('addBuiltInDeckSelect');
-      if(!sel) return;
-      const builtSet = new Set(builtInIds || []);
-      const options = (allDecks || []).filter(d => !builtSet.has(d.id)).map(d => `<option value="${d.id}">${d.name || d.id}</option>`).join('');
-      sel.innerHTML = `<option value="">Add built-in deck...</option>` + options;
     }
-}
     
-    
-    async function addBuiltInDeck(){
-      const sel = document.getElementById('addBuiltInDeckSelect');
-      const deckId = sel ? sel.value : '';
-      if(!deckId) return;
-      try {
-        const built = new Set(deckConfig.builtInDecks || []);
-        built.add(deckId);
-        const newBuiltIn = Array.from(built);
-        const res = await jpost('/api/admin/deck-config', { builtInDecks: newBuiltIn });
-        deckConfig = res.config || deckConfig;
-        await loadStats();
-        await loadDeckConfig();
-      } catch(e){
-        alert('Error: ' + e.message);
-      } finally {
-        if(sel) sel.value = '';
-      }
-    }
-async function removeBuiltInDeck(deckId) {
+    async function removeBuiltInDeck(deckId) {
       if (!confirm(`Remove "${deckId}" from built-in decks? Users will need invite codes to access it.`)) return;
       
       try {
@@ -975,50 +939,7 @@ async function removeBuiltInDeck(deckId) {
       }
     }
     
-    
-    function updateUserDeckAccessUI(){
-      const userId = document.getElementById('userAccessSelect')?.value;
-      const deckId = document.getElementById('userDeckSelect')?.value;
-
-      const unlockBtn = document.querySelector('button[onclick="unlockDeckForUser()"]');
-      const lockBtn = document.querySelector('button[onclick="lockDeckForUser()"]');
-      const disBuiltBtn = document.querySelector('button[onclick="disableBuiltInForUser()"]');
-      const enBuiltBtn = document.querySelector('button[onclick="enableBuiltInForUser()"]');
-      const statusEl = document.getElementById('userAccessStatus');
-
-      if(!userId || !deckId){
-        if(statusEl) statusEl.textContent = '';
-        if(unlockBtn) unlockBtn.disabled = true;
-        if(lockBtn) lockBtn.disabled = true;
-        if(disBuiltBtn) disBuiltBtn.disabled = true;
-        if(enBuiltBtn) enBuiltBtn.disabled = true;
-        return;
-      }
-
-      const builtInIds = deckConfig.builtInDecks || [];
-      const isBuiltIn = builtInIds.includes(deckId);
-      const userDisabled = (deckAccess.userBuiltInDisabled || []).includes(userId);
-      const unlocked = ((deckAccess.userUnlocks || {})[userId] || []).includes(deckId);
-
-      if(isBuiltIn){
-        if(statusEl) statusEl.innerHTML = userDisabled
-          ? '<span style="color:#f87171;">Built-in access DISABLED for this user</span>'
-          : '<span style="color:#4ade80;">Built-in access ENABLED for this user</span>';
-        if(unlockBtn) unlockBtn.disabled = true;
-        if(lockBtn) lockBtn.disabled = true;
-        if(disBuiltBtn) disBuiltBtn.disabled = userDisabled;
-        if(enBuiltBtn) enBuiltBtn.disabled = !userDisabled;
-      } else {
-        if(statusEl) statusEl.innerHTML = unlocked
-          ? '<span style="color:#4ade80;">Unlocked for this user</span>'
-          : '<span style="color:#f87171;">Locked for this user</span>';
-        if(unlockBtn) unlockBtn.disabled = unlocked;
-        if(lockBtn) lockBtn.disabled = !unlocked;
-        if(disBuiltBtn) disBuiltBtn.disabled = !userDisabled;
-        if(enBuiltBtn) enBuiltBtn.disabled = userDisabled;
-      }
-    }
-async function unlockDeckForUser() {
+    async function unlockDeckForUser() {
       const userId = document.getElementById('userAccessSelect').value;
       const deckId = document.getElementById('userDeckSelect').value;
       
