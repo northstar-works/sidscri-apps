@@ -56,7 +56,7 @@ private val DarkMuted = Color(0xFFB7C0D4)
 private val AccentGood = Color(0xFF12311F)
 private val AccentBlue = Color(0xFF1F6FEB)
 
-private val KenpoDarkColorScheme = darkColorScheme(
+private val AppDarkColorScheme = darkColorScheme(
     primary = AccentBlue, onPrimary = Color.White, primaryContainer = AccentGood,
     secondary = DarkPanel, background = DarkBg, onBackground = DarkText,
     surface = DarkPanel, onSurface = DarkText, surfaceVariant = DarkPanel2,
@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme(colorScheme = KenpoDarkColorScheme) {
+            MaterialTheme(colorScheme = AppDarkColorScheme) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { AppRoot() }
             }
         }
@@ -1640,7 +1640,7 @@ fun AboutScreen(nav: NavHostController) {
                 Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.School, "App Icon", modifier = Modifier.size(64.dp), tint = AccentBlue)
                     Spacer(Modifier.height(12.dp))
-                    Text("Kenpo Vocabulary Flashcards", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White, textAlign = TextAlign.Center)
+                    Text("Advanced Flashcards", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White, textAlign = TextAlign.Center)
                     Text("Version $versionName (build $versionCode)", color = DarkMuted, fontSize = 12.sp)
                 }
             }
@@ -1671,7 +1671,13 @@ fun AboutScreen(nav: NavHostController) {
             Spacer(Modifier.height(8.dp))
             Card(colors = CardDefaults.cardColors(containerColor = DarkPanel), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Kenpo Vocabulary Flashcards is a study tool designed to help martial arts students learn and memorize Korean terminology used in Kenpo and other martial arts.\n\nThe app provides an organized, efficient way to study vocabulary with progress tracking, customizable study sessions, and AI-powered term breakdowns.", color = DarkText, fontSize = 13.sp, lineHeight = 20.sp)
+                    Text(
+                        "Advanced Flashcards is a study tool for studying flashcards across multiple subjects.\n\n"
+                                + "It includes built-in decks (like the Kenpo Vocabulary deck) and supports synced/custom decks, progress tracking, study sessions, and AI-powered term breakdowns.",
+                        color = DarkText,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp
+                    )
                 }
             }
             
@@ -2030,13 +2036,13 @@ fun UserGuideScreen(nav: NavHostController) {
     Scaffold(topBar = { TopAppBar(title = { Text("User Guide") }, colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkPanel), navigationIcon = { IconButton({ nav.popBackStack() }) { Icon(Icons.Default.ArrowBack, "Back") } }) }, bottomBar = { NavBar(nav, Route.Settings.path) }) { pad ->
         LazyColumn(Modifier.fillMaxSize().padding(pad).padding(16.dp)) {
             item { 
-                Text("Kenpo Vocabulary Flashcards", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
+                Text("Advanced Flashcards", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
                 Text("Complete User Guide", color = DarkMuted, fontSize = 14.sp)
                 Spacer(Modifier.height(20.dp))
             }
             
             item { GuideSection("Getting Started", """
-Welcome to Kenpo Vocabulary Flashcards! This app helps you learn Korean martial arts terminology through interactive flashcard study.
+Welcome to Advanced Flashcards! This app helps you learn Korean martial arts terminology through interactive flashcard study.
 
 When you first open the app, you'll see the "To Study" screen with all active flashcards. Each card shows a term on the front and its definition on the back.
             """) }
@@ -2114,7 +2120,7 @@ Created by Sidney Shelton
 For questions, feature requests, or bug reports:
 Email: Sidscri@yahoo.com
 
-Thank you for using Kenpo Vocabulary Flashcards!
+Thank you for using Advanced Flashcards!
             """) }
             
             item { Spacer(Modifier.height(24.dp)) }

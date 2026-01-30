@@ -1,4 +1,4 @@
-KenpoFlashCards Launcher Icon Pack
+AdvancedFlashcards Launcher Icon Pack
 =================================
 
 Copy these folders into your Android project at:

@@ -1,9 +1,9 @@
-# 🥋 Kenpo Vocabulary Flash Cards (Android)
+# 📚 Advanced Flashcards (Android)
 
 > This is the **Android app** project inside the `sidscri-apps` monorepo.  
 > Repo root: `../README.md`
 
-An Android flash-card app designed to help students of **American Kenpo Karate** learn, memorize, and review Kenpo vocabulary efficiently using categorized, interactive flash cards.
+An Android flashcard app designed for studying multiple subjects. It includes a built-in **Kenpo Vocabulary** deck and supports additional synced/custom decks.
 
 This app focuses on **active recall**, **progress tracking**, and **organized learning**, making it ideal for beginners through advanced practitioners.
 
@@ -11,6 +11,32 @@ This app focuses on **active recall**, **progress tracking**, and **organized le
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
+
+## Local Build Sanity Checks
+
+### Quick compile gate (matches GitHub)
+From the project root (same folder as `gradlew.bat`):
+
+```powershell
+.\gradlew.bat :app:compileReleaseKotlin --stacktrace
+```
+
+### If Gradle wrapper fails
+Ensure these exist in the project:
+- `gradle/wrapper/gradle-wrapper.jar`
+- `gradle/wrapper/gradle-wrapper.properties`
+- `gradlew.bat`
+
+### If Android SDK is not found
+Create/update `local.properties` with your SDK path, for example:
+
+```properties
+sdk.dir=C:\\Users\\Sidscri\\AppData\\Local\\Android\\Sdk
+```
+
+## Branding
+
+This app is branded as **Advanced Flashcards**. The built-in **Kenpo Vocabulary** deck keeps its original name/content, but other user-facing "Kenpo" references (app title, generic labels) are rebranded.
 
 ## 📱 Features
 
@@ -202,7 +228,7 @@ app/src/main/
 | Version | Code | Key Changes |
 |---------|------|-------------|
 | **5.4.0** | 37 | GEN8: Token-admin deck config + invite/redeem codes, server-sourced admin status, deck logo support |
-| **5.3.1** | 36 | Changed icons and logos from Kenpo to Advanced Flashcards |
+| **5.3.1** | 36 | Changed icons and logos to Advanced Flashcards branding |
 | **5.2.0** | 34 | Updated server data paths for Windows installer location |
 | **5.1.1** | 33 | Deck switching fix, user cards in deck, AI toggles in Settings, file upload feedback |
 | **5.1.0** | 32 | AI Generate buttons for definitions/pronunciations/groups, user cards management, Create Deck AI search |
@@ -281,13 +307,13 @@ Your server needs these endpoints:
 
 ## 📄 License
 
-Personal/educational use for learning American Kenpo Karate vocabulary.
+Personal/educational use for learning and studying flashcards (including the Kenpo Vocabulary deck).
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built for the Kenpo community to support vocabulary mastery and martial arts education.
+Includes a Kenpo Vocabulary deck for martial-arts terminology, plus support for other subjects.
 
 ## v4.4.2 (v22) – Implemented fixes (verified in code)
 

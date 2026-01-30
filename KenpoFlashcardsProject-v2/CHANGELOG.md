@@ -1,4 +1,4 @@
-# Changelog — KenpoFlashcardsProject-v2 (Android)
+# Changelog — AdvancedFlashcardsProject (Android)
 
 ## 5.4.0 (build 37) — 2026-01-28
 
@@ -21,12 +21,18 @@
 - Admin visibility is based on the server’s admin truth (token-based), not local assumptions.
 - Version bump to align with WebServer GEN8 deck-access generation.
 
+### Fixed — Branding + Build Stability
+- **Rebranding sweep**: Updated user-facing text and theme naming to **Advanced Flashcards** throughout the app **except** for the built-in **Kenpo Vocabulary** deck name/content.
+- **Release compile reliability**: Fixed invalid multiline `Text("...")` strings that could break `:app:compileReleaseKotlin` during CI/local builds.
+- **Admin UI stability**: Fixed missing `context` reference in Admin UI by using `LocalContext.current` where needed.
+
+
 ---
 
 ## 5.3.1 (build 36) — 2026-01-26
 
 ### Changed
-- Changed icons and logos from Kenpo to Advanced Flashcards
+- Changed icons and logos to Advanced Flashcards branding
 
 ---
 
@@ -63,7 +69,7 @@
 
 ### Changed
 - Updated server data path references in WebAppSync.kt to reflect Windows installer location:
-  `C:/Program Files/Kenpo Flashcards/_internal/data/`
+  `C:/Program Files/Advanced Flashcards/_internal/data/`
 
 ---
 
