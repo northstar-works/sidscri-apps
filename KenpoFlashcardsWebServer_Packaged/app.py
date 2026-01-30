@@ -4,6 +4,7 @@ import time
 import hashlib
 import re
 import uuid
+import socket
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
 
@@ -12,6 +13,7 @@ import requests
 from flask import Flask, jsonify, request, send_from_directory, session, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+import logging
 
 # =========================================================
 # Advanced Flashcards WebApp Server (Multi-user with Username/Password Auth)
@@ -55,15 +57,25 @@ def _resolve_kenpo_json_path() -> str:
     """Resolve the kenpo_words.json path.
 
     Priority:
-      1) KENPO_JSON_PATH (explicit)
-      2) Auto-discover under KENPO_ROOT (or DEFAULT_KENPO_ROOT)
-      3) DEFAULT_KENPO_JSON_FALLBACK
+      1) KENPO_JSON_PATH env var (explicit)
+      2) Local server data file: <this_server>/data/kenpo_words.json
+      3) Auto-discover under KENPO_ROOT (or DEFAULT_KENPO_ROOT) for dev convenience
+      4) DEFAULT_KENPO_JSON_FALLBACK (last resort)
 
     Auto-discovery picks the most recently modified match.
     """
     explicit = (os.getenv("KENPO_JSON_PATH") or "").strip()
     if explicit and os.path.exists(explicit):
         return explicit
+
+    # Preferred location (packaged + deployed server): ./data/kenpo_words.json
+    try:
+        app_dir = Path(__file__).resolve().parent
+        local_data = app_dir / "data" / "kenpo_words.json"
+        if local_data.exists():
+            return str(local_data)
+    except Exception:
+        pass
 
     root = (os.getenv("KENPO_ROOT") or DEFAULT_KENPO_ROOT).strip() or DEFAULT_KENPO_ROOT
     try:
@@ -80,11 +92,26 @@ def _resolve_kenpo_json_path() -> str:
     return DEFAULT_KENPO_JSON_FALLBACK
 
 
-KENPO_JSON_PATH = _resolve_kenpo_json_path()
+
+# Cached resolved path for kenpo_words.json (computed at runtime).
+_KENPO_JSON_PATH_CACHE = None
+# Backwards-compatible alias (do not use directly; call _get_kenpo_json_path()).
+KENPO_JSON_PATH = ""
+
+def _get_kenpo_json_path() -> str:
+    """Return the resolved kenpo_words.json path and cache it for reuse."""
+    global _KENPO_JSON_PATH_CACHE
+    p = _resolve_kenpo_json_path()
+    _KENPO_JSON_PATH_CACHE = p
+    return p
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATA_DIR = os.path.join(APP_DIR, "data")
+
+from pathlib import Path
+
+DATA_DIR = Path(DATA_DIR)
 
 BREAKDOWNS_PATH = os.path.join(DATA_DIR, "breakdowns.json")
 
@@ -570,6 +597,42 @@ ADMIN_USERNAMES = _load_admin_usernames()
 PORT = int(os.environ.get("KENPO_WEB_PORT", "8009"))
 app = Flask(__name__, static_folder="static")
 
+# ----------------------------
+# File logging to ./logs
+# ----------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)
+
+logger = logging.getLogger('advanced_flashcards')
+logger.setLevel(logging.INFO)
+
+_fmt = logging.Formatter('%(asctime)s | %(levelname)s | %(name)s | %(message)s')
+_fh = logging.FileHandler(os.path.join(LOG_DIR, 'server.log'), encoding='utf-8')
+_fh.setLevel(logging.INFO)
+_fh.setFormatter(_fmt)
+_eh = logging.FileHandler(os.path.join(LOG_DIR, 'error.log'), encoding='utf-8')
+_eh.setLevel(logging.ERROR)
+_eh.setFormatter(_fmt)
+_sh = logging.StreamHandler()
+_sh.setLevel(logging.INFO)
+_sh.setFormatter(_fmt)
+
+if not any(isinstance(h, logging.FileHandler) and getattr(h, 'baseFilename', '').endswith('server.log') for h in logger.handlers):
+    logger.addHandler(_fh)
+if not any(isinstance(h, logging.FileHandler) and getattr(h, 'baseFilename', '').endswith('error.log') for h in logger.handlers):
+    logger.addHandler(_eh)
+if not any(isinstance(h, logging.StreamHandler) for h in logger.handlers):
+    logger.addHandler(_sh)
+
+# also pipe Werkzeug logs into our files
+werk_logger = logging.getLogger('werkzeug')
+werk_logger.setLevel(logging.INFO)
+for h in list(logger.handlers):
+    if h not in werk_logger.handlers:
+        werk_logger.addHandler(h)
+
+
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(USERS_DIR, exist_ok=True)
 
@@ -696,8 +759,19 @@ def _access_log_and_optional_allowlist():
     uname = (_get_user(uid) or {}).get("username") if uid else "-"
     if ALLOWED_IPS and ip not in ALLOWED_IPS:
         print(f"[BLOCK] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
+        logger.warning(f"[BLOCK] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
         return ("Forbidden", 403)
     print(f"[REQ] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
+    logger.info(f"[REQ] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
+
+    # If an admin has forced a password reset, require the user to change password before continuing.
+    # Allow only the login/logout/version/whoami endpoints and the password change endpoint.
+    if uid:
+        u = _get_user(uid) or {}
+        if u.get("password_reset_required") and request.path.startswith("/api/"):
+            allowed = {"/api/login", "/api/logout", "/api/version", "/api/whoami", "/api/me", "/api/user/change_password"}
+            if request.path not in allowed:
+                return jsonify({"error": "password_reset_required"}), 403
 
 _cards_cache: List[Dict[str, Any]] = []
 _cards_cache_mtime: float = -1.0
@@ -797,12 +871,13 @@ def _normalize_cards(raw: Any) -> List[Dict[str, Any]]:
 
 def load_cards_cached() -> Tuple[List[Dict[str, Any]], str]:
     global _cards_cache, _cards_cache_mtime
-    if not os.path.exists(KENPO_JSON_PATH):
-        return [], f"kenpo_words.json not found at: {KENPO_JSON_PATH}"
+    p = _get_kenpo_json_path()
+    if not p or not os.path.exists(p):
+        return [], f"kenpo_words.json not found at: {p}"
 
-    mtime = os.path.getmtime(KENPO_JSON_PATH)
+    mtime = os.path.getmtime(p)
     if mtime != _cards_cache_mtime:
-        raw = _load_json_file(KENPO_JSON_PATH)
+        raw = _load_json_file(p)
         _cards_cache = _normalize_cards(raw)
         _cards_cache_mtime = mtime
     return _cards_cache, "ok"
@@ -874,10 +949,11 @@ def load_helper_cached() -> Tuple[Dict[str, Any], str]:
     """Cache helper.json and rebuild automatically when kenpo_words.json changes."""
     global _helper_cache, _helper_cache_mtime
 
-    if not os.path.exists(KENPO_JSON_PATH):
-        return {}, f"kenpo_words.json not found at: {KENPO_JSON_PATH}"
+    p = _get_kenpo_json_path()
+    if not p or not os.path.exists(p):
+        return {}, f"kenpo_words.json not found at: {p}"
 
-    kenpo_mtime = os.path.getmtime(KENPO_JSON_PATH)
+    kenpo_mtime = os.path.getmtime(p)
 
     helper_exists = os.path.exists(HELPER_PATH)
     helper_mtime = os.path.getmtime(HELPER_PATH) if helper_exists else -1.0
@@ -1177,7 +1253,7 @@ def api_register():
     
     profiles["users"][user_id] = {
         "username": username,
-        "password_hash": generate_password_hash(password),
+        "password_hash": generate_password_hash(password, method="pbkdf2:sha256"),
         "display_name": display_name or username,
         "created_at": _now()
     }
@@ -1185,7 +1261,8 @@ def api_register():
     _save_profiles(profiles)
     _ensure_user_progress(user_id)
     session["user_id"] = user_id
-    return jsonify({"ok": True, "user": _get_user(user_id)})
+    force_pw = bool((_get_user(user_id) or {}).get("password_reset_required"))
+    return jsonify({"ok": True, "user": _get_user(user_id), "force_password_change": force_pw})
 
 
 @app.post("/api/login")
@@ -1213,7 +1290,7 @@ def api_login():
             profiles.setdefault("users", {})[user_id] = {
                 "user_id": user_id,
                 "username": username,
-                "password_hash": generate_password_hash(password) if password else "",
+                "password_hash": generate_password_hash(password, method="pbkdf2:sha256") if password else "",
                 "display_name": username,
                 "created_at": _now(),
             }
@@ -1225,6 +1302,16 @@ def api_login():
 
     user_id, user_data = result
     stored_hash = (user_data.get("password_hash") or "").strip()
+
+    # If an admin forced a password reset, require the temporary password for login.
+    # This provides a clear error to the user and prevents confusion with "invalid_credentials".
+    if user_data.get("password_reset_required"):
+        if password != "123456789":
+            return jsonify({
+                "error": "password_change_required",
+                "message": "Password reset required. Log in with the temporary password to set a new password.",
+                "temp_password_required": True
+            }), 403
 
     # Admin LAN login with blank password: accept (even if a password_hash exists)
     if is_admin and from_private_net and password == "":
@@ -1243,9 +1330,8 @@ def api_login():
     _ensure_user_progress(user_id)
     session["user_id"] = user_id
     log_activity("info", f"User logged in: {username}", username)
-    return jsonify({"ok": True, "user": _get_user(user_id)})
-
-
+    force_pw = bool((_get_user(user_id) or {}).get("password_reset_required"))
+    return jsonify({"ok": True, "user": _get_user(user_id), "force_password_change": force_pw})
 @app.post("/api/logout")
 def api_logout():
     uid = current_user_id()
@@ -1257,25 +1343,81 @@ def api_logout():
     return jsonify({"ok": True})
 
 
+@app.post("/api/user/change_password")
+def api_user_change_password():
+    """Change the current user's password. If password_reset_required is set, old_password is not required."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+
+    data = request.get_json(silent=True) or {}
+    old_password = (data.get("old_password") or "")
+    new_password = (data.get("new_password") or "")
+
+    if len(new_password) < 8:
+        return jsonify({"error": "password_too_short", "min_length": 8}), 400
+
+    profiles = _load_profiles()
+    udata = (profiles.get("users") or {}).get(uid)
+    if not udata:
+        return jsonify({"error": "user_not_found"}), 404
+
+    # If not forced reset, validate old password
+    if not udata.get("password_reset_required"):
+        stored = (udata.get("password_hash") or "")
+        if stored and (not check_password_hash(stored, old_password)):
+            return jsonify({"error": "invalid_old_password"}), 401
+
+    udata["password_hash"] = generate_password_hash(new_password, method="pbkdf2:sha256")
+    udata["password_reset_required"] = False
+    profiles["users"][uid] = udata
+    _save_profiles(profiles)
+
+    me = _get_user(uid) or {}
+    log_activity("info", f"Password changed for user: {me.get('username','')}", me.get("username",""))
+    return jsonify({"success": True})
+
+
 @app.get("/api/health")
 def health():
     cards, status = load_cards_cached()
     v = get_version()
-    kenpo_exists = os.path.exists(KENPO_JSON_PATH)
+    p = _get_kenpo_json_path()
+    kenpo_exists = bool(p) and os.path.exists(p)
     return jsonify({
-        "status": status, 
-        "cards_loaded": len(cards), 
-        "server_time": _now(), 
-        "version": v.get("version"), 
+        "status": status,
+        "cards_loaded": len(cards),
+        "server_time": _now(),
+        "version": v.get("version"),
         "build": v.get("build"),
         "kenpo_json_exists": kenpo_exists,
-        "kenpo_json_path": KENPO_JSON_PATH
+        "kenpo_json_path": p,
     })
+
+
+def get_install_type():
+    """
+    Return install type string:
+      - "packaged" when running from the packaged EXE/MSI project
+      - "webserver" when running the standalone web server project
+    Controlled by data/install_type.txt (optional). Defaults to "webserver".
+    """
+    try:
+        p = os.path.join(DATA_DIR, "install_type.txt")
+        if os.path.exists(p):
+            val = (open(p, "r", encoding="utf-8").read() or "").strip().lower()
+            if val:
+                return val
+    except Exception:
+        pass
+    return "webserver"
 
 
 @app.get("/api/version")
 def api_version():
-    return jsonify(get_version())
+    v = get_version() or {}
+    v["install_type"] = get_install_type()
+    return jsonify(v)
 @app.get("/api/groups")
 def api_groups():
     uid, _ = require_user()
@@ -1825,6 +1967,7 @@ def api_admin_stats():
             
             user_list.append({
                 "id": user_id,
+                "user_id": user_id,
                 "username": uname,
                 "is_admin": is_admin,
                 "password_reset_required": udata.get("password_reset_required", False),
@@ -1865,6 +2008,20 @@ def api_admin_stats():
     total_decks = len(decks)
     user_decks = sum(1 for d in decks if not d.get("isBuiltIn"))
     
+    
+    # Provide a compact deck list for the Admin UI (dropdowns + detail modals)
+    decks_list = []
+    for d in decks:
+        decks_list.append({
+            "id": d.get("id"),
+            "name": d.get("name", d.get("id")),
+            "description": d.get("description", ""),
+            "isBuiltIn": bool(d.get("isBuiltIn")),
+            "cardCount": int(d.get("cardCount") or 0),
+            "ownerId": _deck_owner_id(d),
+            "logoPath": d.get("logoPath")
+        })
+
     # API key status
     keys = _load_encrypted_api_keys()
     
@@ -1886,7 +2043,8 @@ def api_admin_stats():
         },
         "decks": {
             "total": total_decks,
-            "user_created": user_decks
+            "user_created": user_decks,
+            "list": decks_list
         },
         "progress": {
             "total_learned": total_learned,
@@ -2064,7 +2222,7 @@ def api_admin_user_reset_password():
     
     # Set password to default and flag for reset
     default_password = "123456789"
-    profiles["users"][target_user_id]["password_hash"] = generate_password_hash(default_password)
+    profiles["users"][target_user_id]["password_hash"] = generate_password_hash(default_password, method="pbkdf2:sha256")
     profiles["users"][target_user_id]["password_reset_required"] = True
     
     _save_profiles(profiles)
@@ -3413,18 +3571,12 @@ from flask import request, jsonify
 @app.get("/api/admin/user/deck_access")
 def api_admin_user_deck_access_get():
     """
-    UI calls: /api/admin/user/deck_access?user_id=XXXX
     Return deck access data for the Edit User modal.
+    Response contract matches static/admin.html:
+      - userDecks: decks owned by the target user (non built-in)
+      - adminDecks: decks owned by the current admin (non built-in)
+      - grantedAdminDeckIds: subset of adminDecks currently granted to the target user
     """
-    target_user_id = (request.args.get("user_id") or "").strip()
-    if not target_user_id:
-        return jsonify({"error": "missing user_id"}), 400
-
-    # If you already implemented a newer handler (recommended), call it here:
-    # return api_admin_get_user_deck_access(target_user_id)
-
-    # --- Otherwise, implement the logic directly here (minimal safe response) ---
-    # IMPORTANT: Adjust these helper names to what your app.py already uses.
     uid = current_user_id()
     if not uid:
         return jsonify({"error": "login_required"}), 401
@@ -3433,41 +3585,51 @@ def api_admin_user_deck_access_get():
     if not _is_admin_user(me.get("username", "")):
         return jsonify({"error": "admin_required"}), 403
 
+    target_user_id = (request.args.get("user_id") or "").strip()
+    if not target_user_id:
+        return jsonify({"error": "missing user_id"}), 400
+
     decks_all = _load_decks(include_all=True)
 
-    # decks the target user owns
-    owned = []
+    def _as_small(d):
+        return {"id": d.get("id"), "name": d.get("name", d.get("id"))}
+
+    # decks owned by target user
+    user_decks = []
     for d in decks_all:
         if d.get("isBuiltIn"):
             continue
         if _deck_owner_id(d) == target_user_id:
-            owned.append({"id": d.get("id"), "name": d.get("name", d.get("id"))})
+            user_decks.append(_as_small(d))
 
-    # decks the current admin owns (these are the ones you can grant/revoke)
+    # decks owned by this admin (these are the only ones admin can grant/revoke)
     admin_decks = []
     for d in decks_all:
         if d.get("isBuiltIn"):
             continue
         if _deck_owner_id(d) == uid:
-            admin_decks.append({"id": d.get("id"), "name": d.get("name", d.get("id"))})
+            admin_decks.append(_as_small(d))
 
     access = _load_deck_access()
     granted = set((access.get("userUnlocks", {}) or {}).get(target_user_id, []) or [])
-    granted_admin = [d["id"] for d in admin_decks if d["id"] in granted]
+    admin_deck_ids = set(d["id"] for d in admin_decks)
+    granted_admin_ids = sorted([d for d in granted if d in admin_deck_ids])
 
     return jsonify({
         "userId": target_user_id,
-        "ownedDecks": owned,
-        "adminDecks": admin_decks,
-        "grantedAdminDecks": granted_admin
+        "userDecks": sorted(user_decks, key=lambda x: (x["name"] or "").lower()),
+        "adminDecks": sorted(admin_decks, key=lambda x: (x["name"] or "").lower()),
+        "grantedAdminDeckIds": granted_admin_ids
     })
+
 
 @app.post("/api/admin/user/deck_access")
 def api_admin_user_deck_access_set():
-    target_user_id = (request.args.get("user_id") or "").strip()
-    if not target_user_id:
-        return jsonify({"error": "missing user_id"}), 400
-
+    """
+    Toggle access for ONE admin-owned deck to ONE target user.
+    Request body contract (static/admin.html):
+      { user_id, deck_id, enabled }
+    """
     uid = current_user_id()
     if not uid:
         return jsonify({"error": "login_required"}), 401
@@ -3477,28 +3639,32 @@ def api_admin_user_deck_access_set():
         return jsonify({"error": "admin_required"}), 403
 
     data = request.get_json(silent=True) or {}
-    desired = data.get("grantedAdminDecks", [])
-    if not isinstance(desired, list):
-        return jsonify({"error": "grantedAdminDecks must be a list"}), 400
-    desired = [str(x) for x in desired if str(x).strip()]
+    target_user_id = (data.get("user_id") or "").strip()
+    deck_id = (data.get("deck_id") or "").strip()
+    enabled = bool(data.get("enabled"))
 
-    decks_all = _load_decks(include_all=True)
-    admin_deck_ids = set(
-        d.get("id") for d in decks_all
-        if (not d.get("isBuiltIn")) and (_deck_owner_id(d) == uid)
-    )
-    desired = [d for d in desired if d in admin_deck_ids]
+    if not target_user_id or not deck_id:
+        return jsonify({"error": "missing user_id or deck_id"}), 400
+
+    # Only allow grant/revoke of decks owned by THIS admin (never built-in)
+    dmeta = _get_deck_by_id(deck_id) or {}
+    if dmeta.get("isBuiltIn") or _deck_owner_id(dmeta) != uid:
+        return jsonify({"error": "not_allowed"}), 403
 
     access = _load_deck_access()
     unlocks = access.setdefault("userUnlocks", {})
-    existing = set(unlocks.get(target_user_id, []) or [])
+    current = set(unlocks.get(target_user_id, []) or [])
 
-    # preserve any non-admin deck unlocks; only manage the subset owned by this admin
-    preserved = set([d for d in existing if d not in admin_deck_ids])
-    unlocks[target_user_id] = sorted(list(preserved.union(set(desired))))
+    if enabled:
+        current.add(deck_id)
+    else:
+        current.discard(deck_id)
 
+    unlocks[target_user_id] = sorted(list(current))
     _save_deck_access(access)
-    return jsonify({"success": True, "grantedAdminDecks": desired})
+
+    return jsonify({"success": True, "user_id": target_user_id, "deck_id": deck_id, "enabled": enabled})
+
 
 # ============ END ANDROID SYNC API ============
 
@@ -3744,15 +3910,22 @@ def _load_decks(user_id: str = None, include_all: bool = False) -> List[Dict[str
             result.append(d_copy)
         # Non-built-in deck (user created or shared)
         elif not d.get("isBuiltIn"):
-            # Non-built-in deck: only include if owned by user.
-            owner_id = d.get("ownerId") or d.get("createdBy")
-            if owner_id == user_id or (not owner_id and _user_has_legacy_cards_for_deck(user_id, d.get("id"))):
+            deck_id = d.get("id")
+            owner_id = d.get("ownerId") or d.get("ownerUserId") or d.get("createdBy")
+
+            # Owned by user (or legacy cards exist)
+            if owner_id == user_id or (not owner_id and _user_has_legacy_cards_for_deck(user_id, deck_id)):
                 d_copy = dict(d)
-                d_copy["accessType"] = "owned"
-                if not owner_id:
-                    d_copy["accessType"] = "owned_legacy"
+                d_copy["accessType"] = "owned" if owner_id else "owned_legacy"
                 result.append(d_copy)
-    
+            else:
+                # Shared/unlocked via admin grant / invite code
+                unlocked_ids = set((access.get("userUnlocks", {}) or {}).get(user_id, []) or [])
+                if deck_id in unlocked_ids:
+                    d_copy = dict(d)
+                    d_copy["accessType"] = "shared"
+                    result.append(d_copy)
+
     return result
 
 
@@ -4001,6 +4174,24 @@ def api_get_decks():
             else:
                 deck["cardCount"] = len(_load_deck_cards(did))
     
+    
+    # Permission flags for Web UI (Edit / Delete buttons)
+    config = _load_deck_config()
+    allow_non_admin_edits = config.get("allowNonAdminDeckEdits", True)
+    me = _get_user(uid) or {}
+    me_is_admin = _is_admin_user(me.get("username", ""))
+
+    for deck in decks:
+        if deck.get("isBuiltIn"):
+            deck["canEdit"] = bool(me_is_admin or allow_non_admin_edits)
+            deck["canDelete"] = False
+        else:
+            owner_id = deck.get("ownerId") or deck.get("ownerUserId") or deck.get("createdBy")
+            is_owner = (owner_id == uid) or (not owner_id and deck.get("accessType") in ("owned_legacy", "owned"))
+            # Only owners can edit/delete (even if admin), shared decks are read-only.
+            deck["canEdit"] = bool(is_owner)
+            deck["canDelete"] = bool(is_owner)
+
     return jsonify(decks)
 
 
@@ -5182,41 +5373,9 @@ def _load_api_keys_on_startup():
         print(f"[STARTUP] Loaded encrypted API keys from {API_KEYS_PATH}")
 
 
-
-
-# --- Single instance lock (prevents running multiple servers) ---
-_SINGLE_INSTANCE_MUTEX = None
-def _ensure_single_instance() -> bool:
-    """Return True if this is the first instance; False if another instance is already running."""
-    global _SINGLE_INSTANCE_MUTEX
-    try:
-        if sys.platform == "win32":
-            import ctypes
-            name = "Global\\AdvancedFlashcardsWebAppServer"
-            _SINGLE_INSTANCE_MUTEX = ctypes.windll.kernel32.CreateMutexW(None, False, name)
-            # ERROR_ALREADY_EXISTS = 183
-            if ctypes.windll.kernel32.GetLastError() == 183:
-                return False
-        else:
-            import tempfile
-            lock = os.path.join(tempfile.gettempdir(), "AdvancedFlashcardsWebAppServer.lock")
-            try:
-                fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-                os.write(fd, str(os.getpid()).encode("utf-8"))
-            except FileExistsError:
-                return False
-        return True
-    except Exception:
-        return True
-
 if __name__ == "__main__":
     # Load encrypted API keys from file (overrides environment variables)
     _load_api_keys_on_startup()
-    # Enforce single-instance server (prevents running twice)
-    if not _ensure_single_instance():
-        print("[INFO] Another instance is already running. Exiting.")
-        raise SystemExit(0)
-
     
     # Startup diagnostics (helps confirm your keys were picked up)
     try:
@@ -5224,6 +5383,27 @@ if __name__ == "__main__":
         gemini_state = "SET" if bool(GEMINI_API_KEY) else "not set"
         print(f"[AI] OpenAI key: {openai_state} • model: {OPENAI_MODEL if OPENAI_API_KEY else 'n/a'}")
         print(f"[AI] Gemini key: {gemini_state} • model: {GEMINI_MODEL if GEMINI_API_KEY else 'n/a'}")
+    except Exception:
+        pass
+    # Resolve LAN IP for a helpful startup message (never crash if it fails)
+    def _get_local_ip():
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            ip = s.getsockname()[0]
+            s.close()
+            return ip
+        except Exception:
+            return '127.0.0.1'
+    LOCAL_IP = _get_local_ip()
+    HOSTNAME = socket.gethostname()
+
+    print("[READY] Advanced Flashcards WebApp started successfully.")
+    print(f"       Local:   http://127.0.0.1:{PORT}")
+    print(f"       LAN IP:  http://{LOCAL_IP}:{PORT}")
+    print(f"       LAN DNS: http://{HOSTNAME}:{PORT}  (name may not resolve)")
+    try:
+        logger.info("[READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:%s • http://%s:%s", PORT, LOCAL_IP, PORT)
     except Exception:
         pass
 

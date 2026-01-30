@@ -4,6 +4,7 @@ import time
 import hashlib
 import re
 import uuid
+import socket
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
 
@@ -107,6 +108,10 @@ def _get_kenpo_json_path() -> str:
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATA_DIR = os.path.join(APP_DIR, "data")
+
+from pathlib import Path
+
+DATA_DIR = Path(DATA_DIR)
 
 BREAKDOWNS_PATH = os.path.join(DATA_DIR, "breakdowns.json")
 
@@ -5380,7 +5385,23 @@ if __name__ == "__main__":
         print(f"[AI] Gemini key: {gemini_state} • model: {GEMINI_MODEL if GEMINI_API_KEY else 'n/a'}")
     except Exception:
         pass
-    print(f"[READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:{PORT} • http://{LOCAL_IP}:{PORT}")
+    # Resolve LAN IP for a helpful startup message (never crash if it fails)
+    def _get_local_ip():
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            ip = s.getsockname()[0]
+            s.close()
+            return ip
+        except Exception:
+            return '127.0.0.1'
+    LOCAL_IP = _get_local_ip()
+    HOSTNAME = socket.gethostname()
+
+    print("[READY] Advanced Flashcards WebApp started successfully.")
+    print(f"       Local:   http://127.0.0.1:{PORT}")
+    print(f"       LAN IP:  http://{LOCAL_IP}:{PORT}")
+    print(f"       LAN DNS: http://{HOSTNAME}:{PORT}  (name may not resolve)")
     try:
         logger.info("[READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:%s • http://%s:%s", PORT, LOCAL_IP, PORT)
     except Exception:

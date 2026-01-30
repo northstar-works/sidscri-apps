@@ -1,7 +1,10 @@
 {
   "app_name": "AdvancedFlashcardsWebAppServer_Packaged",
-  "version": "4.1.0.1",
-  "build": 14,
-  "release_date": "2026-01-29",
-  "notes": "Single-instance lock for tray/server; prevent duplicate processes."
+  "version": "5.0.0",
+  "build": 15,
+  "release_date": "2026-01-30",
+  "notes": "Synced to web server v8.2.0.",
+  "webserver_version": "8.2.0",
+  "webserver_build": 50,
+  "last_sync": "2026-01-30T01:22:58.690253"
 }

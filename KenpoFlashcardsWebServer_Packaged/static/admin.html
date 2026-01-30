@@ -150,6 +150,31 @@
 .deckAccessMeta{ font-size: 11px; color:#9ca3af; margin-top:2px; }
 .deckAccessToggle{ display:flex; align-items:center; gap:8px; }
 .toggleLabel{ font-size: 12px; color:#cbd5e1; }
+
+    .overview-tile.clickable{ cursor:pointer; }
+    .overview-tile.clickable:hover{ transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,.35); }
+
+    /* overview detail modal */
+    .ovModalBackdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.65);
+      display:none; align-items:center; justify-content:center; z-index:9999;
+      padding:24px;
+    }
+    .ovModal{
+      width:min(980px, 95vw); max-height:90vh; overflow:auto;
+      background: linear-gradient(180deg, rgba(30,35,45,.98), rgba(20,22,28,.98));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px; box-shadow: 0 25px 60px rgba(0,0,0,.6);
+      padding:18px 18px 10px;
+    }
+    .ovModalHeader{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .ovModalHeader h2{ margin:0; font-size:18px; }
+    .ovModalClose{ border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; }
+    .ovModalBody{ margin-top:12px; }
+    .ovPill{ display:inline-block; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10); margin-right:6px; font-size:12px; }
+    .ovTable{ width:100%; border-collapse:collapse; }
+    .ovTable th,.ovTable td{ text-align:left; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); font-size:13px; }
+    .ovSearch{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.25); color:#fff; margin:10px 0 12px; }
 </style>
 </head>
 <body>
@@ -281,6 +306,12 @@
         <div class="section-card danger-section">
           <div class="section-title"><span>⚠️</span> Built-In Deck Management</div>
           <p class="section-desc">Manage which decks are considered "built-in" and available to all users by default.</p>
+          <div class="user-access-form" style="margin-bottom:10px;">
+            <select id="addBuiltInDeckSelect" class="form-select">
+              <option value="">Add built-in deck...</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="addBuiltInDeck()">Add Built-In</button>
+          </div>
           <div class="built-in-list" id="builtInDecksList">
             <div class="loading">Loading...</div>
           </div>
@@ -324,7 +355,7 @@
       <!-- System Tab -->
       <div class="tab-content" id="tab-system">
         <div class="section-card">
-          <div class="section-title"><span>🖥️</span> Server Information</div>
+          <div class="section-title"><span>🖥️</span> App Information</div>
           <div class="server-info" id="serverInfo">
             <div class="info-item">
               <div class="info-label">Loading...</div>
@@ -346,7 +377,7 @@
       <!-- Logs Tab -->
       <div class="tab-content" id="tab-logs">
         <div class="section-card">
-          <div class="section-title"><span>📋</span> Server Logs</div>
+          <div class="section-title"><span>📋</span> App Logs</div>
           <div class="quick-actions" style="margin-bottom:16px;">
             <button class="btn btn-secondary btn-sm" onclick="loadLogs('server')">App Logs</button>
             <button class="btn btn-secondary btn-sm" onclick="loadLogs('error')">Error Logs</button>
@@ -409,6 +440,8 @@
   </div>
 
   <script>
+    const APP_NAME = "Advanced Flashcards WebApp";
+
     let statsData = null;
     
     async function jget(url) {
@@ -435,7 +468,10 @@
     
     async function loadStats() {
       try {
+        // Load admin stats (handles login_required/admin_required gracefully)
+        const loadingEl = document.getElementById('loading');
         statsData = await jget('/api/admin/stats');
+
         
         // Overview stats
         document.getElementById('statUsers').textContent = statsData.users.total;
@@ -470,6 +506,29 @@
         
       } catch (e) {
         console.error('Failed to load stats:', e);
+
+        const el = document.getElementById('loading');
+        if (!el) return;
+
+        // Try to parse error body (jget throws text)
+        const raw = (e && (e.message || String(e))) || '';
+        let errObj = null;
+        try { errObj = JSON.parse(raw); } catch(_) {}
+
+        const err = (errObj && errObj.error) ? errObj.error : raw;
+
+        if (String(err).includes('login_required')) {
+          el.innerHTML = `Login required. <a href="/">Go to ${APP_NAME}</a> to login, then reopen Admin Dashboard.`;
+          return;
+        }
+        if (String(err).includes('admin_required')) {
+          el.innerHTML = `Admin access required. You are logged in, but not as an admin. <a href="/">Go to ${APP_NAME}</a>.`;
+          return;
+        }
+
+        el.innerHTML = `Failed to load admin data.<br/>
+          <small>Details: ${escapeHtml(String(err)).slice(0, 400)}</small><br/>
+          <small>Try: <a href="/">Go back to ${APP_NAME}</a> to login, then reopen Admin Dashboard.</small>`;
       }
     }
     
@@ -779,6 +838,7 @@ async function loadEditUserDeckAccess(userId){
       try {
         const data = await jget('/api/admin/deck-config');
         deckConfig = data.config || {};
+        deckAccess = { inviteCodes: data.inviteCodes || {}, userUnlocks: data.userUnlocks || {}, userBuiltInDisabled: data.userBuiltInDisabled || [] };
         
         // Update checkboxes
         document.getElementById('cfgNewUsersGetBuiltIn').checked = deckConfig.newUsersGetBuiltInDecks !== false;
@@ -793,6 +853,7 @@ async function loadEditUserDeckAccess(userId){
         // Populate deck selects
         allDecks = statsData?.decks?.list || [];
         populateDeckSelects();
+        updateUserDeckAccessUI();
         
         // Populate user selects
         allUsers = statsData?.users?.list || [];
@@ -821,6 +882,7 @@ async function loadEditUserDeckAccess(userId){
         return;
       }
       
+      populateAddBuiltInSelect(builtInIds);
       container.innerHTML = builtInIds.map(id => {
         const deck = allDecks.find(d => d.id === id) || { id, name: id };
         return `
@@ -833,9 +895,36 @@ async function loadEditUserDeckAccess(userId){
           </div>
         `;
       }).join('');
-    }
     
-    async function removeBuiltInDeck(deckId) {
+    function populateAddBuiltInSelect(builtInIds){
+      const sel = document.getElementById('addBuiltInDeckSelect');
+      if(!sel) return;
+      const builtSet = new Set(builtInIds || []);
+      const options = (allDecks || []).filter(d => !builtSet.has(d.id)).map(d => `<option value="${d.id}">${d.name || d.id}</option>`).join('');
+      sel.innerHTML = `<option value="">Add built-in deck...</option>` + options;
+    }
+}
+    
+    
+    async function addBuiltInDeck(){
+      const sel = document.getElementById('addBuiltInDeckSelect');
+      const deckId = sel ? sel.value : '';
+      if(!deckId) return;
+      try {
+        const built = new Set(deckConfig.builtInDecks || []);
+        built.add(deckId);
+        const newBuiltIn = Array.from(built);
+        const res = await jpost('/api/admin/deck-config', { builtInDecks: newBuiltIn });
+        deckConfig = res.config || deckConfig;
+        await loadStats();
+        await loadDeckConfig();
+      } catch(e){
+        alert('Error: ' + e.message);
+      } finally {
+        if(sel) sel.value = '';
+      }
+    }
+async function removeBuiltInDeck(deckId) {
       if (!confirm(`Remove "${deckId}" from built-in decks? Users will need invite codes to access it.`)) return;
       
       try {
@@ -914,7 +1003,50 @@ async function loadEditUserDeckAccess(userId){
       }
     }
     
-    async function unlockDeckForUser() {
+    
+    function updateUserDeckAccessUI(){
+      const userId = document.getElementById('userAccessSelect')?.value;
+      const deckId = document.getElementById('userDeckSelect')?.value;
+
+      const unlockBtn = document.querySelector('button[onclick="unlockDeckForUser()"]');
+      const lockBtn = document.querySelector('button[onclick="lockDeckForUser()"]');
+      const disBuiltBtn = document.querySelector('button[onclick="disableBuiltInForUser()"]');
+      const enBuiltBtn = document.querySelector('button[onclick="enableBuiltInForUser()"]');
+      const statusEl = document.getElementById('userAccessStatus');
+
+      if(!userId || !deckId){
+        if(statusEl) statusEl.textContent = '';
+        if(unlockBtn) unlockBtn.disabled = true;
+        if(lockBtn) lockBtn.disabled = true;
+        if(disBuiltBtn) disBuiltBtn.disabled = true;
+        if(enBuiltBtn) enBuiltBtn.disabled = true;
+        return;
+      }
+
+      const builtInIds = deckConfig.builtInDecks || [];
+      const isBuiltIn = builtInIds.includes(deckId);
+      const userDisabled = (deckAccess.userBuiltInDisabled || []).includes(userId);
+      const unlocked = ((deckAccess.userUnlocks || {})[userId] || []).includes(deckId);
+
+      if(isBuiltIn){
+        if(statusEl) statusEl.innerHTML = userDisabled
+          ? '<span style="color:#f87171;">Built-in access DISABLED for this user</span>'
+          : '<span style="color:#4ade80;">Built-in access ENABLED for this user</span>';
+        if(unlockBtn) unlockBtn.disabled = true;
+        if(lockBtn) lockBtn.disabled = true;
+        if(disBuiltBtn) disBuiltBtn.disabled = userDisabled;
+        if(enBuiltBtn) enBuiltBtn.disabled = !userDisabled;
+      } else {
+        if(statusEl) statusEl.innerHTML = unlocked
+          ? '<span style="color:#4ade80;">Unlocked for this user</span>'
+          : '<span style="color:#f87171;">Locked for this user</span>';
+        if(unlockBtn) unlockBtn.disabled = unlocked;
+        if(lockBtn) lockBtn.disabled = !unlocked;
+        if(disBuiltBtn) disBuiltBtn.disabled = !userDisabled;
+        if(enBuiltBtn) enBuiltBtn.disabled = userDisabled;
+      }
+    }
+async function unlockDeckForUser() {
       const userId = document.getElementById('userAccessSelect').value;
       const deckId = document.getElementById('userDeckSelect').value;
       
@@ -979,11 +1111,119 @@ async function loadEditUserDeckAccess(userId){
     }
     
     document.addEventListener('DOMContentLoaded', async () => {
-      await loadStats();
-      await loadDeckConfig();
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
+      try {
+        await loadStats();
+        await loadDeckConfig();
+      } catch (e) {
+        console.error("Admin dashboard init failed:", e);
+        const loading = document.getElementById('loading');
+        if(loading){
+          loading.innerHTML = '<div style="color:#f87171;font-weight:600;margin-bottom:8px;">Failed to load admin dashboard</div>' +
+                              '<div style="color:#cbd5e1;font-size:13px;">' + (e && e.message ? e.message : String(e)) + '</div>';
+        }
+        // Still show the dashboard shell so you can navigate other tabs if some calls worked.
+      } finally {
+        const loading = document.getElementById('loading');
+        const dash = document.getElementById('dashboard');
+        if(loading) loading.style.display = 'none';
+        if(dash) dash.style.display = 'block';
+      }
     });
-  </script>
+  
+    function closeOverviewDetail(e){
+      if(e && e.target && e.target.id !== "ovModalBackdrop") return;
+      const b = document.getElementById("ovModalBackdrop");
+      if(b) b.style.display = "none";
+    }
+
+    function openOverviewDetail(kind){
+      if(!statsData){ return; }
+      const backdrop = document.getElementById("ovModalBackdrop");
+      const titleEl = document.getElementById("ovModalTitle");
+      const bodyEl = document.getElementById("ovModalBody");
+      if(!backdrop || !titleEl || !bodyEl){ return; }
+
+      const makeRow = (cells)=> `<tr>${cells.map(c=>`<td>${c}</td>`).join("")}</tr>`;
+      const esc = (s)=> String(s ?? "").replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+      let html = "";
+      if(kind === "users"){
+        titleEl.textContent = "Users • quick stats";
+        const users = (statsData.users && statsData.users.list) ? statsData.users.list : [];
+        html += `<div style="margin-bottom:8px;">
+          <span class="ovPill">${users.length} users</span>
+          <span class="ovPill">${users.filter(u=>u.is_admin).length} admins</span>
+          <span class="ovPill">${users.filter(u=>u.password_reset_required).length} forced resets</span>
+        </div>`;
+        html += `<input id="ovSearch" class="ovSearch" placeholder="Filter users (name)…" oninput="filterOvTable(this.value)">`;
+        html += `<table class="ovTable" id="ovTable"><thead><tr><th>User</th><th>Role</th><th>Learned</th><th>Unsure</th><th>Active Deck</th><th>Reset?</th></tr></thead><tbody>`;
+        users.forEach(u=>{
+          html += `<tr><td>${esc(u.username)}</td><td>${u.is_admin ? "Admin" : "User"}</td><td>${u.learned||0}</td><td>${u.unsure||0}</td><td>${esc(u.active_deck||"-")}</td><td>${u.password_reset_required ? "Yes" : ""}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      } else if(kind === "decks"){
+        titleEl.textContent = "Study Decks • catalog";
+        const decks = (statsData.decks && statsData.decks.list) ? statsData.decks.list : [];
+        html += `<div style="margin-bottom:8px;">
+          <span class="ovPill">${decks.length} decks</span>
+          <span class="ovPill">${decks.filter(d=>d.isBuiltIn).length} built-in</span>
+        </div>`;
+        html += `<input id="ovSearch" class="ovSearch" placeholder="Filter decks (name)…" oninput="filterOvTable(this.value)">`;
+        html += `<table class="ovTable" id="ovTable"><thead><tr><th>Deck</th><th>Type</th><th>Cards</th><th>Owner</th><th>ID</th></tr></thead><tbody>`;
+        decks.forEach(d=>{
+          const t = d.isBuiltIn ? "Built-in" : "User";
+          html += `<tr><td>${esc(d.name)}</td><td>${t}</td><td>${d.cardCount||0}</td><td>${esc(d.ownerId||"-")}</td><td>${esc(d.id)}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      } else if(kind === "cards"){
+        titleEl.textContent = "Cards • totals";
+        const total = (statsData.cards && statsData.cards.total) ? statsData.cards.total : 0;
+        const byDeck = (statsData.cards && statsData.cards.by_deck) ? statsData.cards.by_deck : {};
+        html += `<div style="margin-bottom:10px;"><span class="ovPill">${total} total cards</span></div>`;
+        html += `<table class="ovTable" id="ovTable"><thead><tr><th>Deck</th><th>Cards</th></tr></thead><tbody>`;
+        Object.keys(byDeck).sort().forEach(k=>{
+          html += `<tr><td>${esc(k)}</td><td>${byDeck[k]||0}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      } else if(kind === "breakdowns"){
+        titleEl.textContent = "Breakdowns • library";
+        const b = statsData.breakdowns || {};
+        html += `<div style="margin-bottom:8px;">
+          <span class="ovPill">${b.total||0} breakdowns</span>
+          <span class="ovPill">${b.with_content||0} with content</span>
+        </div>`;
+        html += `<div style="padding:10px; border:1px solid rgba(255,255,255,.10); border-radius:12px; background:rgba(255,255,255,.04);">
+          <div style="font-size:13px; opacity:.9;">Tip: click <b>Logs</b> to see what users are doing in real time.</div>
+        </div>`;
+      } else {
+        titleEl.textContent = "Details";
+        html = "<div>Nothing to show.</div>";
+      }
+
+      bodyEl.innerHTML = html;
+      backdrop.style.display = "flex";
+    }
+
+    function filterOvTable(q){
+      q = (q||"").toLowerCase().trim();
+      const table = document.getElementById("ovTable");
+      if(!table) return;
+      const rows = table.querySelectorAll("tbody tr");
+      rows.forEach(r=>{
+        const txt = r.textContent.toLowerCase();
+        r.style.display = (!q || txt.includes(q)) ? "" : "none";
+      });
+    }
+</script>
+
+  <div id="ovModalBackdrop" class="ovModalBackdrop" onclick="closeOverviewDetail(event)">
+    <div class="ovModal" onclick="event.stopPropagation()">
+      <div class="ovModalHeader">
+        <h2 id="ovModalTitle">Details</h2>
+        <button class="ovModalClose" onclick="closeOverviewDetail()">Close</button>
+      </div>
+      <div class="ovModalBody" id="ovModalBody"></div>
+    </div>
+  </div>
 </body>
 </html>

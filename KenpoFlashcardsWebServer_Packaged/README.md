@@ -3,7 +3,7 @@
 A Windows **installer** build of the Advanced Flashcards WebApp Server + Tray Launcher.
 
 - **Packaged Version:** **v4.1.0.1 (build 14)**
-- **Bundled Web Server:** **v8.1.0 (build 48)**
+- **Bundled Web Server:** **v8.2.0 (build 50)**
 
 
 > **New in v4.1.0.1 (build 14)**: Enforces a **single running instance** of the tray/server to prevent duplicate processes (double-starts, service + tray, etc.).
@@ -15,6 +15,79 @@ A Windows **installer** build of the Advanced Flashcards WebApp Server + Tray La
 - **Configurable network binding** - access from localhost, LAN, or Tailscale.
 - **Upgrade Tool** to safely sync future web server updates without damaging packaging files.
 
+
+## What's new in v5.0.0 (build 15)
+
+- **Bundled Web Server updated to v8.2.0 (build 50)** (from v0.0.0 build 0), bringing:
+  - **Added GEN8 Token Admin Namespace for Android
+-**
+  - **Invite code redemption** — invite-code` (user token required).
+  - **Docs updates**
+  - **Admin per-user sharing controls**
+  - **Deck icons in “Switch Study Subject”** — specific or the default logo).
+  - **Major rebrand** — visible “Server”).
+  - **WebApp icons**
+  - **Deck logos (optional)** — deck logos with default fallback to the Advanced Flashcards logo; Kenpo deck use
+  - **Deck Access Management System**
+  - **Admin Dashboard - Decks Tab**
+  - **Deck Access Types Displayed**
+  - **Clear Default Deck**
+  - **Invite Code Redemption**
+  - **Custom Set Management Modal**
+  - **Settings Tab**
+  - **Manage Tab**
+  - **Saved Sets Tab**
+  - **Server Activity Logs**
+  - **Web Sync Endpoints** — based auth (fixes "login_required" error)
+  - **Breakdown Indicator**
+  - **Breakdown IDs API** — lightweight endpoint returning only IDs of cards with breakdown content
+  - **Enhanced User Stats** — user progress %, current deck, last sync time
+  - **Deck Stats** — created count
+  - **Rebranded to "Study Flashcards"**
+  - **Header shows active deck**
+  - **Set Default Deck**
+  - **API endpoint** — Sets a deck as default
+  - **🤖 AI Deck Generator**
+  - **Keywords**
+  - **Photo**
+  - **Document**
+  - **Edit Deck**
+  - **AI Deck Generator**
+  - **User cards in study deck** — created cards now merge with built-in cards
+  - **🎲 Pick Random N**
+  - **User Management Modal**
+  - **Admin User Editing**
+  - **Password Reset**
+  - **System Status Feed** — style status display in admin dashboard
+  - **Reshuffle button visible**
+  - **Search clear X button**
+  - **Randomize Custom Set setting**
+  - **Speak pronunciation only toggle**
+  - **Edit Decks page**
+  - **Switch tab**
+  - **Add Cards tab**
+  - **Deleted tab**
+  - **Deck management**
+  - **Sync Progress page** — sync info, and breakdown sync
+  - **Settings tabbed navigation**
+  - **Star button on study cards**
+  - **Sort by status dropdown**
+  - **Logout in user menu**
+  - **Custom Set (Starred Cards)**
+  - **Show breakdown on definition toggle**
+  - **Auto-speak on card change**
+  - **Speak definition on flip**
+  - **Admin Dashboard redesign**
+  - **GET /api/sync/apikeys**
+  - **AI Access Page** — access.html` web page for managing API keys
+  - **Model Selection**
+  - **Startup Key Loading**
+  - **Web API endpoints** — based admin access
+  - **Admin Users SoT** — Source of Truth for admin usernames
+  - **Encrypted API Key Storage**
+  - **POST /api/admin/apikeys**
+  - **GET /api/admin/apikeys**
+  - **GET /api/admin/status**
 
 ## What's new in v4.1.0 (build 13)
 

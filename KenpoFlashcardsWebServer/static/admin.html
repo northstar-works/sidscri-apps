@@ -444,13 +444,13 @@
 
     let statsData = null;
     
-    async async function jget(url) {
+    async function jget(url) {
       const r = await fetch(url, { credentials: 'include' });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
     }
     
-    async async function jpost(url, data) {
+    async function jpost(url, data) {
       const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
@@ -530,7 +530,6 @@
           <small>Details: ${escapeHtml(String(err)).slice(0, 400)}</small><br/>
           <small>Try: <a href="/">Go back to ${APP_NAME}</a> to login, then reopen Admin Dashboard.</small>`;
       }
-    }
     }
     
     function renderUsersTable() {

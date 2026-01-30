@@ -2,6 +2,117 @@
 
 All notable changes to the Windows packaged/installer distribution are documented here.
 
+## v5.0.0 (build 15) — 2026-01-30
+
+### Changed
+- **Updated bundled Web Server to v8.2.0 (build 50)** (from v0.0.0 build 0), including:
+  - Create Deck (Keyword method): auto-search uses deck name + description; default max = 25.
+  - Packaged-only display: Web Server Version appears in User menu, About, and Admin > System only when install_type is packaged.
+  - **Added GEN8 Token Admin Namespace for Android
+-**
+  - **Invite code redemption**
+  - **Docs updates**
+  - **Admin per-user sharing controls**
+  - **Deck icons in “Switch Study Subject”**
+  - **Major rebrand**
+  - **WebApp icons**
+  - **Deck logos (optional)**
+  - Updated user-facing text from “Kenpo Flashcards” → “Advanced Flashcards WebApp” across the Web UI (while keeping the main Study page header line `Study Flashcards • {Deck} • Cards loaded: {#}` unchanged).
+  - **Deck Access Management System**
+  - **Admin Dashboard - Decks Tab**
+  - **Deck Access Types Displayed**
+  - **Clear Default Deck**
+  - **Invite Code Redemption**
+  - `_load_decks()` now respects user access permissions
+  - Deck list shows access type badges
+  - Admin stats use `include_all=True` to see all decks
+  - Fixed modal size (700px width, 500px min-height) - no more resizing between tabs
+  - Split-pane Manage Cards tab: "In Custom Set" on left, "Available Cards" on right
+  - **Custom Set Management Modal**
+  - **Settings Tab**
+  - **Manage Tab**
+  - **Saved Sets Tab**
+  - **Server Activity Logs**
+  - **Settings Save Prompt**
+  - Moved random cards picker from Custom toggle bar to Custom Set Settings modal
+  - Settings inputs now track dirty state for save prompt
+  - **Web Sync Endpoints**
+  - **Breakdown Indicator**
+  - **Breakdown IDs API**
+  - **Enhanced User Stats**
+  - **Deck Stats**
+  - Tabbed interface: Overview, Users, System, Logs
+  - Removed About/User Guide links (accessible from main app)
+  - Android app can now sync decks and user cards with web server
+  - Full cross-platform deck and card sharing
+  - **Rebranded to "Study Flashcards"**
+  - **Header shows active deck**
+  - **Set Default Deck**
+  - **API endpoint**
+  - **🤖 AI Deck Generator**
+  - **Keywords**
+  - **Photo**
+  - **Document**
+  - **Edit Deck**
+  - **Logout confirmation**
+  - **AI Deck Generator**
+  - **User cards in study deck**
+  - Reshuffle button now works anytime (not just when random is enabled)
+  - **🎲 Pick Random N**
+  - **User Management Modal**
+  - **Admin User Editing**
+  - **Password Reset**
+  - **System Status Feed**
+  - **Reshuffle button visible**
+  - **Search clear X button**
+  - **Randomize Custom Set setting**
+  - **Speak pronunciation only toggle**
+  - Reshuffle works regardless of random toggle state (instant shuffle on demand)
+  - **Edit Decks page**
+  - **Switch tab**
+  - **Add Cards tab**
+  - **Deleted tab**
+  - **Deck management**
+  - **User cards CRUD**
+  - Settings page now has "Edit Decks" button at top for quick access
+  - **Sync Progress page**
+  - **Settings tabbed navigation**
+  - **Star button on study cards**
+  - **Sort by status dropdown**
+  - **Logout in user menu**
+  - Settings page completely redesigned with app-like card layout and modern buttons
+  - Buttons now use gradient backgrounds matching Android app style (primary blue, success green, danger red)
+  - Removed standalone logout button from header controls
+  - **Custom Set (Starred Cards)**
+  - **Show breakdown on definition toggle**
+  - **Auto-speak on card change**
+  - **Speak definition on flip**
+  - **Admin Dashboard redesign**
+  - **API endpoint**
+  - Admin page completely redesigned with modern UI, gradients, and animations
+  - Settings now include `show_breakdown_on_definition`, `auto_speak_on_card_change`, `speak_definition_on_flip`
+  - No functional server code changes in this patch release.
+  - **GET /api/sync/apikeys**
+  - API keys are now shared with all authenticated users on login
+  - Admin access only required to modify/save API keys, not to use them
+  - **AI Access Page**
+  - **Model Selection**
+  - **Startup Key Loading**
+  - **Web API endpoints**
+  - **Admin Users SoT**
+  - **Admin Users Endpoint**
+  - API keys now include model selection (chatGptModel, geminiModel)
+  - Keys loaded from `api_keys.enc` override environment variables
+  - Admin page now prominently links to AI Access Settings
+  - **Encrypted API Key Storage**
+  - **POST /api/admin/apikeys**
+  - **GET /api/admin/apikeys**
+  - **GET /api/admin/status**
+  - Added dependency on `reportlab` for generating the User Guide PDF
+  - Added `reportlab` dependency for PDF generation
+  - Renamed "Definition first" to "Reverse the cards (Definition first)"
+  - Tighter spacing for small screens
+
 ## v4.1.0.1 (build 14) — 2026-01-29
 
 ### Fixes

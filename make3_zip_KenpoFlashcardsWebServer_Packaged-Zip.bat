@@ -72,7 +72,7 @@ set "WSSUFFIX="
 set "WSVER="
 set "WSBUILD="
 set "SYNCLOG="
-set "SYNCLOGDIR=%BASE%\..\logs\Sync"
+set "SYNCLOGDIR=%BASE%\logs\Sync"
 set "SYNCLOGPAT=v%VER%_b%BUILD%*.log"
 
 >>"%LOG%" echo SYNCLOGDIR=%SYNCLOGDIR%
@@ -100,7 +100,7 @@ if not "%SYNCLOG%"=="" (
   set "WSBUILD=%WSBUILD:"=%"
   set "WSBUILD=%WSBUILD: =%"
 
-  if not "%WSVER%"=="" if not "%WSBUILD%"=="" set "WSSUFFIX=_ws%WSVER%_b%WSBUILD%"
+  if not "%WSVER%"=="" if not "%WSBUILD%"=="" set "WSSUFFIX=-ws%WSVER%_v%WSBUILD%"
 ) else (
   >>"%LOG%" echo No matching Sync log found (will not append ws suffix)
 )
@@ -123,7 +123,7 @@ if "%BUILD%"=="" (
 )
 
 
-set "ZIPNAME=%PROJ%-v%VER% v%BUILD%%WSSUFFIX%.zip"
+set "ZIPNAME=%PROJ%-v%VER%_v%BUILD%%WSSUFFIX%.zip"
 set "ZIPPATH=%BASE%\%ZIPNAME%"
 >>"%LOG%" echo ZIPPATH=%ZIPPATH%
 

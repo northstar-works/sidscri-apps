@@ -1,0 +1,27 @@
+============================================================
+ONE CLICK BUILD started: Fri 01/30/2026  1:23:30.75
+Packaging folder: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\
+One-click folder: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\one_click\
+Master log     : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\logs\build_all_20260130_012330.log
+============================================================
+[PROGRESS] 0% - Starting...
+[PROGRESS] 10% - STEP 1/3: Pre Build of Build_Data
+
+[STEP 1] Pre Build started: Fri 01/30/2026  1:23:30.84
+[STEP 1] ExitCode=0
+[STEP 1] Pre Build complete: Fri 01/30/2026  1:23:31.43
+[PROGRESS] 33% - Pre Build complete
+[PROGRESS] 40% - STEP 2/3: Build EXE
+
+[STEP 2] Build EXE started: Fri 01/30/2026  1:23:31.49
+[STEP 2] ExitCode=0
+[STEP 2] Build EXE complete: Fri 01/30/2026  1:25:50.91
+[PROGRESS] 66% - Build EXE complete
+[PROGRESS] 75% - STEP 3/3: Build Installer (Inno)
+
+[STEP 3] Build Installer started: Fri 01/30/2026  1:25:50.96
+[STEP 3] ExitCode=0
+[STEP 3] Build Installer complete: Fri 01/30/2026  1:26:09.40
+[PROGRESS] 100% - ALL DONE
+
+ONE CLICK BUILD SUCCESS: Fri 01/30/2026  1:26:09.43
