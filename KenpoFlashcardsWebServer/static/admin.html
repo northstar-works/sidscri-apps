@@ -355,7 +355,7 @@
       <!-- System Tab -->
       <div class="tab-content" id="tab-system">
         <div class="section-card">
-          <div class="section-title"><span>🖥️</span> Server Information</div>
+          <div class="section-title"><span>🖥️</span> App Information</div>
           <div class="server-info" id="serverInfo">
             <div class="info-item">
               <div class="info-label">Loading...</div>
@@ -377,7 +377,7 @@
       <!-- Logs Tab -->
       <div class="tab-content" id="tab-logs">
         <div class="section-card">
-          <div class="section-title"><span>📋</span> Server Logs</div>
+          <div class="section-title"><span>📋</span> App Logs</div>
           <div class="quick-actions" style="margin-bottom:16px;">
             <button class="btn btn-secondary btn-sm" onclick="loadLogs('server')">App Logs</button>
             <button class="btn btn-secondary btn-sm" onclick="loadLogs('error')">Error Logs</button>
@@ -440,15 +440,17 @@
   </div>
 
   <script>
+    const APP_NAME = "Advanced Flashcards WebApp";
+
     let statsData = null;
     
-    async function jget(url) {
+    async async function jget(url) {
       const r = await fetch(url, { credentials: 'include' });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
     }
     
-    async function jpost(url, data) {
+    async async function jpost(url, data) {
       const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
@@ -466,7 +468,10 @@
     
     async function loadStats() {
       try {
+        // Load admin stats (handles login_required/admin_required gracefully)
+        const loadingEl = document.getElementById('loading');
         statsData = await jget('/api/admin/stats');
+
         
         // Overview stats
         document.getElementById('statUsers').textContent = statsData.users.total;
@@ -501,7 +506,31 @@
         
       } catch (e) {
         console.error('Failed to load stats:', e);
+
+        const el = document.getElementById('loading');
+        if (!el) return;
+
+        // Try to parse error body (jget throws text)
+        const raw = (e && (e.message || String(e))) || '';
+        let errObj = null;
+        try { errObj = JSON.parse(raw); } catch(_) {}
+
+        const err = (errObj && errObj.error) ? errObj.error : raw;
+
+        if (String(err).includes('login_required')) {
+          el.innerHTML = `Login required. <a href="/">Go to ${APP_NAME}</a> to login, then reopen Admin Dashboard.`;
+          return;
+        }
+        if (String(err).includes('admin_required')) {
+          el.innerHTML = `Admin access required. You are logged in, but not as an admin. <a href="/">Go to ${APP_NAME}</a>.`;
+          return;
+        }
+
+        el.innerHTML = `Failed to load admin data.<br/>
+          <small>Details: ${escapeHtml(String(err)).slice(0, 400)}</small><br/>
+          <small>Try: <a href="/">Go back to ${APP_NAME}</a> to login, then reopen Admin Dashboard.</small>`;
       }
+    }
     }
     
     function renderUsersTable() {
@@ -542,7 +571,7 @@
       }).join('');
     }
     
-    async async function loadServerInfo() {
+    async function loadServerInfo() {
       try {
         const v = await jget('/api/version');
         const w = await jget('/api/whoami');

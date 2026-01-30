@@ -306,6 +306,12 @@
         <div class="section-card danger-section">
           <div class="section-title"><span>⚠️</span> Built-In Deck Management</div>
           <p class="section-desc">Manage which decks are considered "built-in" and available to all users by default.</p>
+          <div class="user-access-form" style="margin-bottom:10px;">
+            <select id="addBuiltInDeckSelect" class="form-select">
+              <option value="">Add built-in deck...</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="addBuiltInDeck()">Add Built-In</button>
+          </div>
           <div class="built-in-list" id="builtInDecksList">
             <div class="loading">Loading...</div>
           </div>
@@ -349,7 +355,7 @@
       <!-- System Tab -->
       <div class="tab-content" id="tab-system">
         <div class="section-card">
-          <div class="section-title"><span>🖥️</span> Server Information</div>
+          <div class="section-title"><span>🖥️</span> App Information</div>
           <div class="server-info" id="serverInfo">
             <div class="info-item">
               <div class="info-label">Loading...</div>
@@ -371,7 +377,7 @@
       <!-- Logs Tab -->
       <div class="tab-content" id="tab-logs">
         <div class="section-card">
-          <div class="section-title"><span>📋</span> Server Logs</div>
+          <div class="section-title"><span>📋</span> App Logs</div>
           <div class="quick-actions" style="margin-bottom:16px;">
             <button class="btn btn-secondary btn-sm" onclick="loadLogs('server')">App Logs</button>
             <button class="btn btn-secondary btn-sm" onclick="loadLogs('error')">Error Logs</button>
@@ -434,15 +440,17 @@
   </div>
 
   <script>
+    const APP_NAME = "Advanced Flashcards WebApp";
+
     let statsData = null;
     
-    async function jget(url) {
+    async async function jget(url) {
       const r = await fetch(url, { credentials: 'include' });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
     }
     
-    async function jpost(url, data) {
+    async async function jpost(url, data) {
       const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
@@ -460,7 +468,10 @@
     
     async function loadStats() {
       try {
+        // Load admin stats (handles login_required/admin_required gracefully)
+        const loadingEl = document.getElementById('loading');
         statsData = await jget('/api/admin/stats');
+
         
         // Overview stats
         document.getElementById('statUsers').textContent = statsData.users.total;
@@ -495,7 +506,31 @@
         
       } catch (e) {
         console.error('Failed to load stats:', e);
+
+        const el = document.getElementById('loading');
+        if (!el) return;
+
+        // Try to parse error body (jget throws text)
+        const raw = (e && (e.message || String(e))) || '';
+        let errObj = null;
+        try { errObj = JSON.parse(raw); } catch(_) {}
+
+        const err = (errObj && errObj.error) ? errObj.error : raw;
+
+        if (String(err).includes('login_required')) {
+          el.innerHTML = `Login required. <a href="/">Go to ${APP_NAME}</a> to login, then reopen Admin Dashboard.`;
+          return;
+        }
+        if (String(err).includes('admin_required')) {
+          el.innerHTML = `Admin access required. You are logged in, but not as an admin. <a href="/">Go to ${APP_NAME}</a>.`;
+          return;
+        }
+
+        el.innerHTML = `Failed to load admin data.<br/>
+          <small>Details: ${escapeHtml(String(err)).slice(0, 400)}</small><br/>
+          <small>Try: <a href="/">Go back to ${APP_NAME}</a> to login, then reopen Admin Dashboard.</small>`;
       }
+    }
     }
     
     function renderUsersTable() {
@@ -804,6 +839,7 @@ async function loadEditUserDeckAccess(userId){
       try {
         const data = await jget('/api/admin/deck-config');
         deckConfig = data.config || {};
+        deckAccess = { inviteCodes: data.inviteCodes || {}, userUnlocks: data.userUnlocks || {}, userBuiltInDisabled: data.userBuiltInDisabled || [] };
         
         // Update checkboxes
         document.getElementById('cfgNewUsersGetBuiltIn').checked = deckConfig.newUsersGetBuiltInDecks !== false;
@@ -818,6 +854,7 @@ async function loadEditUserDeckAccess(userId){
         // Populate deck selects
         allDecks = statsData?.decks?.list || [];
         populateDeckSelects();
+        updateUserDeckAccessUI();
         
         // Populate user selects
         allUsers = statsData?.users?.list || [];
@@ -846,6 +883,7 @@ async function loadEditUserDeckAccess(userId){
         return;
       }
       
+      populateAddBuiltInSelect(builtInIds);
       container.innerHTML = builtInIds.map(id => {
         const deck = allDecks.find(d => d.id === id) || { id, name: id };
         return `
@@ -858,9 +896,36 @@ async function loadEditUserDeckAccess(userId){
           </div>
         `;
       }).join('');
-    }
     
-    async function removeBuiltInDeck(deckId) {
+    function populateAddBuiltInSelect(builtInIds){
+      const sel = document.getElementById('addBuiltInDeckSelect');
+      if(!sel) return;
+      const builtSet = new Set(builtInIds || []);
+      const options = (allDecks || []).filter(d => !builtSet.has(d.id)).map(d => `<option value="${d.id}">${d.name || d.id}</option>`).join('');
+      sel.innerHTML = `<option value="">Add built-in deck...</option>` + options;
+    }
+}
+    
+    
+    async function addBuiltInDeck(){
+      const sel = document.getElementById('addBuiltInDeckSelect');
+      const deckId = sel ? sel.value : '';
+      if(!deckId) return;
+      try {
+        const built = new Set(deckConfig.builtInDecks || []);
+        built.add(deckId);
+        const newBuiltIn = Array.from(built);
+        const res = await jpost('/api/admin/deck-config', { builtInDecks: newBuiltIn });
+        deckConfig = res.config || deckConfig;
+        await loadStats();
+        await loadDeckConfig();
+      } catch(e){
+        alert('Error: ' + e.message);
+      } finally {
+        if(sel) sel.value = '';
+      }
+    }
+async function removeBuiltInDeck(deckId) {
       if (!confirm(`Remove "${deckId}" from built-in decks? Users will need invite codes to access it.`)) return;
       
       try {
@@ -939,7 +1004,50 @@ async function loadEditUserDeckAccess(userId){
       }
     }
     
-    async function unlockDeckForUser() {
+    
+    function updateUserDeckAccessUI(){
+      const userId = document.getElementById('userAccessSelect')?.value;
+      const deckId = document.getElementById('userDeckSelect')?.value;
+
+      const unlockBtn = document.querySelector('button[onclick="unlockDeckForUser()"]');
+      const lockBtn = document.querySelector('button[onclick="lockDeckForUser()"]');
+      const disBuiltBtn = document.querySelector('button[onclick="disableBuiltInForUser()"]');
+      const enBuiltBtn = document.querySelector('button[onclick="enableBuiltInForUser()"]');
+      const statusEl = document.getElementById('userAccessStatus');
+
+      if(!userId || !deckId){
+        if(statusEl) statusEl.textContent = '';
+        if(unlockBtn) unlockBtn.disabled = true;
+        if(lockBtn) lockBtn.disabled = true;
+        if(disBuiltBtn) disBuiltBtn.disabled = true;
+        if(enBuiltBtn) enBuiltBtn.disabled = true;
+        return;
+      }
+
+      const builtInIds = deckConfig.builtInDecks || [];
+      const isBuiltIn = builtInIds.includes(deckId);
+      const userDisabled = (deckAccess.userBuiltInDisabled || []).includes(userId);
+      const unlocked = ((deckAccess.userUnlocks || {})[userId] || []).includes(deckId);
+
+      if(isBuiltIn){
+        if(statusEl) statusEl.innerHTML = userDisabled
+          ? '<span style="color:#f87171;">Built-in access DISABLED for this user</span>'
+          : '<span style="color:#4ade80;">Built-in access ENABLED for this user</span>';
+        if(unlockBtn) unlockBtn.disabled = true;
+        if(lockBtn) lockBtn.disabled = true;
+        if(disBuiltBtn) disBuiltBtn.disabled = userDisabled;
+        if(enBuiltBtn) enBuiltBtn.disabled = !userDisabled;
+      } else {
+        if(statusEl) statusEl.innerHTML = unlocked
+          ? '<span style="color:#4ade80;">Unlocked for this user</span>'
+          : '<span style="color:#f87171;">Locked for this user</span>';
+        if(unlockBtn) unlockBtn.disabled = unlocked;
+        if(lockBtn) lockBtn.disabled = !unlocked;
+        if(disBuiltBtn) disBuiltBtn.disabled = !userDisabled;
+        if(enBuiltBtn) enBuiltBtn.disabled = userDisabled;
+      }
+    }
+async function unlockDeckForUser() {
       const userId = document.getElementById('userAccessSelect').value;
       const deckId = document.getElementById('userDeckSelect').value;
       
@@ -1004,10 +1112,23 @@ async function loadEditUserDeckAccess(userId){
     }
     
     document.addEventListener('DOMContentLoaded', async () => {
-      await loadStats();
-      await loadDeckConfig();
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
+      try {
+        await loadStats();
+        await loadDeckConfig();
+      } catch (e) {
+        console.error("Admin dashboard init failed:", e);
+        const loading = document.getElementById('loading');
+        if(loading){
+          loading.innerHTML = '<div style="color:#f87171;font-weight:600;margin-bottom:8px;">Failed to load admin dashboard</div>' +
+                              '<div style="color:#cbd5e1;font-size:13px;">' + (e && e.message ? e.message : String(e)) + '</div>';
+        }
+        // Still show the dashboard shell so you can navigate other tabs if some calls worked.
+      } finally {
+        const loading = document.getElementById('loading');
+        const dash = document.getElementById('dashboard');
+        if(loading) loading.style.display = 'none';
+        if(dash) dash.style.display = 'block';
+      }
     });
   
     function closeOverviewDetail(e){

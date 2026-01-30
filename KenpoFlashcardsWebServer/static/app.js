@@ -2038,7 +2038,6 @@ async function main(){
       $("authMessage").textContent = "Error: " + e.message;
     }
   });
-});
 
 
   // Switch to register view
@@ -2999,7 +2998,7 @@ async function saveEditDeck(){
 }
 
 // Create a new deck
-async async function createDeck(){
+async function createDeck(){
   const name = $("newDeckName").value.trim();
   const description = $("newDeckDescription").value.trim();
   const addMethod = ($("newDeckAddMethod")?.value || "none");
@@ -3376,6 +3375,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Tab switching
   document.querySelectorAll(".editDecksTab").forEach(tab => {
     tab.addEventListener("click", () => switchEditDecksTab(tab.dataset.tab));
+
+  // Boot auth + initial data load
+  try{
+    ensureLoggedIn();
+  }catch(e){
+    console.error('ensureLoggedIn failed', e);
+  }
+
   });
   
   // Create deck

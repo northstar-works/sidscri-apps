@@ -1223,13 +1223,13 @@ private fun SettingToggle(label: String, checked: Boolean, onCheckedChange: (Boo
 @Composable
 fun AdminScreen(nav: NavHostController, repo: Repository) {
     val decks by repo.decksFlow().collectAsState(initial = emptyList())
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val adminSettings by repo.adminSettingsFlow().collectAsState(initial = AdminSettings())
     LaunchedEffect(Unit) { repo.refreshAdminStatus() }
     
-        // Admin status is server-sourced (token) and stored in AdminSettings.isAdmin
+    // Admin status is server-sourced (token) and stored in AdminSettings.isAdmin
     val isAdmin = adminSettings.isAdmin
-        adminSettings.username.trim().lowercase() in setOf("sidscri")
     
     var chatGptKey by remember(adminSettings) { mutableStateOf(adminSettings.chatGptApiKey) }
     var chatGptModel by remember(adminSettings) { mutableStateOf(adminSettings.chatGptModel) }
@@ -1290,10 +1290,6 @@ fun AdminScreen(nav: NavHostController, repo: Repository) {
             var builtInDecks by remember { mutableStateOf(setOf<String>()) }
             var inviteDeckId by remember { mutableStateOf("kenpo") }
             var inviteCodeResult by remember { mutableStateOf("") }
-
-            // Needed for starting intents + clipboard in Compose
-            val context = androidx.compose.ui.platform.LocalContext.current
-
 
             if (isAdmin) {
                 Spacer(Modifier.height(16.dp))

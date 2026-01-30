@@ -12,6 +12,7 @@ import requests
 from flask import Flask, jsonify, request, send_from_directory, session, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+import logging
 
 # =========================================================
 # Advanced Flashcards WebApp Server (Multi-user with Username/Password Auth)
@@ -591,6 +592,42 @@ ADMIN_USERNAMES = _load_admin_usernames()
 PORT = int(os.environ.get("KENPO_WEB_PORT", "8009"))
 app = Flask(__name__, static_folder="static")
 
+# ----------------------------
+# File logging to ./logs
+# ----------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)
+
+logger = logging.getLogger('advanced_flashcards')
+logger.setLevel(logging.INFO)
+
+_fmt = logging.Formatter('%(asctime)s | %(levelname)s | %(name)s | %(message)s')
+_fh = logging.FileHandler(os.path.join(LOG_DIR, 'server.log'), encoding='utf-8')
+_fh.setLevel(logging.INFO)
+_fh.setFormatter(_fmt)
+_eh = logging.FileHandler(os.path.join(LOG_DIR, 'error.log'), encoding='utf-8')
+_eh.setLevel(logging.ERROR)
+_eh.setFormatter(_fmt)
+_sh = logging.StreamHandler()
+_sh.setLevel(logging.INFO)
+_sh.setFormatter(_fmt)
+
+if not any(isinstance(h, logging.FileHandler) and getattr(h, 'baseFilename', '').endswith('server.log') for h in logger.handlers):
+    logger.addHandler(_fh)
+if not any(isinstance(h, logging.FileHandler) and getattr(h, 'baseFilename', '').endswith('error.log') for h in logger.handlers):
+    logger.addHandler(_eh)
+if not any(isinstance(h, logging.StreamHandler) for h in logger.handlers):
+    logger.addHandler(_sh)
+
+# also pipe Werkzeug logs into our files
+werk_logger = logging.getLogger('werkzeug')
+werk_logger.setLevel(logging.INFO)
+for h in list(logger.handlers):
+    if h not in werk_logger.handlers:
+        werk_logger.addHandler(h)
+
+
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(USERS_DIR, exist_ok=True)
 
@@ -717,15 +754,17 @@ def _access_log_and_optional_allowlist():
     uname = (_get_user(uid) or {}).get("username") if uid else "-"
     if ALLOWED_IPS and ip not in ALLOWED_IPS:
         print(f"[BLOCK] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
+        logger.warning(f"[BLOCK] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
         return ("Forbidden", 403)
     print(f"[REQ] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
+    logger.info(f"[REQ] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
 
     # If an admin has forced a password reset, require the user to change password before continuing.
     # Allow only the login/logout/version/whoami endpoints and the password change endpoint.
     if uid:
         u = _get_user(uid) or {}
         if u.get("password_reset_required") and request.path.startswith("/api/"):
-                        allowed = {"/api/login", "/api/logout", "/api/version", "/api/whoami", "/api/me", "/api/user/change_password"}
+            allowed = {"/api/login", "/api/logout", "/api/version", "/api/whoami", "/api/me", "/api/user/change_password"}
             if request.path not in allowed:
                 return jsonify({"error": "password_reset_required"}), 403
 
@@ -5339,6 +5378,11 @@ if __name__ == "__main__":
         gemini_state = "SET" if bool(GEMINI_API_KEY) else "not set"
         print(f"[AI] OpenAI key: {openai_state} • model: {OPENAI_MODEL if OPENAI_API_KEY else 'n/a'}")
         print(f"[AI] Gemini key: {gemini_state} • model: {GEMINI_MODEL if GEMINI_API_KEY else 'n/a'}")
+    except Exception:
+        pass
+    print(f"[READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:{PORT} • http://{LOCAL_IP}:{PORT}")
+    try:
+        logger.info("[READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:%s • http://%s:%s", PORT, LOCAL_IP, PORT)
     except Exception:
         pass
 

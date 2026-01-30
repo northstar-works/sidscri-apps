@@ -126,7 +126,7 @@ if %RC% GEQ 8 (
 
 REM Remove files that should not be shared
 del /s /q "%STAGE%\%PROJ%\*.iml" >>"%LOG%" 2>&1
-if exist "%STAGE%\%PROJ%\local.properties" del /f /q "%STAGE%\%PROJ%\local.properties" >>"%LOG%" 2>&1
+if exist "%STAGE%\%PROJ%\local@#$##@.properties" del /f /q "%STAGE%\%PROJ%\local.properties" >>"%LOG%" 2>&1
 
 REM ---------- Ensure/rename Fixes file ----------
 set "FIXES_PATH=%STAGE%\%PROJ%\%FIXES_NAME%"

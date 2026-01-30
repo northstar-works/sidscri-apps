@@ -61,6 +61,7 @@ function bind(id, evt, fn){
 }
 
 let currentUser = null; // {id, username, display_name}
+let loginResetPending = false; // true after temp-password login until password is changed
 
 function isAdminUser(){
   try{
@@ -79,7 +80,7 @@ async function postLoginInit(){
   
   // Load saved active deck from settings FIRST
   try {
-    const settingsResp = await jget("/api/settings?scope=all");
+    const settingsResp = await jget("/api/settings?scope=all").catch(async (e)=>{ return await jget("/api/settings"); });
     const settings = (settingsResp && settingsResp.settings) ? settingsResp.settings : settingsResp;
     if(settings && settings.activeDeckId){
       activeDeckId = settings.activeDeckId;
@@ -1958,7 +1959,22 @@ async function main(){
       }).then(r => r.json());
       
       if(res.error){
+        if(res.error === "password_change_required"){
+          $("authMessage").textContent = res.message || "Password reset required. Log in with the temporary password (123456789) to set a new password.";
+          $("loginResetBox").classList.add("hidden");
+          loginResetPending = false;
+          return;
+        }
         $("authMessage").textContent = getErrorMessage({message: res.error});
+        return;
+      }
+
+      if(res.force_password_change){
+        loginResetPending = true;
+        $("authMessage").textContent = "Password change required. Set a new password below to finish logging in.";
+        $("loginResetBox").classList.remove("hidden");
+        if($("loginNewPassword")) $("loginNewPassword").value = "";
+        if($("loginNewPassword2")) $("loginNewPassword2").value = "";
         return;
       }
       
@@ -1972,6 +1988,57 @@ async function main(){
       $("authMessage").textContent = getErrorMessage(e);
     }
   });
+
+  bind("btnLoginResetPw","click", async ()=>{
+    const new_password = ($("loginNewPassword").value || "");
+    const new_password2 = ($("loginNewPassword2").value || "");
+
+    if(!loginResetPending){
+      $("authMessage").textContent = "Please log in with the temporary password first, then set a new password here.";
+      return;
+    }
+    if(!new_password){
+      $("authMessage").textContent = "Please enter a new password.";
+      return;
+    }
+    if(new_password !== new_password2){
+      $("authMessage").textContent = "New passwords do not match.";
+      return;
+    }
+
+    try{
+      const res = await fetch("/api/user/change_password", {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({new_password})
+      }).then(async r => {
+        const j = await r.json().catch(()=>({}));
+        if(!r.ok && !j.error) j.error = "reset_failed";
+        return j;
+      });
+
+      if(res.error){
+        $("authMessage").textContent = getErrorMessage({message: res.error});
+        return;
+      }
+
+      // Password updated successfully — finish login
+      loginResetPending = false;
+      $("loginResetBox").classList.add("hidden");
+      if($("loginNewPassword")) $("loginNewPassword").value = "";
+      if($("loginNewPassword2")) $("loginNewPassword2").value = "";
+      $("authMessage").textContent = "";
+
+      // Refresh current user and continue into app
+      await ensureLoggedIn();
+      appInitialized = false;
+      try{ await postLoginInit(); } catch(e){}
+      await refresh();
+    } catch(e){
+      $("authMessage").textContent = "Error: " + e.message;
+    }
+  });
+
 
   // Switch to register view
   bind("btnShowRegister","click", ()=>{
@@ -2934,6 +3001,7 @@ async function saveEditDeck(){
 async function createDeck(){
   const name = $("newDeckName").value.trim();
   const description = $("newDeckDescription").value.trim();
+  const addMethod = ($("newDeckAddMethod")?.value || "none");
   const logoInput = $("newDeckLogoFile");
   const logoFile = (logoInput && logoInput.files && logoInput.files.length) ? logoInput.files[0] : null;
 
@@ -2956,11 +3024,42 @@ async function createDeck(){
       }
     }
 
+    // Reset create form
     $("newDeckName").value = "";
     $("newDeckDescription").value = "";
+    if($("newDeckAddMethod")) $("newDeckAddMethod").value = "none";
     if(logoInput) logoInput.value = "";
+
     showEditDecksStatus(`Created deck "${name}"`, "success");
+
+    // Refresh decks and set the new deck active
     await loadDecks();
+    if(created && created.id){
+      try{ await switchToDeck(created.id); } catch(e){ activeDeckId = created.id; }
+    }
+
+    // Optionally jump into an add-cards method
+    if(addMethod !== "none" && created && created.id){
+      switchEditDecksTab("generate");
+      // Ensure keywords method active by default (it is) - explicitly select
+      const clickMethodTab = (m) => document.querySelector(`.genMethodTab[data-method="${m}"]`)?.click();
+
+      if(addMethod === "keywords"){
+        clickMethodTab("keywords");
+        const kw = [name, description].filter(Boolean).join(" ").trim();
+        if($("aiGenKeywords")) $("aiGenKeywords").value = kw;
+        if($("aiGenMaxCards")) $("aiGenMaxCards").value = "25";
+        // Trigger generate
+        $("aiGenSearchBtn")?.click();
+      } else if(addMethod === "photo"){
+        clickMethodTab("photo");
+        // Open file picker
+        $("photoUploadZone")?.click();
+      } else if(addMethod === "document"){
+        clickMethodTab("document");
+        $("docUploadZone")?.click();
+      }
+    }
   } catch(e){
     showEditDecksStatus("Failed to create deck: " + e.message, "error");
   }
@@ -3276,6 +3375,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Tab switching
   document.querySelectorAll(".editDecksTab").forEach(tab => {
     tab.addEventListener("click", () => switchEditDecksTab(tab.dataset.tab));
+
+  // Boot auth + initial data load
+  try{
+    ensureLoggedIn();
+  }catch(e){
+    console.error('ensureLoggedIn failed', e);
+  }
+
   });
   
   // Create deck

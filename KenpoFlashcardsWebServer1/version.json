@@ -1,9 +1,9 @@
 {
   "name": "Advanced Flashcards WebAppServer",
-  "version": "8.1.1",
-  "build": 49,
+  "version": "8.2.0",
+  "build": 50,
   "released": "2026-01-29",
-  "notes": "8.1.1 (build 49): Deck ownership + access fixes, admin dropdowns/overview details, forced password change flow, create-deck add-cards jump, generator defaults reset, and improved server/activity logging.",
-  "webserver_version": "8.1.1",
-  "webserver_build": 49
+  "notes": "8.2.0 (build 50): Packaged install detection + packaged-only Web Server version display; Admin deck access UX (status + add built-in); Custom Set randomization UI polish; Create-deck add-cards method selector with keyword auto-generate (25) and reset; forced password reset login flow improvements; docs updates.",
+  "webserver_version": "8.2.0",
+  "webserver_build": 50
 }

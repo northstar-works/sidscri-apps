@@ -1,0 +1,4 @@
+2026-01-29 17:12:47,167 | ERROR | werkzeug | 206.168.34.34 - - [29/Jan/2026 17:12:47] code 400, message Bad request version ('À\x14À')
+2026-01-29 17:13:01,098 | ERROR | werkzeug | 206.168.34.34 - - [29/Jan/2026 17:13:01] code 505, message Invalid HTTP version (2.0)
+2026-01-29 17:13:52,732 | ERROR | werkzeug | 206.168.34.34 - - [29/Jan/2026 17:13:52] code 400, message Bad request version ('À\x14À')
+2026-01-29 17:13:57,387 | ERROR | werkzeug | 206.168.34.34 - - [29/Jan/2026 17:13:57] code 400, message Bad request version ('À\x14À')

@@ -18,6 +18,8 @@ ip$$
 $$
 
 
+Copy-Item "C:\Users\Sidscri\AppData\Local\Temp\gradle-8.7\gradle-8.7\lib\plugins" ".\gradle\wrapper\gradle-wrapper.jar" -Force
+
 
 
 ###Exe build###

@@ -1,0 +1,226 @@
+============================================================
+Build EXE started: Thu 01/29/2026 16:20:40.95
+Project root : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged
+Packaging    : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging
+Mode         : update
+Data dir     : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\build_data
+============================================================
+[2/5] Installing packaging requirements
+Requirement already satisfied: pyinstaller==6.6.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (6.6.0)
+Requirement already satisfied: pystray==0.19.5 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 2)) (0.19.5)
+Requirement already satisfied: pillow==10.4.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 3)) (10.4.0)
+Requirement already satisfied: requests>=2.31.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 6)) (2.32.4)
+Requirement already satisfied: flask<3.0,>=2.2.2 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 7)) (2.3.3)
+Requirement already satisfied: Werkzeug<3.0,>=2.2.2 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 8)) (2.3.8)
+Requirement already satisfied: reportlab>=4.0.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 9)) (4.4.3)
+Requirement already satisfied: platformdirs>=4.0.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 10)) (4.3.6)
+Requirement already satisfied: jaraco.functools>=4.0.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 13)) (4.1.0)
+Requirement already satisfied: jaraco.context>=5.0.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 14)) (6.0.1)
+Requirement already satisfied: jaraco.classes>=3.0.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 15)) (3.4.0)
+Requirement already satisfied: jaraco.text>=3.0.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 16)) (4.0.0)
+Requirement already satisfied: setuptools>=75.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 19)) (75.3.3)
+Requirement already satisfied: wheel>=0.41 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from -r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 20)) (0.45.1)
+Requirement already satisfied: packaging>=22.0 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from pyinstaller==6.6.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (26.0)
+Requirement already satisfied: pefile>=2022.5.30; sys_platform == "win32" in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from pyinstaller==6.6.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (2024.8.26)
+Requirement already satisfied: importlib-metadata>=4.6; python_version < "3.10" in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from pyinstaller==6.6.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (8.5.0)
+Requirement already satisfied: altgraph in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from pyinstaller==6.6.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (0.17.5)
+Requirement already satisfied: pyinstaller-hooks-contrib>=2024.3 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from pyinstaller==6.6.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (2026.0)
+Requirement already satisfied: pywin32-ctypes>=0.2.1; sys_platform == "win32" in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from pyinstaller==6.6.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (0.2.3)
+Requirement already satisfied: six in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from pystray==0.19.5->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 2)) (1.17.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from requests>=2.31.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 6)) (3.4.4)
+Requirement already satisfied: idna<4,>=2.5 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from requests>=2.31.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 6)) (3.11)
+Requirement already satisfied: urllib3<3,>=1.21.1 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from requests>=2.31.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 6)) (2.2.3)
+Requirement already satisfied: certifi>=2017.4.17 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from requests>=2.31.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 6)) (2026.1.4)
+Requirement already satisfied: Jinja2>=3.1.2 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from flask<3.0,>=2.2.2->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 7)) (3.1.6)
+Requirement already satisfied: itsdangerous>=2.1.2 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from flask<3.0,>=2.2.2->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 7)) (2.2.0)
+Requirement already satisfied: blinker>=1.6.2 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from flask<3.0,>=2.2.2->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 7)) (1.8.2)
+Requirement already satisfied: click>=8.1.3 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from flask<3.0,>=2.2.2->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 7)) (8.1.8)
+Requirement already satisfied: MarkupSafe>=2.1.1 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from Werkzeug<3.0,>=2.2.2->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 8)) (2.1.5)
+Requirement already satisfied: more-itertools in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from jaraco.functools>=4.0.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 13)) (10.5.0)
+Requirement already satisfied: backports.tarfile; python_version < "3.12" in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from jaraco.context>=5.0.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 14)) (1.2.0)
+Requirement already satisfied: importlib-resources; python_version < "3.9" in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from jaraco.text>=3.0.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 16)) (6.4.5)
+Requirement already satisfied: autocommand in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from jaraco.text>=3.0.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 16)) (2.2.2)
+Requirement already satisfied: zipp>=3.20 in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from importlib-metadata>=4.6; python_version < "3.10"->pyinstaller==6.6.0->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 1)) (3.20.2)
+Requirement already satisfied: colorama; platform_system == "Windows" in c:\users\sidscri\documents\github\sidscri-apps\kenpoflashcardswebserver_packaged\.venv\lib\site-packages (from click>=8.1.3->flask<3.0,>=2.2.2->-r C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\requirements_packaging.txt (line 7)) (0.4.6)
+WARNING: You are using pip version 19.2.3, however version 25.0.1 is available.
+You should consider upgrading via the 'python -m pip install --upgrade pip' command.
+[3/5] Verifying data folder
+[4/5] Running PyInstaller
+371 INFO: PyInstaller: 6.6.0, contrib hooks: 2026.0
+371 INFO: Python: 3.8.1
+371 INFO: Platform: Windows-10-10.0.19041-SP0
+4403 INFO: Extending PYTHONPATH with paths
+['C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged',
+ 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged']
+4714 INFO: Appending 'datas' from .spec
+4726 INFO: checking Analysis
+4781 INFO: Building because C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\build_data\.from_local.flag changed
+4781 INFO: Running Analysis Analysis-00.toc
+4781 INFO: Target bytecode optimization level: 0
+4781 INFO: Initializing module dependency graph...
+4783 INFO: Caching module graph hooks...
+4848 INFO: Analyzing base_library.zip ...
+5876 INFO: Loading module hook 'hook-heapq.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+6033 INFO: Loading module hook 'hook-encodings.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+8099 INFO: Loading module hook 'hook-pickle.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+11277 INFO: Caching module dependency graph...
+11461 INFO: Looking for Python shared library...
+11539 INFO: Using Python shared library: C:\Users\Sidscri\AppData\Local\Programs\Python\Python38\python38.dll
+11539 INFO: Analyzing C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\AdvancedFlashcardsWebAppServerLauncher.py
+12465 INFO: Loading module hook 'hook-platform.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+12584 INFO: Loading module hook 'hook-urllib3.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+14178 INFO: Loading module hook 'hook-charset_normalizer.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+14396 INFO: Loading module hook 'hook-certifi.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+16114 INFO: Loading module hook 'hook-sysconfig.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+16596 INFO: Loading module hook 'hook-difflib.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+16752 INFO: Loading module hook 'hook-importlib_metadata.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+17255 INFO: Loading module hook 'hook-jinja2.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+18161 INFO: Loading module hook 'hook-multiprocessing.util.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+18464 INFO: Loading module hook 'hook-xml.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+19993 INFO: Loading module hook 'hook-reportlab.lib.utils.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+20048 INFO: Loading module hook 'hook-PIL.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+20191 INFO: Loading module hook 'hook-PIL.Image.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+21328 INFO: Loading module hook 'hook-packaging.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+21496 INFO: Loading module hook 'hook-PIL.ImageFilter.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+21652 INFO: Loading module hook 'hook-reportlab.pdfbase._fontdata.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+25313 INFO: Loading module hook 'hook-xml.dom.domreg.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+25580 INFO: Loading module hook 'hook-pystray.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+26131 INFO: Processing pre-safe import module hook six.moves from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module\\hook-six.moves.py'.
+26278 INFO: Processing pre-safe import module hook gi from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module\\hook-gi.py'.
+26447 INFO: Analyzing hidden import 'pystray._info'
+26459 INFO: Analyzing hidden import 'jaraco'
+26460 INFO: Analyzing hidden import 'jaraco.classes'
+26461 INFO: Analyzing hidden import 'jaraco.classes.ancestry'
+26618 INFO: Analyzing hidden import 'jaraco.classes.meta'
+26632 INFO: Analyzing hidden import 'jaraco.classes.properties'
+26657 INFO: Analyzing hidden import 'jaraco.context'
+26812 INFO: Loading module hook 'hook-backports.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+26832 INFO: Analyzing hidden import 'jaraco.functools'
+26863 INFO: Analyzing hidden import 'jaraco.text'
+26887 INFO: Loading module hook 'hook-jaraco.text.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+27096 INFO: Loading module hook 'hook-importlib_resources.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+27271 INFO: Analyzing hidden import 'jaraco.text.layouts'
+27288 INFO: Analyzing hidden import 'jaraco.text.show-newlines'
+27418 INFO: Analyzing hidden import 'jaraco.text.strip-prefix'
+27429 INFO: Analyzing hidden import 'jaraco.text.to-dvorak'
+27441 INFO: Analyzing hidden import 'jaraco.text.to-qwerty'
+27452 INFO: Analyzing hidden import 'pkg_resources'
+27577 INFO: Loading module hook 'hook-pkg_resources.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+29041 INFO: Loading module hook 'hook-platformdirs.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'...
+29140 INFO: Analyzing hidden import 'pkg_resources.tests'
+29142 INFO: Analyzing hidden import 'pkg_resources.tests.test_find_distributions'
+29157 INFO: Analyzing hidden import 'pkg_resources.tests.test_integration_zope_interface'
+29175 INFO: Analyzing hidden import 'pkg_resources.tests.test_markers'
+29283 INFO: Analyzing hidden import 'pkg_resources.tests.test_pkg_resources'
+29315 INFO: Processing pre-safe import module hook distutils from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module\\hook-distutils.py'.
+29316 INFO: Processing pre-find module path hook distutils from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_path\\hook-distutils.py'.
+29806 INFO: Loading module hook 'hook-distutils.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+29926 INFO: Loading module hook 'hook-distutils.util.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+30394 INFO: Analyzing hidden import 'pkg_resources.tests.test_resources'
+30437 INFO: Analyzing hidden import 'pkg_resources.tests.test_working_set'
+30455 INFO: Analyzing hidden import 'importlib_resources.simple'
+30471 INFO: Analyzing hidden import 'importlib_resources.tests'
+30472 INFO: Analyzing hidden import 'importlib_resources.tests._path'
+30487 INFO: Analyzing hidden import 'importlib_resources.tests.compat'
+30488 INFO: Analyzing hidden import 'importlib_resources.tests.compat.py312'
+30516 INFO: Analyzing hidden import 'importlib_resources.tests.test_compatibilty_files'
+30568 INFO: Analyzing hidden import 'importlib_resources.tests.test_contents'
+30591 INFO: Analyzing hidden import 'importlib_resources.tests.test_custom'
+30610 INFO: Analyzing hidden import 'importlib_resources.tests.test_files'
+30632 INFO: Analyzing hidden import 'importlib_resources.tests.test_functional'
+30652 INFO: Analyzing hidden import 'importlib_resources.tests.test_open'
+30677 INFO: Analyzing hidden import 'importlib_resources.tests.test_path'
+30692 INFO: Analyzing hidden import 'importlib_resources.tests.test_read'
+30738 INFO: Analyzing hidden import 'importlib_resources.tests.test_reader'
+30758 INFO: Analyzing hidden import 'importlib_resources.tests.test_resource'
+30784 INFO: Analyzing hidden import 'setuptools'
+30807 INFO: Loading module hook 'hook-setuptools.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+37286 INFO: Processing module hooks...
+37325 WARNING: Hidden import "importlib_resources.trees" not found!
+37898 INFO: Loading module hook 'hook-PIL.SpiderImagePlugin.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+38262 WARNING: Hidden import "pkg_resources._vendor.jaraco.functools" not found!
+38262 WARNING: Hidden import "pkg_resources._vendor.jaraco.context" not found!
+38262 WARNING: Hidden import "pkg_resources._vendor.jaraco.text" not found!
+38441 INFO: Loading module hook 'hook-setuptools.msvc.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+39417 INFO: Loading module hook 'hook-xml.etree.cElementTree.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+39555 INFO: Loading module hook 'hook-_tkinter.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+41851 INFO: Loading module hook 'hook-setuptools._distutils.command.check.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+42658 INFO: Loading module hook 'hook-distutils.command.check.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+43615 INFO: Loading module hook 'hook-_tkinter.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+43616 INFO: checking Tree
+43703 INFO: checking Tree
+43735 INFO: checking Tree
+43778 INFO: Performing binary vs. data reclassification (984 entries)
+76456 INFO: Looking for ctypes DLLs
+76576 INFO: Analyzing run-time hooks ...
+76587 INFO: Including run-time hook 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py'
+76604 INFO: Including run-time hook 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py'
+76620 INFO: Including run-time hook 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py'
+76638 INFO: Processing pre-find module path hook _pyi_rth_utils from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_path\\hook-_pyi_rth_utils.py'.
+76657 INFO: Loading module hook 'hook-_pyi_rth_utils.py' from 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks'...
+76659 INFO: Including run-time hook 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py'
+76677 INFO: Including run-time hook 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth__tkinter.py'
+76692 INFO: Including run-time hook 'C:\\Users\\Sidscri\\Documents\\GitHub\\sidscri-apps\\KenpoFlashcardsWebServer_Packaged\\.venv\\lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgres.py'
+76788 INFO: Looking for dynamic libraries
+81319 INFO: Extra DLL search directories (AddDllDirectory): []
+81319 INFO: Extra DLL search directories (PATH): []
+92822 INFO: Warnings written to C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\build\kenpo_tray\warn-kenpo_tray.txt
+93053 INFO: Graph cross-reference written to C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\build\kenpo_tray\xref-kenpo_tray.html
+93150 INFO: checking PYZ
+93449 INFO: checking PKG
+93467 INFO: Bootloader C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+93467 INFO: checking EXE
+93467 INFO: Building EXE because EXE-00.toc is non existent
+93467 INFO: Building EXE from EXE-00.toc
+93467 INFO: Copying bootloader EXE to C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\build\kenpo_tray\AdvancedFlashcardsWebAppServer.exe
+93651 INFO: Copying icon to EXE
+Traceback (most recent call last):
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\win32ctypes\pywin32\pywintypes.py", line 36, in pywin32error
+    yield
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\win32ctypes\pywin32\win32api.py", line 209, in BeginUpdateResource
+    return _resource._BeginUpdateResource(filename, delete)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\win32ctypes\core\ctypes\_util.py", line 39, in check_null
+    raise make_error(function, function_name)
+OSError: [WinError 225] Operation did not complete successfully because the file contains a virus or potentially unwanted software.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Sidscri\AppData\Local\Programs\Python\Python38\lib\runpy.py", line 193, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\Sidscri\AppData\Local\Programs\Python\Python38\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\__main__.py", line 232, in <module>
+    run()
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\__main__.py", line 212, in run
+    run_build(pyi_config, spec_file, **vars(args))
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\__main__.py", line 69, in run_build
+    PyInstaller.building.build_main.main(pyi_config, spec_file, **kwargs)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\building\build_main.py", line 1186, in main
+    build(specfile, distpath, workpath, clean_build)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\building\build_main.py", line 1126, in build
+    exec(code, spec_namespace)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\pyinstaller\kenpo_tray.spec", line 120, in <module>
+    exe = EXE(
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\building\api.py", line 643, in __init__
+    self.__postinit__()
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\building\datastruct.py", line 184, in __postinit__
+    self.assemble()
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\building\api.py", line 756, in assemble
+    self._retry_operation(icon.CopyIcons, build_name, self.icon)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\building\api.py", line 1018, in _retry_operation
+    return func(*args)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\utils\win32\icon.py", line 212, in CopyIcons
+    return CopyIcons_FromIco(dstpath, [srcpath])
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\PyInstaller\utils\win32\icon.py", line 144, in CopyIcons_FromIco
+    hdst = win32api.BeginUpdateResource(dstpath, 0)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\win32ctypes\pywin32\win32api.py", line 209, in BeginUpdateResource
+    return _resource._BeginUpdateResource(filename, delete)
+  File "C:\Users\Sidscri\AppData\Local\Programs\Python\Python38\lib\contextlib.py", line 131, in __exit__
+    self.gen.throw(type, value, traceback)
+  File "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\.venv\lib\site-packages\win32ctypes\pywin32\pywintypes.py", line 40, in pywin32error
+    raise error(exception.winerror, exception.function, exception.strerror)
+win32ctypes.pywin32.pywintypes.error: (225, 'BeginUpdateResourceW', 'Operation did not complete successfully because the file contains a virus or potentially unwanted software.')
+[INFO] Bundling version.json from: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\version.json
+[INFO] Bundling kenpo_words.json from: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\packaging\build_data\kenpo_words.json
+[Thu 01/29/2026 16:22:16.56] FAIL build_exe

@@ -5,7 +5,7 @@
 
 Flask-based web application providing sync API and web UI for Advanced Flashcards WebApp.
 
-**Current Version:** v8.1.0 (build 48)  
+**Current Version:** v8.2.0 (build 50)  
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
@@ -236,6 +236,17 @@ Upload PDF, TXT, or MD files. AI reads the content and generates flashcards from
 | `KENPO_ROOT` | Root path for auto-discovering `kenpo_words.json` |
 | `KENPO_JSON_PATH` | Direct path to card data JSON |
 
+### Kenpo Vocabulary Data (`kenpo_words.json`)
+- **Canonical location (server install):** `KenpoFlashcardsWebServer/data/kenpo_words.json`
+- The server will load from `data/kenpo_words.json` by default.
+- Optional overrides:
+  - `KENPO_JSON_PATH` (direct file path)
+  - `KENPO_ROOT` (auto-discovery root for development)
+
+### Packaged Install Marker
+- Packaged installs include `data/install_type.txt` containing `packaged`.
+- When present, the UI shows **Web Server Version: v8.2.0 (build 50)** in the User menu, About, and Admin > System.
+
 **Note:** API keys are now stored encrypted in `data/api_keys.enc`. You no longer need to set `OPENAI_API_KEY` in the batch file - keys are loaded from the encrypted file on startup.
 
 ### Auto-Path Discovery
@@ -312,7 +323,7 @@ Should return JSON with `version`, `term_to_id`, `cards`
 ```
 http://localhost:8009/api/version
 ```
-Should return `{"version": "8.1.0", "build": 48, ...}`
+Should return `{"version": "8.2.0", "build": 50, ...}`
 
 ### 3. Test Admin Users Endpoint
 ```
@@ -372,10 +383,24 @@ Interactive page with tabbed sections:
 
 ---
 
+## 🆕 Recent Updates (8.1.1 → 8.2.0)
+
+### v8.2.0 (build 50)
+- **Forced password reset UX (web):** users reset by **logging in with the temporary password** first; the app then keeps them on the login screen and shows **New + Confirm** fields to finish the reset before entering the app.
+- **Create Deck improvements:** added **“Add cards after creating”** method selector (None / Keywords / Photo / Document). When selected, the app auto-jumps to the chosen method after deck creation. Keywords uses the deck name + description and defaults to **25** cards.
+- **Admin stability:** Admin Dashboard no longer gets stuck on **“Loading dashboard…”** when an API call fails; it surfaces an error state instead.
+- **Packaged install marker:** packaged builds include `data/install_type.txt` with `packaged` so the UI can optionally show **Web Server Version** in User menu / About / Admin > System.
+
+### v8.1.1 (build 49)
+- **Health check reliability:** fixed a server crash on `/api/health` caused by an undefined Kenpo JSON path constant.
+- **Kenpo JSON canonical path:** standardized Kenpo vocabulary data to load from `KenpoFlashcardsWebServer/data/kenpo_words.json` by default, with optional overrides via `KENPO_JSON_PATH` and `KENPO_ROOT`.
+
 ## 📋 Version History
 
 | Version | Build | Key Changes |
 |---------|-------|-------------|
+| **8.2.0** | 50 | Forced password reset flow (temp login → reset on login screen), Create Deck add-cards method selector + auto-jump, Admin dashboard no longer hangs on load, Packaged install marker (`data/install_type.txt`) for showing Web Server Version |
+| **8.1.1** | 49 | Fix: `/api/health` crash caused by undefined Kenpo JSON path; Standardized Kenpo vocabulary JSON canonical path at `data/kenpo_words.json`; Health check now reports Kenpo JSON status cleanly |
 | **8.1.0** | 48 | Fix: Sync Pull no longer crashes on bad `updated_at`; Fix: Admin Edit User deck access loads/saves via `/api/admin/user/deck_access`; UI: header/logo alignment stability |
 | **8.0.2** | 47 | Minor upgrade: deck ownership (user decks private by default) + admin per-user deck sharing (read-only); Fix: admin password reset sets `123456789` reliably; Includes deck logo persistence/isolation + refresh fixes |
 | **8.0.1** | 46 | Fixed deck logos: per-deck persistence/isolation, refresh correctness, deck list icons, header logo sizing, default deck refresh fix |
@@ -405,7 +430,6 @@ Interactive page with tabbed sections:
 | **5.1.1** | 22 | version.json, favicon, security.txt |
 | **5.0.0** | 20 | Stable ID mapping baseline |
 | **4.2.0** | 18 | Settings reorg, Python 3.8 compat |
-
 
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 

@@ -13,7 +13,7 @@
   <div class="wrap">
     <header class="top">
       <div class="titleRow">
-        <h1><span class="appTitle">Study Flashcards</span> <span class="deckTitle" id="headerDeckName"></span></h1>
+        <h1><span class="appTitle">Advanced Flashcards WebApp</span> <span class="deckTitle" id="headerDeckName"></span></h1>
         <div class="mini" id="healthLine"></div>
         <div class="deckLogoWrap" id="deckLogoWrap" style="display:none;">
           <img class="deckLogoImg" id="deckLogoImg" alt="Deck logo" />
@@ -564,7 +564,17 @@
                   <span>Description</span>
                   <input id="newDeckDescription" placeholder="Brief description..." />
                 </label>
-                <button id="createDeckBtn" class="appBtn success">Create Deck</button>
+                
+                <label class="field">
+                  <span>Add cards after creating</span>
+                  <select id="newDeckAddMethod">
+                    <option value="none" selected>None (create empty deck)</option>
+                    <option value="keywords">Keywords (auto-generate up to 25)</option>
+                    <option value="photo">Photo (upload)</option>
+                    <option value="document">Document (upload)</option>
+                  </select>
+                </label>
+<button id="createDeckBtn" class="appBtn success">Create Deck</button>
               </div>
               
               <div class="settingsSectionTitle" style="margin-top: 24px;">🎟️ Redeem Invite Code</div>
@@ -894,7 +904,7 @@
               </div>
               <div class="csRandomPickRow">
                 <input type="number" id="csRandomPickCount" min="1" max="999" value="10" class="csRandomInput" />
-                <button class="appBtn secondary small" onclick="pickRandomCardsToCustom()">🎲 Add Random</button>
+                <button class="appBtn secondary small" onclick="pickRandomCardsToCustom()">🎲 Add Random Cards</button>
               </div>
             </div>
           </div>
@@ -995,6 +1005,7 @@
 
       <!-- Login Form -->
       <div id="loginBox" class="hidden">
+        <div class="loginVersionCorner" id="loginVersionCorner"></div>
         <div class="modalForm">
           <label class="field">
             <span>Username</span>
@@ -1004,6 +1015,21 @@
             <span>Password</span>
             <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password" />
           </label>
+          <div id="loginResetBox" class="hidden" style="margin-top:12px;">
+            <div class="modalDivider"></div>
+            <div style="color:#fbbf24;font-size:13px;margin-bottom:8px;">Password change required. Please set a new password below.</div>
+<label class="field">
+              <span>New Password</span>
+              <input id="loginNewPassword" type="password" autocomplete="new-password" placeholder="New password" />
+            </label>
+            <label class="field">
+              <span>Confirm New Password</span>
+              <input id="loginNewPassword2" type="password" autocomplete="new-password" placeholder="Confirm new password" />
+            </label>
+            <div class="modalBtns">
+              <button class="appBtn primary fullWidth" id="btnLoginResetPw">🔑 Change Password</button>
+            </div>
+          </div>
         </div>
         <div class="modalBtns">
           <button class="appBtn success fullWidth" id="btnLogin">🔐 Sign In</button>
