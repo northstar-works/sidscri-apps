@@ -1,0 +1,20 @@
+v5.6.0 build 39 — 2026-01-31
+
+1. Admin access bug: AdminScreen now falls back to AdminUsers.isAdmin() when server token is invalid/expired
+2. Keywords optional: AI deck creation uses deck name/description when keywords left blank
+3. Description auto-fill: Empty description auto-fills with deck name
+4. AI description: Edit Deck dialog has "AI Generate Description" button
+5. Concise definitions: AI prompts produce SHORT literal definitions by default (1-5 words)
+6. Descriptive toggle: Per-deck "Descriptive Definitions" setting in Edit Deck dialog
+7. Server verification: Login verifies target is a valid Advanced Flashcards server via /api/version
+8. Verify button: Admin login screen has "Verify Server" button showing server identity
+
+Files modified:
+- app/build.gradle (version 5.5.0→5.6.0, build 38→39)
+- Models.kt (added descriptiveDefinitions field to StudyDeck)
+- Store.kt (encode/decode descriptiveDefinitions, updateDeck accepts it)
+- Repository.kt (updateDeck passes descriptiveDefinitions, refreshAdminStatus fallback)
+- WebAppSync.kt (verifyServer(), server check before login)
+- AiGenerationHelper.kt (concise prompts, descriptive flag, generateDescription)
+- MainActivity.kt (admin fallback, keywords optional, edit deck dialog enhanced, verify button)
+- CHANGELOG.md (added v5.6.0 entry)

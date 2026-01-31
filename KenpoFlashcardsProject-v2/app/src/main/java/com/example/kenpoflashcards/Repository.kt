@@ -98,9 +98,9 @@ class Repository(private val context: Context, private val store: Store) {
     /**
      * Update deck name/description (with server sync)
      */
-    suspend fun updateDeck(deckId: String, name: String, description: String): Boolean {
+    suspend fun updateDeck(deckId: String, name: String, description: String, descriptiveDefinitions: Boolean? = null): Boolean {
         // Update locally first
-        store.updateDeck(deckId, name, description)
+        store.updateDeck(deckId, name, description, descriptiveDefinitions)
         
         // Sync to server if logged in
         try {
@@ -596,13 +596,25 @@ suspend fun deleteBreakdown(cardId: String) = store.deleteBreakdown(cardId)
 
     suspend fun refreshAdminStatus(): Boolean {
         val s = adminSettingsFlow().first()
-        if (!s.isLoggedIn || s.authToken.isBlank()) return false
+        if (!s.isLoggedIn || s.authToken.isBlank()) {
+            // Not logged in, but still set isAdmin from local check
+            val localAdmin = AdminUsers.isAdmin(s.username)
+            if (localAdmin != s.isAdmin) {
+                store.saveAdminSettings(s.copy(isAdmin = localAdmin))
+            }
+            return false
+        }
         return try {
             val resp = WebAppSync.syncFetchAdminStatus(s.webAppUrl, s.authToken)
             val isAdmin = resp.optBoolean("isAdmin", false)
             store.saveAdminSettings(s.copy(isAdmin = isAdmin))
             true
         } catch (_: Exception) {
+            // Server unreachable or token expired — fallback to local admin list
+            val localAdmin = AdminUsers.isAdmin(s.username)
+            if (localAdmin != s.isAdmin) {
+                store.saveAdminSettings(s.copy(isAdmin = localAdmin))
+            }
             false
         }
     }

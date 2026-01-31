@@ -60,6 +60,12 @@
     .progress-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 3px; }
     .deck-badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
     
+    /* Progress cell with studying text underneath */
+    .progress-cell { display: flex; flex-direction: column; gap: 4px; }
+    .progress-row { display: flex; align-items: center; gap: 8px; }
+    .progress-text { font-size: 12px; color: #888; }
+    .studying-text { font-size: 11px; color: #60a5fa; margin-top: 2px; }
+    
     /* Server info */
     .server-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
     .info-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; }
@@ -152,6 +158,16 @@
       .deckAccessList { max-height: 180px; }
       .quick-actions { flex-direction: column; }
       .quick-actions .btn { width: 100%; justify-content: center; }
+      
+      /* User table - hide Currently Studying column, show in progress cell */
+      .user-table th:nth-child(3),
+      .user-table td:nth-child(3) { display: none; }
+      .studying-text { display: block; }
+    }
+    
+    @media (min-width: 769px) {
+      /* Desktop - hide studying text in progress cell since it has its own column */
+      .studying-text { display: none; }
     }
     
     @media (max-width: 480px) {
@@ -159,6 +175,11 @@
       .user-table { font-size: 12px; }
       .user-table th, .user-table td { padding: 8px 6px; }
       .admin-tab span { display: none; }
+      
+      /* Further simplify table */
+      .user-table th:nth-child(4),
+      .user-table td:nth-child(4) { display: none; }
+      .progress-bar { width: 70px; }
     }
   
 
@@ -298,7 +319,7 @@
               <tr>
                 <th>User</th>
                 <th>Progress</th>
-                <th>Currently Studying</th>
+                <th class="studying-col">Currently Studying</th>
                 <th>Last Sync</th>
                 <th>Actions</th>
               </tr>
@@ -567,6 +588,7 @@
         const lastSync = u.last_sync ? new Date(u.last_sync * 1000).toLocaleDateString() : 'Never';
         const adminBadge = u.is_admin ? '<span class="admin-badge">Admin</span>' : '';
         const adminIcon = u.is_admin ? '<span class="admin-icon">👑</span>' : '';
+        const deckName = u.active_deck_name || 'Kenpo';
         
         return `
           <tr>
@@ -577,13 +599,16 @@
               </div>
             </td>
             <td>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div class="progress-bar"><div class="progress-fill" style="width:${progressPct}%"></div></div>
-                <span style="font-size:12px;color:#888;">${progressPct}%</span>
+              <div class="progress-cell">
+                <div class="progress-row">
+                  <div class="progress-bar"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+                  <span class="progress-text">${progressPct}%</span>
+                </div>
+                <div style="font-size:11px;color:#666;">${u.learned} learned, ${u.unsure} unsure</div>
+                <div class="studying-text">📚 ${deckName}</div>
               </div>
-              <div style="font-size:11px;color:#666;margin-top:4px;">${u.learned} learned, ${u.unsure} unsure</div>
             </td>
-            <td><span class="deck-badge">${u.active_deck_name || 'Kenpo'}</span></td>
+            <td><span class="deck-badge">${deckName}</span></td>
             <td style="font-size:12px;color:#888;">${lastSync}</td>
             <td>
               <button class="btn btn-secondary btn-sm" onclick="editUser('${u.id}','${u.username}',${u.is_admin})">Edit</button>

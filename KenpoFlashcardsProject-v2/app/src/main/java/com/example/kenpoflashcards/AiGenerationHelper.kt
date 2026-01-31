@@ -18,13 +18,22 @@ object AiGenerationHelper {
     
     /**
      * Generate multiple definition options for a term
+     * @param descriptive If true, generate longer explanations. Default: short/literal.
      */
-    suspend fun generateDefinitions(apiKey: String, term: String, model: String, useChatGpt: Boolean): List<String> = withContext(Dispatchers.IO) {
+    suspend fun generateDefinitions(apiKey: String, term: String, model: String, useChatGpt: Boolean, descriptive: Boolean = false): List<String> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) return@withContext emptyList()
+        
+        val defStyle = if (descriptive) {
+            "Each definition should be clear, educational, and 1-2 sentences long."
+        } else {
+            """Each definition should be SHORT (1-5 words max). Give literal translations or brief meanings only.
+            Example: "Hola" -> "Hello" NOT "A common Spanish greeting"
+            Example: "Photosynthesis" -> "Plant food-making process" NOT a long explanation."""
+        }
         
         val prompt = """
             Provide 3 different definitions for the term "$term".
-            Each definition should be clear, concise, and educational.
+            $defStyle
             
             Respond in JSON format only:
             {"definitions": ["definition 1", "definition 2", "definition 3"]}
@@ -129,17 +138,27 @@ object AiGenerationHelper {
     
     /**
      * Search and generate flashcard terms for a subject
+     * @param descriptive If true, generate longer explanatory definitions. Default: short/literal.
      */
-    suspend fun searchAndGenerateTerms(apiKey: String, keywords: String, maxCards: Int, model: String, useChatGpt: Boolean): List<AiGeneratedTerm> = withContext(Dispatchers.IO) {
+    suspend fun searchAndGenerateTerms(apiKey: String, keywords: String, maxCards: Int, model: String, useChatGpt: Boolean, descriptive: Boolean = false): List<AiGeneratedTerm> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) return@withContext emptyList()
+        
+        val defStyle = if (descriptive) {
+            """- definition: a clear, educational explanation (1-2 sentences)"""
+        } else {
+            """- definition: SHORT translation or meaning (1-5 words ONLY, no explanations)
+            Example: "Hola" -> "Hello" NOT "A Spanish greeting used to say hello"
+            Example: "Austin" -> "Texas" NOT "Capital city of Texas"
+            Example: "Adiós" -> "Goodbye" NOT "A way to say goodbye""""
+        }
         
         val prompt = """
             Generate up to $maxCards flashcard terms about: $keywords
             
             For each term, provide:
             - term: the vocabulary word or concept
-            - definition: clear, educational definition
-            - pronunciation: phonetic guide (if applicable)
+            $defStyle
+            - pronunciation: phonetic guide (if applicable, empty string if obvious)
             - group: category for organization
             
             Respond in JSON format only:
@@ -175,6 +194,36 @@ object AiGenerationHelper {
             cards.filter { it.term.isNotBlank() && it.definition.isNotBlank() }
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+    
+    /**
+     * Generate a deck description from the deck name using AI
+     */
+    suspend fun generateDescription(apiKey: String, deckName: String, model: String, useChatGpt: Boolean): String = withContext(Dispatchers.IO) {
+        if (apiKey.isBlank() || deckName.isBlank()) return@withContext ""
+        
+        val prompt = """
+            Generate a brief description (1 sentence, under 15 words) for a flashcard study deck called "$deckName".
+            The description should explain what the deck covers.
+            
+            Respond in JSON format only:
+            {"description": "Brief description here"}
+            
+            Only respond with the JSON, no other text.
+        """.trimIndent()
+        
+        try {
+            val response = if (useChatGpt) {
+                callChatGpt(apiKey, prompt, model)
+            } else {
+                callGemini(apiKey, prompt, model)
+            }
+            
+            val json = JSONObject(response.trim())
+            json.optString("description", "")
+        } catch (e: Exception) {
+            ""
         }
     }
     

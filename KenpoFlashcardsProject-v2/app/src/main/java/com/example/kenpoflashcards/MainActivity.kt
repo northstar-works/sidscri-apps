@@ -1229,8 +1229,8 @@ fun AdminScreen(nav: NavHostController, repo: Repository) {
     val adminSettings by repo.adminSettingsFlow().collectAsState(initial = AdminSettings())
     LaunchedEffect(Unit) { repo.refreshAdminStatus() }
     
-    // Admin status is server-sourced (token) and stored in AdminSettings.isAdmin
-    val isAdmin = adminSettings.isAdmin
+    // Admin status: server-sourced isAdmin OR local AdminUsers list (fallback when server unreachable)
+    val isAdmin = adminSettings.isAdmin || AdminUsers.isAdmin(adminSettings.username)
     
     var chatGptKey by remember(adminSettings) { mutableStateOf(adminSettings.chatGptApiKey) }
     var chatGptModel by remember(adminSettings) { mutableStateOf(adminSettings.chatGptModel) }
@@ -1773,13 +1773,40 @@ fun LoginScreen(nav: NavHostController, repo: Repository) {
                 val isAdminCandidate = AdminUsers.isAdmin(username)
                 if (isAdminCandidate) {
                     OutlinedTextField(serverUrl, { serverUrl = it }, Modifier.fillMaxWidth(), label = { Text("Server URL (Admin)") }, singleLine = true, textStyle = LocalTextStyle.current.copy(fontSize = 12.sp), leadingIcon = { Icon(Icons.Default.Cloud, "Server") })
-                    Spacer(Modifier.height(8.dp))
-                    Button({
-                        scope.launch {
-                            repo.saveAdminSettings(adminSettings.copy(webAppUrl = serverUrl))
-                            statusMessage = "Server URL saved. You can login now."
+                    Spacer(Modifier.height(4.dp))
+                    // Server verification button
+                    var verifyStatus by remember { mutableStateOf("") }
+                    var isVerifying by remember { mutableStateOf(false) }
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(
+                            onClick = {
+                                isVerifying = true
+                                scope.launch {
+                                    val result = WebAppSync.verifyServer(serverUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL })
+                                    verifyStatus = if (result.success) "✅ ${result.message}" else "❌ ${result.error}"
+                                    isVerifying = false
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            enabled = !isVerifying
+                        ) {
+                            if (isVerifying) {
+                                CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(4.dp))
+                            }
+                            Text("Verify Server", fontSize = 12.sp)
                         }
-                    }, Modifier.fillMaxWidth()) { Text("Save / Apply Server URL") }
+                        Spacer(Modifier.width(8.dp))
+                        Button({
+                            scope.launch {
+                                repo.saveAdminSettings(adminSettings.copy(webAppUrl = serverUrl))
+                                statusMessage = "Server URL saved. You can login now."
+                            }
+                        }, Modifier.weight(1f)) { Text("Save URL", fontSize = 12.sp) }
+                    }
+                    if (verifyStatus.isNotBlank()) {
+                        Text(verifyStatus, fontSize = 11.sp, color = if (verifyStatus.startsWith("✅")) AccentGood else Color.Red)
+                    }
                     Spacer(Modifier.height(8.dp))
                 }
                 OutlinedTextField(username, { username = it }, Modifier.fillMaxWidth(), label = { Text("Username") }, singleLine = true, leadingIcon = { Icon(Icons.Default.Person, "User") })
@@ -2741,7 +2768,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                         value = editDeckName,
                                         onValueChange = { editDeckName = it },
                                         modifier = Modifier.fillMaxWidth(),
-                                        label = { Text("Deck Name") },
+                                        label = { Text("Deck Name *") },
                                         singleLine = true
                                     )
                                     Spacer(Modifier.height(8.dp))
@@ -2750,8 +2777,62 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                         onValueChange = { editDeckDescription = it },
                                         modifier = Modifier.fillMaxWidth(),
                                         label = { Text("Description") },
+                                        placeholder = { Text("Auto-fills with deck name if empty", color = DarkMuted) },
                                         minLines = 2
                                     )
+                                    // AI Description button
+                                    if (hasAiAccess) {
+                                        Spacer(Modifier.height(4.dp))
+                                        var aiDescLoading by remember { mutableStateOf(false) }
+                                        OutlinedButton(
+                                            onClick = {
+                                                if (editDeckName.isBlank()) return@OutlinedButton
+                                                aiDescLoading = true
+                                                scope.launch {
+                                                    try {
+                                                        val desc = AiGenerationHelper.generateDescription(
+                                                            apiKey, editDeckName, aiModel, adminSettings.chatGptEnabled
+                                                        )
+                                                        if (desc.isNotBlank()) editDeckDescription = desc
+                                                    } catch (_: Exception) { }
+                                                    aiDescLoading = false
+                                                }
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            enabled = !aiDescLoading && editDeckName.isNotBlank()
+                                        ) {
+                                            if (aiDescLoading) {
+                                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                                                Spacer(Modifier.width(8.dp))
+                                            }
+                                            Icon(Icons.Default.AutoAwesome, "AI", modifier = Modifier.size(16.dp))
+                                            Spacer(Modifier.width(4.dp))
+                                            Text("AI Generate Description", fontSize = 12.sp)
+                                        }
+                                    }
+                                    
+                                    Spacer(Modifier.height(12.dp))
+                                    HorizontalDivider(color = DarkBorder)
+                                    Spacer(Modifier.height(8.dp))
+                                    Text("Deck Settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
+                                    Spacer(Modifier.height(4.dp))
+                                    
+                                    // Descriptive definitions toggle
+                                    var editDescriptive by remember(editingDeck) { mutableStateOf(editingDeck!!.descriptiveDefinitions) }
+                                    Row(
+                                        Modifier.fillMaxWidth().clickable { editDescriptive = !editDescriptive },
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text("Descriptive Definitions", color = Color.White, fontSize = 13.sp)
+                                            Text(
+                                                if (editDescriptive) "AI generates detailed explanations" else "AI generates short, literal meanings",
+                                                color = DarkMuted, fontSize = 10.sp
+                                            )
+                                        }
+                                        Switch(checked = editDescriptive, onCheckedChange = { editDescriptive = it })
+                                    }
+                                    
                                     Spacer(Modifier.height(16.dp))
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                         TextButton(onClick = { showEditDeckDialog = false; editingDeck = null }) { 
@@ -2761,7 +2842,9 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                         Button(onClick = {
                                             scope.launch {
                                                 val deckId = editingDeck!!.id
-                                                val result = repo.updateDeck(deckId, editDeckName, editDeckDescription)
+                                                // Auto-fill description with name if empty
+                                                val finalDesc = editDeckDescription.ifBlank { editDeckName }
+                                                val result = repo.updateDeck(deckId, editDeckName, finalDesc, editDescriptive)
                                                 if (result) {
                                                     statusMessage = "Updated: ${editDeckName}"
                                                 } else {
@@ -2917,8 +3000,8 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                     value = aiSearchKeywords,
                                     onValueChange = { aiSearchKeywords = it },
                                     modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Search Keywords *") },
-                                    placeholder = { Text("e.g., medical terminology, anatomy", color = DarkMuted) },
+                                    label = { Text("Search Keywords (optional)") },
+                                    placeholder = { Text("Leave blank to use deck name", color = DarkMuted) },
                                     minLines = 2
                                 )
                                 Spacer(Modifier.height(8.dp))
@@ -2936,8 +3019,15 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                 
                                 Button(
                                     onClick = {
-                                        if (aiSearchKeywords.isBlank()) {
-                                            statusMessage = "Error: Enter search keywords"
+                                        // Keywords optional: fall back to deck name + description
+                                        val searchTerms = aiSearchKeywords.ifBlank {
+                                            val parts = mutableListOf<String>()
+                                            if (newDeckName.isNotBlank()) parts.add(newDeckName)
+                                            if (newDeckDescription.isNotBlank()) parts.add(newDeckDescription)
+                                            parts.joinToString(" - ")
+                                        }
+                                        if (searchTerms.isBlank()) {
+                                            statusMessage = "Error: Enter a deck name or search keywords"
                                             return@Button
                                         }
                                         if (!hasAiAccess) {
@@ -2949,7 +3039,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                             try {
                                                 val maxCards = aiMaxCards.toIntOrNull() ?: 20
                                                 val results = AiGenerationHelper.searchAndGenerateTerms(
-                                                    apiKey, aiSearchKeywords, maxCards, aiModel, adminSettings.chatGptEnabled
+                                                    apiKey, searchTerms, maxCards, aiModel, adminSettings.chatGptEnabled, descriptive = false
                                                 )
                                                 if (results.isNotEmpty()) {
                                                     aiGeneratedTerms = results
@@ -3191,11 +3281,14 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                         val deckId = "deck_${System.currentTimeMillis()}"
                                         val selectedTerms = selectedAiTerms.map { aiGeneratedTerms[it] }
                                         
+                                        // Auto-fill description with deck name if empty
+                                        val finalDescription = newDeckDescription.ifBlank { newDeckName }
+                                        
                                         // Create deck
                                         val newDeck = StudyDeck(
                                             id = deckId,
                                             name = newDeckName,
-                                            description = newDeckDescription.ifBlank { "Created from AI search" },
+                                            description = finalDescription,
                                             isDefault = false,
                                             isBuiltIn = false,
                                             sourceFile = null,

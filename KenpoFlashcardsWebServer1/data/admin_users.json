@@ -4,5 +4,6 @@
   "admin_usernames": [
     "sidscri"
   ],
-  "notes": "Usernames are case-insensitive. Add new admins by username (not user ID)."
+  "notes": "Usernames are case-insensitive. Add new admins by username (not user ID).",
+  "admins": []
 }

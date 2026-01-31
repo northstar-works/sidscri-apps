@@ -20,7 +20,9 @@
     "sourceFile": null,
     "cardCount": 0,
     "createdAt": 1769270478,
-    "updatedAt": 1769270478
+    "updatedAt": 1769270478,
+    "ownerId": "1cc70e61cd9e",
+    "createdBy": "1cc70e61cd9e"
   },
   {
     "id": "deck_22e1482a",

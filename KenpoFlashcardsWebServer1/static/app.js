@@ -108,7 +108,6 @@ async function postLoginInit(){
     } catch(e){}
 
     updateHeaderDeckName();
-  updateHeaderDeckLogo();
     updateHeaderDeckLogo();
   } catch(e){}
   

@@ -491,7 +491,7 @@ suspend fun addDeck(deck: StudyDeck) {
     /**
      * Update an existing deck (name/description)
      */
-    suspend fun updateDeck(deckId: String, name: String, description: String) {
+    suspend fun updateDeck(deckId: String, name: String, description: String, descriptiveDefinitions: Boolean? = null) {
         if (deckId == "kenpo") return  // Cannot update built-in default deck
         context.dataStore.edit { prefs ->
             val raw = prefs[KEY_DECKS_JSON] ?: "[]"
@@ -503,6 +503,9 @@ suspend fun addDeck(deck: StudyDeck) {
                     obj.put("name", name)
                     obj.put("description", description)
                     obj.put("updatedAt", System.currentTimeMillis() / 1000)
+                    if (descriptiveDefinitions != null) {
+                        obj.put("descriptiveDefinitions", descriptiveDefinitions)
+                    }
                     newArr.put(obj)
                 } else {
                     newArr.put(obj)
@@ -657,6 +660,7 @@ suspend fun addDeck(deck: StudyDeck) {
         deck.sourceFile?.let { o.put("sourceFile", it) }
         o.put("cardCount", deck.cardCount); o.put("createdAt", deck.createdAt); o.put("updatedAt", deck.updatedAt)
         deck.logoPath?.let { o.put("logoPath", it) }
+        o.put("descriptiveDefinitions", deck.descriptiveDefinitions)
         return o
     }
 
@@ -671,7 +675,8 @@ suspend fun addDeck(deck: StudyDeck) {
             cardCount = o.optInt("cardCount", 0),
             createdAt = o.optLong("createdAt", 0),
             updatedAt = o.optLong("updatedAt", 0),
-            logoPath = o.optString("logoPath", null)?.takeIf { it.isNotBlank() }
+            logoPath = o.optString("logoPath", null)?.takeIf { it.isNotBlank() },
+            descriptiveDefinitions = o.optBoolean("descriptiveDefinitions", false)
         )
     }
 

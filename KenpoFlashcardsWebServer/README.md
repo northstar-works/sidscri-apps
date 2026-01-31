@@ -5,7 +5,7 @@
 
 Flask-based web application providing sync API and web UI for Advanced Flashcards WebApp.
 
-**Current Version:** v8.3.0 (build 51)  
+**Current Version:** v8.5.0 (build 53)  
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
@@ -15,7 +15,7 @@ Flask-based web application providing sync API and web UI for Advanced Flashcard
 - **Authentication** - User login with token-based Android sync
 - **Progress Sync** - Push/pull card progress between devices
 - **Breakdown Sync** - Shared term breakdown database
-- **Web UI** - Browser-based flashcard interface
+- **Web UI** - Browser-based flashcard interface with responsive mobile/tablet/landscape layouts (v8.4.0+)
 - **Custom Set** - Starred cards with full management modal (v7.2.0+)
 - **Edit Decks** - Create, edit, and manage custom study decks (v7.0.0+)
 - **AI Deck Generator** - Generate flashcards from keywords, photos, or documents (v7.0.5+)
@@ -25,9 +25,11 @@ Flask-based web application providing sync API and web UI for Advanced Flashcard
 - **Encrypted API Keys** - Secure storage shared between Android and web
 - **Shared API Keys** - All authenticated users can pull API keys (v5.5.2+)
 - **Admin Management** - Centralized admin users Source of Truth with activity logs
+- **Admin Dashboard** - User management, deck config, invite codes, system info, logs (v6.0.0+)
 - **Auto-speak** - Voice settings for auto-speak on card change and flip (v6.0.0+)
 - **Breakdown Indicator** - Visual puzzle icon when card has breakdown data (v7.1.0+)
 - **Android Sync API** - Full deck and user card sync with Android app (v7.0.7+)
+- **Persistent Sessions** - 30-day remember me with automatic refresh (v8.4.0+)
 
 ---
 
@@ -267,7 +269,7 @@ Upload PDF, TXT, or MD files. AI reads the content and generates flashcards from
 
 ### Packaged Install Marker
 - Packaged installs include `data/install_type.txt` containing `packaged`.
-- When present, the UI shows **Web Server Version: v8.2.0 (build 50)** in the User menu, About, and Admin > System.
+- When present, the UI shows **Web Server Version: v8.5.0 (build 53)** in the User menu, About, and Admin > System.
 
 **Note:** API keys are now stored encrypted in `data/api_keys.enc`. You no longer need to set `OPENAI_API_KEY` in the batch file - keys are loaded from the encrypted file on startup.
 
@@ -352,7 +354,7 @@ Should return JSON with `version`, `term_to_id`, `cards`
 ```
 http://localhost:8009/api/version
 ```
-Should return `{"version": "8.3.0", "build": 51, ...}`
+Should return `{"version": "8.5.0", "build": 53, ...}`
 
 ### 3. Test Admin Users Endpoint
 ```
@@ -412,7 +414,22 @@ Interactive page with tabbed sections:
 
 ---
 
-## 🆕 Recent Updates (8.2.0 → 8.3.0)
+## 🆕 Recent Updates (8.3.0 → 8.5.0)
+
+### v8.5.0 (build 53)
+- **Portrait/landscape responsive overhaul:** compact single-row study controls in both orientations; group dropdown, search, and buttons fit without wrapping on small screens.
+- **Settings toggle:** settings button (⚙️) now toggles open/close; close button (✕) added to settings header for quick exit.
+- **Admin users table (mobile):** "Currently Studying" column moves under the progress bar on small screens; "Last Sync" column hidden on very small screens.
+- **Deck list badges (mobile):** badge labels hidden on narrow viewports, showing icon-only (📦🔓👥★) to save horizontal space.
+- **Deck actions (portrait):** action buttons stack vertically with a separator border on mobile.
+- **Landscape card height:** reduced to 180px so cards and controls coexist without scrolling.
+
+### v8.4.0 (build 52)
+- **Remember me (30-day sessions):** sessions persist across browser restarts and refresh on each request; no re-login required.
+- **Mobile responsive design (initial):** comprehensive CSS media queries for tablet (≤900px), mobile (≤600px), and small mobile (≤400px) viewports covering controls, tabs, cards, and modals.
+- **Admin edit built-in decks:** admins can now edit built-in decks (like Kenpo Vocabulary) and upload logos for them.
+- **Deck logo/title cleanup:** logo reduced ~15% (98→83px), fixed jumping transform; title truncates with ellipsis on overflow.
+- **Edit User modal:** widened to 700px with responsive breakpoints; deck access lists scroll and stack vertically on mobile.
 
 ### v8.3.0 (build 51)
 - **AppData-safe runtime paths (Packaged/EXE):** centralized writable `DATA_DIR` and `LOG_DIR` via a shared runtime paths module so installed builds never attempt to write under `C:\Program Files\...\_internal\...`.
@@ -420,21 +437,12 @@ Interactive page with tabbed sections:
 - **First-run data seeding:** in packaged/frozen mode, missing default data files are copied from the bundled read-only `data/` into the user’s AppData `data/` folder (non-destructive; does not overwrite existing user data).
 - **Logging reliability:** `server.log` consistently initializes in the writable AppData logs folder when launched via tray/service/installer builds.
 
-
-### v8.2.0 (build 50)
-- **Forced password reset UX (web):** users reset by **logging in with the temporary password** first; the app then keeps them on the login screen and shows **New + Confirm** fields to finish the reset before entering the app.
-- **Create Deck improvements:** added **“Add cards after creating”** method selector (None / Keywords / Photo / Document). When selected, the app auto-jumps to the chosen method after deck creation. Keywords uses the deck name + description and defaults to **25** cards.
-- **Admin stability:** Admin Dashboard no longer gets stuck on **“Loading dashboard…”** when an API call fails; it surfaces an error state instead.
-- **Packaged install marker:** packaged builds include `data/install_type.txt` with `packaged` so the UI can optionally show **Web Server Version** in User menu / About / Admin > System.
-
-### v8.1.1 (build 49)
-- **Health check reliability:** fixed a server crash on `/api/health` caused by an undefined Kenpo JSON path constant.
-- **Kenpo JSON canonical path:** standardized Kenpo vocabulary data to load from `KenpoFlashcardsWebServer/data/kenpo_words.json` by default, with optional overrides via `KENPO_JSON_PATH` and `KENPO_ROOT`.
-
 ## 📋 Version History
 
 | Version | Build | Key Changes |
 |---------|-------|-------------|
+| **8.5.0** | 53 | Portrait/landscape responsive overhaul (compact controls, single-row layout), settings toggle + close button, admin table responsive columns, deck badges icon-only on mobile, deck actions stack in portrait, landscape card height reduced |
+| **8.4.0** | 52 | Remember me 30-day sessions, initial mobile responsive design (tablet/mobile/small breakpoints), admin edit built-in decks, deck logo/title fixes, Edit User modal responsive widening |
 | **8.3.0** | 51 | AppData-safe runtime paths for packaged installs (no writes to Program Files), env overrides for data/log dirs, first-run seeding of bundled defaults into AppData, server logging reliability in tray/service launches, fixed startup indention issue and ensured runtime is included/available in _internal for tray/service |
 | **8.2.0** | 50 | Forced password reset flow (temp login → reset on login screen), Create Deck add-cards method selector + auto-jump, Admin dashboard no longer hangs on load, Packaged install marker (`data/install_type.txt`) for showing Web Server Version |
 | **8.1.1** | 49 | Fix: `/api/health` crash caused by undefined Kenpo JSON path; Standardized Kenpo vocabulary JSON canonical path at `data/kenpo_words.json`; Health check now reports Kenpo JSON status cleanly |

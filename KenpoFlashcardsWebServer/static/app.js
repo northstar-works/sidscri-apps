@@ -1591,6 +1591,24 @@ async function refresh(){
 }
 
 async function openSettings(){
+  // Toggle behavior - if settings already open, close it
+  if(!$("viewSettings").classList.contains("hidden")){
+    if(settingsDirty){
+      if(!confirm("You have unsaved changes. Close without saving?")){
+        return;
+      }
+    }
+    settingsDirty = false;
+    $("viewSettings").classList.add("hidden");
+    if(activeTab === "active" || activeTab === "unsure" || (activeTab === "learned" && learnedViewMode === "study")){
+      $("viewStudy").classList.remove("hidden");
+    } else {
+      $("viewList").classList.remove("hidden");
+    }
+    await refresh();
+    return;
+  }
+  
   if(!appInitialized){
     try{ await postLoginInit(); } catch(e){}
   }
@@ -2379,6 +2397,23 @@ bind("card","click", flip);
     }
     await refresh();
   });
+  
+  // Close button at top of settings page (for mobile)
+  bind("settingsCloseTopBtn","click", async ()=>{
+    if(settingsDirty){
+      if(!confirm("You have unsaved changes. Close without saving?")){
+        return;
+      }
+    }
+    settingsDirty = false;
+    $("viewSettings").classList.add("hidden");
+    if(activeTab === "active" || activeTab === "unsure" || (activeTab === "learned" && learnedViewMode === "study")){
+      $("viewStudy").classList.remove("hidden");
+    } else {
+      $("viewList").classList.remove("hidden");
+    }
+    await refresh();
+  });
 
   bind("settingsScope","change", async ()=>{
     await loadSettingsForm($("settingsScope").value);
@@ -2701,9 +2736,10 @@ function renderDecksList(){
   for(const deck of currentDecks){
     const isActive = deck.id === activeDeckId;
     const accessType = deck.accessType || (deck.isBuiltIn ? "built-in" : "owned");
-    const accessBadge = accessType === "shared" ? '<span class="deckBadge shared">👥 Shared</span>' : 
-                        (accessType === "unlocked" ? '<span class="deckBadge unlocked">🔓 Unlocked</span>' : 
-                        (accessType === "built-in" ? '<span class="deckBadge builtin">📦 Built-in</span>' : ''));
+    // Use data attributes for icon-only mode on mobile
+    const accessBadge = accessType === "shared" ? '<span class="deckBadge shared" title="Shared">👥<span class="badgeText"> Shared</span></span>' : 
+                        (accessType === "unlocked" ? '<span class="deckBadge unlocked" title="Unlocked">🔓<span class="badgeText"> Unlocked</span></span>' : 
+                        (accessType === "built-in" ? '<span class="deckBadge builtin" title="Built-in">📦<span class="badgeText"> Built-in</span></span>' : ''));
     
     const div = document.createElement("div");
     div.className = "deckItem" + (isActive ? " active" : "");
@@ -2714,7 +2750,7 @@ function renderDecksList(){
         <div class="deckName">
           ${escapeHtml(deck.name)}
           ${accessBadge}
-          ${deck.isDefault ? '<span class="deckBadge default">★ Default</span>' : ''}
+          ${deck.isDefault ? '<span class="deckBadge default" title="Default">★<span class="badgeText"> Default</span></span>' : ''}
         </div>
         <div class="deckDesc">${escapeHtml(deck.description || "")}</div>
         <div class="deckCount">${deck.cardCount} cards</div>

@@ -1,5 +1,37 @@
 # Changelog — AdvancedFlashcardsProject (Android)
 
+## 5.6.0 (build 39) — 2026-01-31
+
+### Fixed — Admin Access + AI Definitions + Server Verification
+
+- **Admin access bug fixed**: Admin screen now uses BOTH server-sourced `isAdmin` AND local `AdminUsers.isAdmin()` fallback. Previously, if the server restarted (clearing in-memory tokens), the admin would be locked out even though they're in the admin list. `refreshAdminStatus()` now gracefully falls back to the local admin list when the server is unreachable or tokens are expired.
+
+- **Keywords no longer required for deck creation**: When AI Search is selected, keywords field is now optional. If left blank, the deck name and/or description are used as the AI search terms instead. Label changed from "Search Keywords *" to "Search Keywords (optional)".
+
+- **Description auto-fills with deck name**: When creating a new deck with an empty description, it now auto-fills with the deck name instead of "Created from AI search".
+
+- **AI description generation in Edit Deck dialog**: Added "AI Generate Description" button that uses AI to create a brief deck description from the deck name. Only shown when AI access is configured.
+
+- **Concise definitions by default**: AI-generated definitions are now SHORT and LITERAL by default (e.g., "Goodbye" not "A way to say goodbye"; "Texas" not "Capital city of Texas"). The prompt explicitly instructs the AI to produce 1-5 word definitions.
+
+- **Per-deck "Descriptive Definitions" toggle**: New toggle in Edit Deck dialog under "Deck Settings". When enabled, AI generates longer explanatory definitions (1-2 sentences) for that specific deck. Default is OFF (concise mode). Stored per-deck in `descriptiveDefinitions` field.
+
+- **Server verification on sync/login**: Before logging in, the app now calls `/api/version` on the target server and verifies the `app_name` matches a known Advanced Flashcards server. Prevents connecting to random services.
+
+- **Verify Server button**: Admin users see a "Verify Server" button next to the server URL field that tests the connection and shows the server name, version, and install type.
+
+### Changed
+- `AiGenerationHelper.searchAndGenerateTerms()` now accepts `descriptive: Boolean` parameter
+- `AiGenerationHelper.generateDefinitions()` now accepts `descriptive: Boolean` parameter
+- New `AiGenerationHelper.generateDescription()` function for AI deck descriptions
+- `StudyDeck` model now includes `descriptiveDefinitions: Boolean` field
+- `Store.updateDeck()` and `Repository.updateDeck()` accept optional `descriptiveDefinitions` parameter
+- `WebAppSync.verifyServer()` new function for server identity verification
+- `WebAppSync.login()` now verifies server before attempting login
+- Login screen server URL section redesigned with side-by-side Verify/Save buttons
+
+---
+
 ## 5.5.0 (build 38) — 2026-01-31
 
 ### Added — Feature Parity with WebServer v8.4.0

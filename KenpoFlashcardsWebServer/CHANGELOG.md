@@ -12,7 +12,21 @@ The format is simple and practical:
 
 ## Unreleased
 
-- (Add changes here as you work. Move them into a release when you publish---
+- (Add changes here as you work. Move them into a release when you publish.)
+
+---
+
+## 8.5.0 (build 53) — 2026-01-31
+
+### Changed
+- **Portrait responsive controls:** study controls (group dropdown, All Cards, search, settings) now display in a compact single row on portrait screens (≤600px). Group dropdown and search share available width; settings button shows icon-only (⚙️) with `.btnText` hidden.
+- **Landscape responsive controls:** all controls fit in one row without wrapping on landscape screens (≤500px height). Group dropdown constrained to 100–120px with text-overflow ellipsis; buttons use compact padding (6px 10px, 12px font).
+- **Settings toggle behavior:** settings button now toggles the settings view open/close instead of only opening. Close button (✕) added to the settings page header for quick exit from any screen size.
+- **Admin users table (mobile):** "Currently Studying" column hidden on screens ≤768px; deck name text moves under the progress bar. "Last Sync" column also hidden on screens ≤480px.
+- **Deck list badges (mobile):** badge text labels (Shared, Unlocked, Built-in, Default) hidden on portrait; only icons shown (📦🔓👥★) to conserve horizontal space.
+- **Deck list actions (portrait):** action buttons stack vertically with a top border separator on narrow screens; horizontal row restored in landscape.
+- **Deck list items (portrait):** flex-wrap layout with smaller logo (28px), column-stacked info, and truncated descriptions.
+- **Landscape card height:** study card max-height reduced to 180px so cards and controls coexist without scrolling.
 
 ---
 

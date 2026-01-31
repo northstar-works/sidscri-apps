@@ -83,11 +83,94 @@ class Repository(private val context: Context, private val store: Store) {
     fun deckSettingsFlow(): Flow<DeckSettings> = store.deckSettingsFlow()
     suspend fun saveDeckSettings(settings: DeckSettings) = store.saveDeckSettings(settings)
     suspend fun addDeck(deck: StudyDeck) = store.addDeck(deck)
-    suspend fun deleteDeck(deckId: String) = store.deleteDeck(deckId)
+    suspend fun deleteDeck(deckId: String) {
+        store.deleteDeck(deckId)
+        // Sync deletion to server if logged in
+        try {
+            val admin = adminSettingsFlow().first()
+            if (admin.isLoggedIn && admin.authToken.isNotBlank()) {
+                // Note: Server handles deck deletion differently - user-created decks only
+                // For now, local deletion is sufficient as server will sync on next pull
+            }
+        } catch (_: Exception) {}
+    }
+    
+    /**
+     * Update deck name/description (with server sync)
+     */
+    suspend fun updateDeck(deckId: String, name: String, description: String): Boolean {
+        // Update locally first
+        store.updateDeck(deckId, name, description)
+        
+        // Sync to server if logged in
+        try {
+            val admin = adminSettingsFlow().first()
+            if (admin.isLoggedIn && admin.authToken.isNotBlank()) {
+                val serverUrl = admin.webAppUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
+                val result = WebAppSync.updateDeck(serverUrl, admin.authToken, deckId, name, description)
+                return result.success
+            }
+        } catch (_: Exception) {}
+        return true // Local update succeeded
+    }
+    
+    /**
+     * Set a deck as the default (with server sync)
+     */
+    suspend fun setDefaultDeck(deckId: String): Boolean {
+        // Update locally first
+        store.setDefaultDeck(deckId)
+        
+        // Sync to server if logged in
+        try {
+            val admin = adminSettingsFlow().first()
+            if (admin.isLoggedIn && admin.authToken.isNotBlank()) {
+                val serverUrl = admin.webAppUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
+                val result = WebAppSync.setDefaultDeck(serverUrl, admin.authToken, deckId)
+                return result.success
+            }
+        } catch (_: Exception) {}
+        return true // Local update succeeded
+    }
+    
+    /**
+     * Clear the default flag from a deck (with server sync)
+     */
+    suspend fun clearDefaultDeck(deckId: String): Boolean {
+        // Update locally first
+        store.clearDefaultDeck(deckId)
+        
+        // Sync to server if logged in
+        try {
+            val admin = adminSettingsFlow().first()
+            if (admin.isLoggedIn && admin.authToken.isNotBlank()) {
+                val serverUrl = admin.webAppUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
+                val result = WebAppSync.clearDefaultDeck(serverUrl, admin.authToken, deckId)
+                return result.success
+            }
+        } catch (_: Exception) {}
+        return true // Local update succeeded
+    }
+    
     fun userCardsFlow(): Flow<List<FlashCard>> = store.userCardsFlow()
     suspend fun addUserCard(card: FlashCard) = store.addUserCard(card)
     suspend fun addUserCards(cards: List<FlashCard>) = store.addUserCards(cards)
-    suspend fun deleteUserCard(cardId: String) = store.deleteUserCard(cardId)
+    
+    /**
+     * Delete user card (with server sync)
+     */
+    suspend fun deleteUserCard(cardId: String) {
+        store.deleteUserCard(cardId)
+        // Sync deletion to server if logged in
+        try {
+            val admin = adminSettingsFlow().first()
+            if (admin.isLoggedIn && admin.authToken.isNotBlank()) {
+                val serverUrl = admin.webAppUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
+                WebAppSync.deleteUserCard(serverUrl, admin.authToken, cardId)
+            }
+        } catch (_: Exception) {}
+    }
+    
     suspend fun updateUserCard(card: FlashCard) = store.updateUserCard(card)
     
     // Breakdowns

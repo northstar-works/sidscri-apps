@@ -1,7 +1,7 @@
 {
   "name": "Advanced Flashcards WebAppServer",
-  "version": "8.4.0",
-  "build": 52,
-  "released": "2026-01-30",
-  "notes": "8.4.0 (build 52): Mobile responsiveness improvements; fixed deck logo positioning and size (15% smaller, no jumping); deck title truncation with ellipsis; 30-day persistent sessions (remember me functionality); admins can now edit built-in decks; wider Edit User modal with responsive layout; fixed duplicate updateHeaderDeckLogo call."
+  "version": "8.5.0",
+  "build": 53,
+  "released": "2026-01-31",
+  "notes": "8.5.0 (build 53): Portrait/landscape responsive overhaul; compact single-row study controls; settings button toggles open/close with close button in header; admin users table moves Currently Studying under progress bar on mobile; deck list badges icon-only on mobile; deck actions stack vertically in portrait; landscape card height reduced to 180px."
 }

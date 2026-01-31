@@ -1,5 +1,37 @@
 # Changelog — AdvancedFlashcardsProject (Android)
 
+## 5.5.0 (build 38) — 2026-01-31
+
+### Added — Feature Parity with WebServer v8.4.0
+
+- **Deck Editing**: Edit deck name and description directly on Android
+  - New Edit button (pencil icon) on each user-created deck
+  - Edit Deck dialog with name/description fields
+  - Changes sync automatically to server when logged in
+  - `WebAppSync.updateDeck()` calls `POST /api/decks/{id}`
+
+- **Set Default Deck**: Set/clear default deck on Android
+  - Star button toggles default status for user-created decks
+  - Yellow star indicates current default deck
+  - `WebAppSync.setDefaultDeck()` calls `POST /api/decks/{id}/set_default`
+  - `WebAppSync.clearDefaultDeck()` calls `POST /api/decks/{id}/clear_default`
+
+- **User Card Deletion Sync**: Deleting user cards now syncs to server
+  - `WebAppSync.deleteUserCard()` calls `DELETE /api/sync/user_cards/{id}`
+  - Local deletion happens first, server sync follows
+
+### Changed
+- Repository methods now handle server sync automatically when logged in
+- Deck management methods return success/failure status for error handling
+- Store.kt now has `updateDeck()`, `setDefaultDeck()`, and `clearDefaultDeck()` methods
+
+### Technical Notes
+- Feature sync analysis tool created: `sync_android_to_webserver.py`
+- Comprehensive feature comparison document generated
+- All deck management API endpoints now implemented in WebAppSync.kt
+
+---
+
 ## 5.4.0 (build 37) — 2026-01-28
 
 ### Added — GEN8 Deck Access + Invite Codes

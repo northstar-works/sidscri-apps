@@ -30,7 +30,8 @@ data class StudyDeck(
     val cardCount: Int,          // Number of cards in deck
     val createdAt: Long,         // Unix timestamp
     val updatedAt: Long,         // Unix timestamp
-    val logoPath: String? = null // Optional server logo path
+    val logoPath: String? = null, // Optional server logo path
+    val descriptiveDefinitions: Boolean = false // If true, AI generates longer explanatory definitions
 ) {
     companion object {
         // Default Kenpo deck - built-in and cannot be deleted

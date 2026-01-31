@@ -29,6 +29,14 @@ object WebAppSync {
     
     const val DEFAULT_SERVER_URL = "http://sidscri.tplinkdns.com:8009"
     
+    // Expected server app names for verification
+    private val VALID_SERVER_APPS = setOf(
+        "AdvancedFlashcardsWebAppServer",
+        "AdvancedFlashcardsWebAppServer_Packaged",
+        "KenpoFlashcardsWebServer",
+        "KenpoFlashcardsWebServer_Packaged"
+    )
+    
     data class LoginResult(
         val success: Boolean,
         val token: String = "",
@@ -45,11 +53,58 @@ object WebAppSync {
     )
     
     /**
+     * Verify the server at the given URL is a valid Advanced Flashcards server.
+     * Calls /api/version and checks app_name matches expected values.
+     */
+    suspend fun verifyServer(serverUrl: String): SyncResult = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("${serverUrl.trimEnd('/')}/api/version")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
+            val code = conn.responseCode
+            if (code != 200) {
+                return@withContext SyncResult(false, error = "Server returned $code")
+            }
+            val text = conn.inputStream.bufferedReader().readText()
+            val json = JSONObject(text)
+            val appName = json.optString("app_name", "")
+            val version = json.optString("version", "")
+            val installType = json.optString("install_type", "")
+            
+            if (appName.isBlank()) {
+                return@withContext SyncResult(false, error = "Not an Advanced Flashcards server")
+            }
+            if (appName !in VALID_SERVER_APPS) {
+                return@withContext SyncResult(false, error = "Unknown server: $appName")
+            }
+            SyncResult(true, message = "$appName v$version ($installType)")
+        } catch (e: java.net.ConnectException) {
+            SyncResult(false, error = "Cannot connect to server")
+        } catch (e: java.net.SocketTimeoutException) {
+            SyncResult(false, error = "Server connection timed out")
+        } catch (e: Exception) {
+            SyncResult(false, error = e.message ?: "Connection failed")
+        }
+    }
+    
+    /**
      * Login to web app
      * Server checks profiles.json with werkzeug password hash
      */
     suspend fun login(serverUrl: String, username: String, password: String): LoginResult = withContext(Dispatchers.IO) {
         try {
+            // Verify server identity first
+            val verifyResult = verifyServer(serverUrl)
+            if (!verifyResult.success) {
+                return@withContext LoginResult(
+                    success = false, 
+                    error = "Server verification failed: ${verifyResult.error}",
+                    debugInfo = "URL: $serverUrl"
+                )
+            }
+            
             val url = URL("$serverUrl/api/sync/login")
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "POST"

@@ -1679,17 +1679,35 @@ button.danger{background:#321313;border-color:#6e2222}
   
   .counts { font-size: 12px; }
   
+  /* === COMPACT CONTROLS FOR PORTRAIT === */
   .controls { gap: 8px; }
-  .leftControls, .rightControls { 
-    flex-direction: column; 
+  .leftControls { 
+    flex-direction: row; 
     width: 100%; 
-    align-items: stretch;
+    align-items: center;
+    gap: 6px;
   }
-  .groupDropdown { width: 100%; }
-  #allCardsBtn { width: 100%; }
-  .searchWrapper { width: 100%; }
-  input { min-width: 100%; width: 100%; }
-  #searchBox { min-width: 100%; }
+  .rightControls { 
+    flex-direction: row; 
+    width: 100%; 
+    align-items: center;
+    gap: 6px;
+  }
+  
+  /* Compact group dropdown and All Cards button */
+  .groupDropdown { width: auto; flex: 1; min-width: 0; }
+  .groupDropdown .selectBtn { padding: 8px 10px; font-size: 13px; }
+  #allCardsBtn { width: auto; padding: 8px 10px; font-size: 13px; flex-shrink: 0; }
+  
+  /* Search becomes expandable/icon */
+  .searchWrapper { flex: 1; min-width: 0; }
+  #searchBox { min-width: 80px; padding: 8px 10px; font-size: 13px; }
+  input { min-width: auto; }
+  
+  /* Compact More button */
+  #settingsBtn { padding: 8px 10px; font-size: 13px; }
+  #settingsBtn .btnText { display: none; }
+  #breakdownsBtn { padding: 8px 10px; }
   
   .card { height: 260px; border-radius: 16px; }
   .card-inner { width: 94%; height: 88%; }
@@ -1728,13 +1746,74 @@ button.danger{background:#321313;border-color:#6e2222}
   .quick-actions { flex-direction: column; gap: 8px; }
   .quick-actions .btn { width: 100%; justify-content: center; }
   
-  /* Settings page */
+  /* Settings page - add close button area */
+  .settingsPage h2 { display: flex; justify-content: space-between; align-items: center; }
+  .settingsCloseBtn { 
+    padding: 6px 12px; 
+    font-size: 14px; 
+    background: rgba(255,255,255,0.1); 
+    border: 1px solid rgba(255,255,255,0.2); 
+    border-radius: 8px; 
+    color: #ccc; 
+    cursor: pointer; 
+  }
+  .settingsCloseBtn:hover { background: rgba(255,255,255,0.15); color: #fff; }
   .settingsNav { flex-wrap: wrap; gap: 4px; }
   .settingsNavBtn { padding: 8px 10px; font-size: 12px; }
   .settingsCard { padding: 12px; }
   .settingRow { padding: 8px; }
   .settingTitle { font-size: 14px; }
   .settingDesc { font-size: 11px; }
+  
+  /* === DECK ITEM PORTRAIT LAYOUT === */
+  .deckItem { 
+    flex-wrap: wrap; 
+    padding: 12px; 
+    gap: 10px;
+  }
+  .deckMiniLogo { width: 28px; height: 28px; }
+  .deckInfo { 
+    flex: 1; 
+    min-width: 0; 
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .deckName { 
+    font-size: 14px; 
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .deckDesc { 
+    font-size: 11px; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .deckCount { font-size: 10px; }
+  .deckBadge { font-size: 9px; padding: 1px 5px; }
+  /* Icon-only badges on portrait */
+  .deckBadge .badgeText { display: none; }
+  .deckBadge::before { font-size: 11px; }
+  
+  /* Deck actions - vertical stack */
+  .deckActions { 
+    width: 100%; 
+    display: flex; 
+    flex-direction: row;
+    gap: 6px; 
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+  .deckSwitchBtn { flex: 1; justify-content: center; }
+  .deckDefaultBtn, .deckClearDefaultBtn, .deckEditBtn, .deckDeleteBtn { 
+    padding: 6px 8px !important; 
+    font-size: 12px !important; 
+  }
+  .deckActiveLabel { font-size: 11px; flex: 1; text-align: center; }
   
   /* Edit Decks modal */
   .csModalFixed { width: 98vw; max-width: 98vw; min-height: auto; }
@@ -1766,4 +1845,124 @@ button.danger{background:#321313;border-color:#6e2222}
   .big { font-size: 20px; }
   
   .actionsRow button { padding: 8px 10px; font-size: 12px; min-width: 70px; }
+  
+  /* Even more compact controls */
+  .leftControls, .rightControls { gap: 4px; }
+  .groupDropdown .selectBtn { padding: 6px 8px; font-size: 12px; }
+  #allCardsBtn { padding: 6px 8px; font-size: 12px; }
+  #searchBox { padding: 6px 8px; font-size: 12px; }
+  #settingsBtn, #breakdownsBtn { padding: 6px 8px; }
+}
+
+/* === LANDSCAPE MODE OPTIMIZATIONS === */
+@media (orientation: landscape) and (max-height: 500px) {
+  .wrap { padding: 8px 12px; }
+  
+  /* Compact header */
+  h1 { font-size: 18px; }
+  .titleRow { gap: 6px; }
+  .deckLogoImg { width: 40px; height: 40px; }
+  
+  /* Single row controls */
+  .controls { 
+    flex-direction: row; 
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .leftControls { 
+    flex-direction: row; 
+    flex-wrap: nowrap;
+    width: auto;
+    gap: 6px;
+  }
+  .rightControls { 
+    flex-direction: row; 
+    flex-wrap: nowrap;
+    width: auto;
+    gap: 6px;
+    margin-left: auto;
+  }
+  
+  /* Compact dropdown */
+  .groupDropdown { width: auto; min-width: 100px; }
+  .groupDropdown .selectBtn { 
+    padding: 6px 10px; 
+    font-size: 12px; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  
+  /* Compact buttons */
+  #allCardsBtn { padding: 6px 10px; font-size: 12px; }
+  
+  /* Compact search */
+  .searchWrapper { flex: 0 1 150px; min-width: 100px; }
+  #searchBox { padding: 6px 10px; font-size: 12px; }
+  
+  /* Icon-only More button */
+  #settingsBtn { padding: 6px 10px; font-size: 12px; }
+  #settingsBtn .btnText { display: none; }
+  #breakdownsBtn { padding: 6px 8px; }
+  
+  /* Smaller card */
+  .card { height: 180px; }
+  .big { font-size: 20px; }
+  .pill { padding: 3px 6px; font-size: 11px; }
+  .hint { font-size: 11px; }
+  
+  /* Compact actions */
+  .actionsRow { gap: 4px; margin-top: 8px; }
+  .actionsRow button { padding: 6px 10px; font-size: 12px; }
+  
+  /* Tab bar compact */
+  .tabs { gap: 3px; }
+  .tab { padding: 5px 8px; font-size: 12px; }
+  .counts { font-size: 11px; margin: 4px 0; }
+  
+  /* Settings page landscape */
+  .settingsPage h2 { font-size: 18px; margin-bottom: 10px; }
+  .settingsNav { gap: 3px; margin-bottom: 12px; padding-bottom: 10px; }
+  .settingsNavBtn { padding: 6px 10px; font-size: 11px; }
+  .settingsCard { padding: 10px; margin-bottom: 10px; }
+  .settingsCardHeader { font-size: 14px; margin-bottom: 10px; padding-bottom: 8px; }
+  
+  /* Deck list compact in landscape */
+  .deckItem { padding: 10px; gap: 8px; }
+  .deckMiniLogo { width: 30px; height: 30px; }
+  .deckName { font-size: 13px; }
+  .deckDesc { font-size: 11px; }
+  .deckCount { font-size: 10px; }
+  .deckActions { 
+    flex-direction: row; 
+    width: auto;
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+}
+
+/* === RESPONSIVE TEXT HIDING === */
+/* Hide button text on mobile, show only icons */
+@media (max-width: 600px) {
+  .btnText { display: none; }
+  .badgeText { display: none; }
+}
+
+/* Settings close button always visible on desktop too */
+.settingsCloseBtn { 
+  padding: 6px 12px; 
+  font-size: 14px; 
+  background: rgba(255,255,255,0.08); 
+  border: 1px solid rgba(255,255,255,0.15); 
+  border-radius: 8px; 
+  color: #aaa; 
+  cursor: pointer;
+  margin-left: auto;
+}
+.settingsCloseBtn:hover { 
+  background: rgba(255,255,255,0.12); 
+  color: #fff; 
 }

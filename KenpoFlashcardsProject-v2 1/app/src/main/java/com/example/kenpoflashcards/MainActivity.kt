@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -2180,6 +2181,12 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
     var editPronunciation by remember { mutableStateOf("") }
     var editGroup by remember { mutableStateOf("") }
     
+    // Deck editing state (v5.5.0+)
+    var showEditDeckDialog by remember { mutableStateOf(false) }
+    var editingDeck by remember { mutableStateOf<StudyDeck?>(null) }
+    var editDeckName by remember { mutableStateOf("") }
+    var editDeckDescription by remember { mutableStateOf("") }
+    
     // Create Deck form state
     var newDeckName by remember { mutableStateOf("") }
     var newDeckDescription by remember { mutableStateOf("") }
@@ -2329,6 +2336,34 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                         Text("${deck.cardCount} cards", color = DarkMuted, fontSize = 10.sp)
                                     }
                                     if (!deck.isBuiltIn) {
+                                        // Set/Clear Default button (v5.5.0+)
+                                        IconButton(onClick = {
+                                            scope.launch {
+                                                if (deck.isDefault) {
+                                                    repo.clearDefaultDeck(deck.id)
+                                                    statusMessage = "Cleared default from ${deck.name}"
+                                                } else {
+                                                    repo.setDefaultDeck(deck.id)
+                                                    statusMessage = "Set ${deck.name} as default"
+                                                }
+                                            }
+                                        }) {
+                                            Icon(
+                                                if (deck.isDefault) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                                if (deck.isDefault) "Clear Default" else "Set Default",
+                                                tint = if (deck.isDefault) Color.Yellow else DarkMuted
+                                            )
+                                        }
+                                        // Edit button (v5.5.0+)
+                                        IconButton(onClick = {
+                                            editingDeck = deck
+                                            editDeckName = deck.name
+                                            editDeckDescription = deck.description
+                                            showEditDeckDialog = true
+                                        }) {
+                                            Icon(Icons.Default.Edit, "Edit", tint = AccentBlue)
+                                        }
+                                        // Delete button
                                         IconButton({ 
                                             scope.launch { 
                                                 repo.deleteDeck(deck.id)
@@ -2688,6 +2723,55 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                                     }
                                                 }
                                             }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Edit Deck Dialog (v5.5.0+)
+                    if (showEditDeckDialog && editingDeck != null) {
+                        Dialog(onDismissRequest = { showEditDeckDialog = false; editingDeck = null }) {
+                            Card(Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = DarkPanel)) {
+                                Column(Modifier.padding(16.dp)) {
+                                    Text("Edit Deck", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                                    Spacer(Modifier.height(12.dp))
+                                    OutlinedTextField(
+                                        value = editDeckName,
+                                        onValueChange = { editDeckName = it },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        label = { Text("Deck Name") },
+                                        singleLine = true
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    OutlinedTextField(
+                                        value = editDeckDescription,
+                                        onValueChange = { editDeckDescription = it },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        label = { Text("Description") },
+                                        minLines = 2
+                                    )
+                                    Spacer(Modifier.height(16.dp))
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                        TextButton(onClick = { showEditDeckDialog = false; editingDeck = null }) { 
+                                            Text("Cancel") 
+                                        }
+                                        Spacer(Modifier.width(8.dp))
+                                        Button(onClick = {
+                                            scope.launch {
+                                                val deckId = editingDeck!!.id
+                                                val result = repo.updateDeck(deckId, editDeckName, editDeckDescription)
+                                                if (result) {
+                                                    statusMessage = "Updated: ${editDeckName}"
+                                                } else {
+                                                    statusMessage = "Error: Could not update deck"
+                                                }
+                                                showEditDeckDialog = false
+                                                editingDeck = null
+                                            }
+                                        }, enabled = editDeckName.isNotBlank()) { 
+                                            Text("Save") 
                                         }
                                     }
                                 }

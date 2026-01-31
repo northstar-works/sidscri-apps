@@ -1,32 +1,31 @@
-START Sat 01/31/2026 11:04:01.68
+START Sat 01/31/2026 12:36:58.51
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2
 GRADLE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2\app\build.gradle
 SEVENZIP=C:\Program Files\7-Zip\7z.exe
-PARSED_versionCode=38
-PARSED_versionName=5.5.0
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v5.5.0 v38.zip
-FIXES_NAME=Fixes v5.5.0 v38.txt
+PARSED_versionCode=39
+PARSED_versionName=5.6.0
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v5.6.0 v39.zip
+FIXES_NAME=Fixes v5.6.0 v39.txt
 STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject
 
 ROBOCOPY_EXIT_CODE=1
 Could Not Find C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\*.iml
-Renaming fixes file: "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v5.4.0 v37.txt" > "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v5.5.0 v38.txt"
-Could Not Find C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v5.5.0 v38.txt
+Renaming fixes file: "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v5.4.0 v37.txt" > "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v5.6.0 v39.txt"
 Running 7z (from stage)...
 
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-35 folders, 82 files, 29513815 bytes (29 MiB)
+35 folders, 85 files, 29532122 bytes (29 MiB)
 
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v5.5.0 v38.zip
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v5.6.0 v39.zip
 
-Add new data to archive: 35 folders, 82 files, 29513815 bytes (29 MiB)
+Add new data to archive: 35 folders, 85 files, 29532122 bytes (29 MiB)
 
 
-Files read from disk: 82
-Archive size: 27331851 bytes (27 MiB)
+Files read from disk: 85
+Archive size: 27336704 bytes (27 MiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 SUCCESS

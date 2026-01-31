@@ -7,7 +7,7 @@ An Android flashcard app designed for studying multiple subjects. It includes a 
 
 This app focuses on **active recall**, **progress tracking**, and **organized learning**, making it ideal for beginners through advanced practitioners.
 
-**Current Version:** v5.4.0 (build 37)
+**Current Version:** v5.6.0 (build 39)
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
@@ -211,7 +211,8 @@ app/src/main/
 │   ├── JsonUtil.kt          # JSON parsing utilities
 │   ├── TtsHelper.kt         # Text-to-speech wrapper
 │   ├── CsvImport.kt         # CSV import functionality
-│   ├── WebAppSync.kt        # Server sync API, fetchAdminUsers(), pullApiKeysForUser()
+│   ├── WebAppSync.kt        # Server sync API, fetchAdminUsers(), pullApiKeysForUser(), verifyServer()
+│   ├── AiGenerationHelper.kt # AI card/definition/description generation (ChatGPT + Gemini)
 │   ├── ChatGptHelper.kt     # ChatGPT AI breakdown autofill
 │   └── GeminiHelper.kt      # Gemini AI breakdown autofill
 ├── assets/
@@ -227,6 +228,8 @@ app/src/main/
 
 | Version | Code | Key Changes |
 |---------|------|-------------|
+| **5.6.0** | 39 | Admin access fix, concise AI definitions, per-deck descriptive toggle, server verification, AI deck description |
+| **5.5.0** | 38 | Feature parity with WebServer v8.4.0: deck editing, set/clear default deck, user card deletion sync |
 | **5.4.0** | 37 | GEN8: Token-admin deck config + invite/redeem codes, server-sourced admin status, deck logo support |
 | **5.3.1** | 36 | Changed icons and logos to Advanced Flashcards branding |
 | **5.2.0** | 34 | Updated server data paths for Windows installer location |
@@ -253,6 +256,48 @@ app/src/main/
 | **1.0.0** | — | Basic flashcards, Got It tracking |
 
 
+
+## v5.6.0 (v39) – Admin Access Fix, Concise Definitions, Server Verification
+
+### What changed (high-level)
+- **Admin access bug fixed**
+  - Admin screen now uses BOTH server-sourced `isAdmin` AND local `AdminUsers.isAdmin()` as fallback.
+  - Previously, if the server restarted (clearing in-memory tokens), the admin got locked out despite being in the admin list.
+  - `refreshAdminStatus()` gracefully falls back to local admin list when server is unreachable.
+- **Keywords optional for AI deck creation**
+  - AI Search keywords field is now optional. If left blank, deck name and/or description are used as search terms.
+- **Description auto-fill**
+  - Empty descriptions auto-fill with the deck name instead of "Created from AI search".
+- **AI description generation**
+  - Edit Deck dialog has an "AI Generate Description" button that creates a brief description from the deck name.
+- **Concise definitions by default**
+  - AI prompts now produce SHORT literal definitions (1-5 words, e.g., "Goodbye" not "A way to say goodbye").
+- **Per-deck "Descriptive Definitions" toggle**
+  - New setting in Edit Deck → Deck Settings. When enabled, AI generates longer explanatory definitions.
+  - Stored per-deck in `descriptiveDefinitions` field.
+- **Server verification on login**
+  - Before login, calls `/api/version` and verifies the `app_name` matches a known Advanced Flashcards server.
+  - New "Verify Server" button next to the admin server URL field.
+
+---
+
+## v5.5.0 (v38) – Feature Parity with WebServer v8.4.0
+
+### What changed (high-level)
+- **Deck editing on Android**
+  - New pencil icon on each user-created deck opens an Edit Deck dialog (name + description).
+  - Changes sync automatically to the server via `POST /api/decks/{id}`.
+- **Set/clear default deck**
+  - Star button toggles default status. Yellow star = current default.
+  - Syncs via `POST /api/decks/{id}/set_default` and `/clear_default`.
+- **User card deletion sync**
+  - Deleting user-created cards now syncs to the server via `DELETE /api/sync/user_cards/{id}`.
+- **New Repository/Store methods**
+  - `updateDeck()`, `setDefaultDeck()`, `clearDefaultDeck()`, `deleteUserCard()` with auto server sync.
+
+See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+---
 
 ## v5.4.0 (v37) – GEN8 parity with WebServer admin generation
 
@@ -296,10 +341,12 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 ### Web Sync Setup
 Your server needs these endpoints:
+- `GET /api/version` - Server identity verification (v5.6.0+)
 - `POST /api/sync/login` - Token authentication
 - `GET/POST /api/sync/pull|push` - Progress sync
 - `GET /api/sync/breakdowns` - Shared breakdowns
 - `GET /api/sync/apikeys` - API keys for all users (v4.4.2+)
+- `GET /api/admin/status` - Admin status check (v5.4.0+)
 - `GET /api/admin/users` - Admin usernames (SoT)
 - `GET/POST /api/admin/apikeys` - Encrypted API keys (admin only for POST)
 
