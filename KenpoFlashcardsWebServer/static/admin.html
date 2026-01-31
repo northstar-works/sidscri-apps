@@ -120,9 +120,9 @@
     .user-access-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     
     /* Modal */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
     .modal-overlay.hidden { display: none; }
-    .modal-card { background: #1a1f2e; border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow: auto; }
+    .modal-card { background: #1a1f2e; border-radius: 16px; padding: 24px; max-width: 700px; width: 95%; max-height: 85vh; overflow: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-title { font-size: 18px; font-weight: 600; color: #fff; }
     .modal-close { background: none; border: none; color: #888; font-size: 24px; cursor: pointer; padding: 0; line-height: 1; }
@@ -137,6 +137,29 @@
     /* Loading */
     #loading { text-align: center; padding: 60px; color: #888; }
     #dashboard { display: none; }
+    
+    /* Mobile responsiveness for admin page */
+    @media (max-width: 768px) {
+      .admin-page { padding: 12px; }
+      .admin-header { flex-direction: column; align-items: flex-start; }
+      .admin-tabs { flex-wrap: wrap; }
+      .admin-tab { padding: 10px 14px; font-size: 13px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .ai-grid { grid-template-columns: 1fr; }
+      .modal-card { max-width: 98%; width: 98%; padding: 16px; }
+      .deck-access-grid { flex-direction: column; }
+      .deck-access-col { min-width: 100%; }
+      .deckAccessList { max-height: 180px; }
+      .quick-actions { flex-direction: column; }
+      .quick-actions .btn { width: 100%; justify-content: center; }
+    }
+    
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .user-table { font-size: 12px; }
+      .user-table th, .user-table td { padding: 8px 6px; }
+      .admin-tab span { display: none; }
+    }
   
 
 /* Edit user deck access */

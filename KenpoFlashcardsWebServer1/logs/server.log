@@ -1,0 +1,260 @@
+2026-01-30 01:06:10,696 | INFO | advanced_flashcards | [READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:8009 • http://192.168.0.129:8009
+2026-01-30 01:06:10,733 | INFO | werkzeug | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8009
+ * Running on http://192.168.0.129:8009
+2026-01-30 01:06:10,733 | INFO | werkzeug | [33mPress CTRL+C to quit[0m
+2026-01-30 22:55:48,614 | INFO | advanced_flashcards | [READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:8010 • http://192.168.0.129:8010
+2026-01-30 22:55:48,635 | INFO | werkzeug | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8010
+ * Running on http://192.168.0.129:8010
+2026-01-30 22:55:48,635 | INFO | werkzeug | [33mPress CTRL+C to quit[0m
+2026-01-30 23:15:15,793 | INFO | advanced_flashcards | [READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:8010 • http://192.168.0.129:8010
+2026-01-30 23:15:15,809 | INFO | werkzeug | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8010
+ * Running on http://192.168.0.129:8010
+2026-01-30 23:15:15,809 | INFO | werkzeug | [33mPress CTRL+C to quit[0m
+2026-01-30 23:32:42,331 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET / ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,332 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET / HTTP/1.1" 200 -
+2026-01-30 23:32:42,354 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /styles.css ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,355 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /styles.css HTTP/1.1" 200 -
+2026-01-30 23:32:42,375 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /app.js ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,376 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /app.js HTTP/1.1" 200 -
+2026-01-30 23:32:42,444 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai/status ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,445 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,446 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:32:42,447 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/ai/status HTTP/1.1" 200 -
+2026-01-30 23:32:42,469 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /res/webappicons/favicon-32.png ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,469 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,470 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /res/webappicons/favicon-32.png HTTP/1.1" 200 -
+2026-01-30 23:32:42,473 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:32:42,473 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,476 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:32:42,493 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,494 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:32:42,497 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,500 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:32:42,506 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,515 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,517 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:32:42,520 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,524 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:32:42,531 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,533 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:32:42,540 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,544 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:32:42,559 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:32:42,568 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,572 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:32:42,582 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,592 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,592 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /res/decklogos/advanced_flashcards_logo.png ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,594 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:32:42,595 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /res/decklogos/advanced_flashcards_logo.png HTTP/1.1" 200 -
+2026-01-30 23:32:42,632 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,634 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,635 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:32:42,655 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,663 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,663 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,665 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:32:42,682 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:32:42,690 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,693 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,707 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,710 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:32:42,713 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:32:42,716 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,717 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:32:42,731 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,734 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,741 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,741 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,743 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:32:42,745 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:32:42,768 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,771 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,791 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:32:42,797 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,798 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,806 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:32:42,830 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,836 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,837 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,840 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,841 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:32:42,844 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:32:42,867 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,871 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,897 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,901 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,903 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:32:42,905 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:32:42,920 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,941 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,942 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,943 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:32:42,944 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:32:42,963 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,973 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,975 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:42,983 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,990 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:42,995 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:42] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:32:43,005 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,007 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:32:43,022 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,033 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,035 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:32:43,040 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,064 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,074 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,101 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdown ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,103 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/breakdown?id=d66e3b40b3bf44d2 HTTP/1.1" 200 -
+2026-01-30 23:32:43,110 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,134 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,139 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,187 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,190 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,209 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,246 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,267 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,303 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,323 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,332 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,369 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,378 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,389 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,397 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,449 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,455 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:32:43,481 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:32:43,513 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:32:43] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:01,634 | INFO | advanced_flashcards | [READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:8010 • http://192.168.0.129:8010
+2026-01-30 23:33:01,655 | INFO | werkzeug | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8010
+ * Running on http://192.168.0.129:8010
+2026-01-30 23:33:01,655 | INFO | werkzeug | [33mPress CTRL+C to quit[0m
+2026-01-30 23:33:07,112 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET / ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,114 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "[36mGET / HTTP/1.1[0m" 304 -
+2026-01-30 23:33:07,146 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /app.js ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,148 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "[36mGET /app.js HTTP/1.1[0m" 304 -
+2026-01-30 23:33:07,158 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /styles.css ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,160 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "[36mGET /styles.css HTTP/1.1[0m" 304 -
+2026-01-30 23:33:07,174 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET / ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,175 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET / HTTP/1.1" 200 -
+2026-01-30 23:33:07,179 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,195 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:33:07,197 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai/status ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,199 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/ai/status HTTP/1.1" 200 -
+2026-01-30 23:33:07,213 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,213 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:33:07,233 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=- GET /favicon.ico ua=Dalvik/2.1.0 (Linux; U; Android 16; SM-S928U1 Build/BP2A.250605.031.A3)
+2026-01-30 23:33:07,235 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,236 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /favicon.ico HTTP/1.1" 200 -
+2026-01-30 23:33:07,236 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /res/webappicons/favicon-32.png ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,239 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "[36mGET /res/webappicons/favicon-32.png HTTP/1.1[0m" 304 -
+2026-01-30 23:33:07,242 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:33:07,247 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,248 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:33:07,268 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,268 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,272 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:33:07,275 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:33:07,281 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,294 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/me ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,295 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,297 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/me HTTP/1.1" 200 -
+2026-01-30 23:33:07,300 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:33:07,318 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,322 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:33:07,331 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:33:07,340 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,345 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:33:07,350 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,361 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,362 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /res/decklogos/advanced_flashcards_logo.png ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,365 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:33:07,366 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "[36mGET /res/decklogos/advanced_flashcards_logo.png HTTP/1.1[0m" 304 -
+2026-01-30 23:33:07,391 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,394 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,400 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:33:07,424 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,428 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,428 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,431 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:33:07,432 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:33:07,462 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,462 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,465 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,466 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:33:07,475 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:33:07,491 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,494 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,496 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:33:07,498 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,503 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,505 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:33:07,524 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,527 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:33:07,531 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,534 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,557 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,559 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,561 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:33:07,561 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:33:07,577 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,585 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/decks ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,591 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,592 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,594 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:33:07,595 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:33:07,625 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,628 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,638 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,647 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/decks HTTP/1.1" 200 -
+2026-01-30 23:33:07,657 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,658 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:33:07,664 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,673 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdowns/ids ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,674 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-01-30 23:33:07,684 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,686 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:33:07,704 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/groups ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,708 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/groups?deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,713 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,732 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,732 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/health ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,732 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/health HTTP/1.1" 200 -
+2026-01-30 23:33:07,739 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/settings ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,743 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-01-30 23:33:07,769 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/ai ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,770 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,773 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/ai HTTP/1.1" 200 -
+2026-01-30 23:33:07,785 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,806 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,817 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,845 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/breakdown ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,847 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/breakdown?id=d66e3b40b3bf44d2 HTTP/1.1" 200 -
+2026-01-30 23:33:07,849 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,869 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,875 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,918 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,923 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:07,943 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:07,979 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:07] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:08,004 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:08,041 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:08] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:08,065 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:08,072 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:08,112 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:08] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:08,118 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:08] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:08,136 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/counts ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:08,140 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:08,184 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:08] "GET /api/counts?&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:08,188 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:08] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -
+2026-01-30 23:33:08,219 | INFO | advanced_flashcards | [REQ] ip=47.188.42.192 user=Sidscri GET /api/cards ua=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Sa
+2026-01-30 23:33:08,257 | INFO | werkzeug | 47.188.42.192 - - [30/Jan/2026 23:33:08] "GET /api/cards?status=active&deck_id=deck_22e1482a HTTP/1.1" 200 -

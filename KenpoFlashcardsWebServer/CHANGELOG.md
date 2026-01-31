@@ -16,6 +16,26 @@ The format is simple and practical:
 
 ---
 
+## 8.4.0 (build 52) — 2026-01-30
+
+### Added
+- **Remember me functionality**: Sessions now persist for 30 days and refresh on each request. Users stay logged in across browser restarts without needing to re-authenticate.
+- **Mobile responsive design**: Comprehensive CSS media queries for tablet (≤900px), mobile (≤600px), and small mobile (≤400px) viewports.
+- **Admin edit built-in decks**: Administrators can now edit built-in decks (like Kenpo Vocabulary) and upload logos for them.
+
+### Changed
+- **Deck logo**: Reduced size by ~15% (98px → 83px) and removed transform that caused jumping. Logo now stays in a fixed position.
+- **Deck title**: Now truncates with ellipsis (...) when too long, preventing layout overflow on mobile.
+- **Edit User modal**: Increased width from 500px to 700px for better visibility of deck access controls. Added responsive breakpoints for smaller screens.
+- **Admin page**: Added mobile responsive styles for tabs, stats grid, AI grid, and modals.
+
+### Fixed
+- **Duplicate `updateHeaderDeckLogo()` call** in postLoginInit that could cause unnecessary re-renders.
+- **Mobile layout issues**: Controls, tabs, cards, and modals now properly stack and resize on smaller screens.
+- **Edit User modal overflow**: Deck access lists now properly scroll and columns stack vertically on mobile.
+
+---
+
 ## 8.3.0 (build 51) — 2026-01-30
 
 ### Added

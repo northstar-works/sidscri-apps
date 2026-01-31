@@ -12,7 +12,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe
 .wrap{max-width:980px;margin:0 auto;padding:18px}
 
 .top{display:flex;flex-direction:column;gap:10px}
-.titleRow{display:flex;justify-content:flex-start;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.titleRow{display:flex;justify-content:flex-start;align-items:flex-end;gap:12px;flex-wrap:wrap;position:relative}
 .titleRow h1{flex:1 1 auto; min-width:280px;}
 h1{margin:0;font-size:28px}
 .mini{font-size:12px;color:var(--muted)}
@@ -1509,10 +1509,8 @@ button.danger{background:#321313;border-color:#6e2222}
 .deckActions{display:flex;gap:8px;align-items:center;}
 
 
-/* Header deck title */
+/* Header deck title - main definition moved to mobile responsive section */
 .appTitle{font-weight:700;}
-.deckTitle{font-weight:400;color:#5ca5ff;font-size:0.7em;opacity:0.9;}
-.deckTitle:before{content:"• ";color:#666;}
 
 
 /* Set default deck button */
@@ -1586,22 +1584,39 @@ button.danger{background:#321313;border-color:#6e2222}
   align-items:center;
   justify-content:center;
   margin-left:auto;
+  position: relative;
+  flex-shrink: 0;
 }
 
-/* lower logo by 3/4 of its own height */
+/* Fixed position - no transform jumping */
 .deckLogoWrap img{
-  transform: translateY(69%);
+  transform: none;
 }
 
 .deckLogoImg{
-  width: 98px;
-  height: 98px;
+  width: 83px;
+  height: 83px;
   object-fit: contain;
   border-radius: 10px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 10px 24px rgba(0,0,0,0.35);
 }
+
+/* ===== Deck Title truncation ===== */
+.deckTitle{
+  font-weight:400;
+  color:#5ca5ff;
+  font-size:0.7em;
+  opacity:0.9;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: bottom;
+}
+.deckTitle:before{content:"• ";color:#666;}
 
 /* ===== File input tuning ===== */
 .fileInput{
@@ -1610,3 +1625,145 @@ button.danger{background:#321313;border-color:#6e2222}
 
 
 .loginVersionCorner{ position:absolute; top:12px; right:16px; font-size:12px; color:#9ca3af; opacity:0.9; }
+
+
+/* ===============================================
+   MOBILE RESPONSIVENESS
+   =============================================== */
+
+/* Tablet breakpoint */
+@media (max-width: 900px) {
+  .wrap { padding: 12px; }
+  h1 { font-size: 24px; }
+  .titleRow h1 { min-width: 200px; }
+  .deckTitle { max-width: 140px; }
+  .deckLogoImg { width: 70px; height: 70px; }
+  
+  .controls { flex-direction: column; gap: 10px; }
+  .leftControls, .rightControls { width: 100%; justify-content: flex-start; }
+  .searchWrapper { flex: 1; }
+  input { min-width: 200px; }
+  
+  .card { height: 300px; }
+  .big { font-size: 28px; }
+  
+  /* Admin Edit User modal */
+  .modal-card { max-width: 95vw; max-height: 85vh; }
+  .deck-access-grid { flex-direction: column; gap: 12px; }
+  .deck-access-col { min-width: 100%; }
+  .deckAccessList { max-height: 150px; }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 600px) {
+  .wrap { padding: 10px; }
+  h1 { font-size: 20px; }
+  .titleRow { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .titleRow h1 { min-width: auto; width: 100%; }
+  
+  /* Deck logo stays in corner on mobile */
+  .deckLogoWrap { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    margin-left: 0;
+  }
+  .deckLogoImg { width: 55px; height: 55px; }
+  .deckTitle { max-width: 120px; font-size: 0.6em; }
+  
+  .tabs { gap: 4px; flex-wrap: wrap; }
+  .tab { padding: 8px 10px; font-size: 13px; }
+  .tab.small { padding: 6px 8px; font-size: 12px; }
+  .tab.tiny { padding: 4px 8px; font-size: 11px; }
+  .tabsRight { margin-left: 0; margin-top: 6px; width: 100%; }
+  
+  .counts { font-size: 12px; }
+  
+  .controls { gap: 8px; }
+  .leftControls, .rightControls { 
+    flex-direction: column; 
+    width: 100%; 
+    align-items: stretch;
+  }
+  .groupDropdown { width: 100%; }
+  #allCardsBtn { width: 100%; }
+  .searchWrapper { width: 100%; }
+  input { min-width: 100%; width: 100%; }
+  #searchBox { min-width: 100%; }
+  
+  .card { height: 260px; border-radius: 16px; }
+  .card-inner { width: 94%; height: 88%; }
+  .big { font-size: 24px; }
+  .small { font-size: 13px; }
+  .pill { padding: 4px 8px; font-size: 12px; }
+  .hint { font-size: 12px; }
+  
+  .actionsRow { gap: 6px; flex-wrap: wrap; }
+  .actionsRow button { padding: 10px 12px; font-size: 13px; flex: 1 1 auto; min-width: 80px; }
+  
+  #userLine { font-size: 11px; padding: 4px 6px; }
+  .userMenu { right: 10px; top: 52px; min-width: 180px; }
+  
+  /* Modals */
+  .modalCard { width: 98vw; padding: 14px; }
+  .modalTitle { font-size: 18px; }
+  .modalForm input { min-width: 100%; }
+  
+  /* Admin modal */
+  .modal-card { 
+    width: 98vw; 
+    max-width: 98vw; 
+    max-height: 90vh; 
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .modal-title { font-size: 16px; }
+  .form-group { margin-bottom: 12px; }
+  .deck-access-grid { flex-direction: column; gap: 10px; }
+  .deck-access-col { min-width: 100%; width: 100%; }
+  .deckAccessList { max-height: 120px; padding: 8px; }
+  .deckAccessRow { flex-direction: column; gap: 6px; align-items: flex-start; }
+  .deckAccessName { font-size: 13px; }
+  .deckAccessMeta { font-size: 10px; }
+  .quick-actions { flex-direction: column; gap: 8px; }
+  .quick-actions .btn { width: 100%; justify-content: center; }
+  
+  /* Settings page */
+  .settingsNav { flex-wrap: wrap; gap: 4px; }
+  .settingsNavBtn { padding: 8px 10px; font-size: 12px; }
+  .settingsCard { padding: 12px; }
+  .settingRow { padding: 8px; }
+  .settingTitle { font-size: 14px; }
+  .settingDesc { font-size: 11px; }
+  
+  /* Edit Decks modal */
+  .csModalFixed { width: 98vw; max-width: 98vw; min-height: auto; }
+  .csManageSplit { flex-direction: column; }
+  .csManagePane { min-height: 150px; }
+  .csCardList { height: 130px; }
+  
+  /* Custom Set modal */
+  .customSetTabs { flex-wrap: wrap; }
+  .csTab { padding: 6px 10px; font-size: 12px; }
+  .csTabBody { min-height: auto; }
+  
+  /* Breakdowns modal */
+  .modalCardWide { width: 98vw; max-width: 98vw; }
+  .breakdownGrid { grid-template-columns: 1fr; }
+  .breakdownRow { grid-template-columns: 1fr; gap: 6px; }
+  .breakdownRow input { width: 100%; }
+}
+
+/* Small mobile breakpoint */
+@media (max-width: 400px) {
+  h1 { font-size: 18px; }
+  .deckLogoImg { width: 45px; height: 45px; }
+  .deckTitle { max-width: 80px; font-size: 0.55em; }
+  
+  .tab { padding: 6px 8px; font-size: 12px; }
+  
+  .card { height: 220px; }
+  .big { font-size: 20px; }
+  
+  .actionsRow button { padding: 8px 10px; font-size: 12px; min-width: 70px; }
+}

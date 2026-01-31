@@ -737,6 +737,19 @@ def _is_admin_user(username: str) -> bool:
 _init_api_keys_from_encrypted()
 
 app.secret_key = os.environ.get("KENPO_SECRET_KEY", "") or _load_or_create_secret()
+
+# Session configuration for "remember me" functionality
+# Sessions persist for 30 days, extending on each request
+from datetime import timedelta
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+@app.before_request
+def _make_session_permanent():
+    """Make all sessions permanent (30-day expiry, refreshed on each request)."""
+    session.permanent = True
+
 # ----------------------------
 # Version + request audit log
 # ----------------------------
@@ -4278,10 +4291,13 @@ def api_update_deck(deck_id: str):
     if not deck_to_update:
         return jsonify({"error": "Deck not found"}), 404
     
-    if deck_to_update.get("isBuiltIn"):
+    # Built-in decks can only be edited by admins
+    user = _get_user(uid) or {}
+    is_admin = _is_admin_user(user.get("username", ""))
+    if deck_to_update.get("isBuiltIn") and not is_admin:
         return jsonify({"error": "Cannot edit built-in deck"}), 400
 
-    if not _user_can_edit_deck(uid, deck_id):
+    if not _user_can_edit_deck(uid, deck_id) and not is_admin:
         return jsonify({"error": "not_owner"}), 403
 
     # If this is a legacy deck with no owner stored yet, claim it for this user on first edit.
@@ -4334,11 +4350,13 @@ def api_upload_deck_logo(deck_id: str):
     if not deck:
         return jsonify({"error": "Deck not found"}), 404
 
-    # Built-in decks are not editable here (set built-in logos in decks.json)
-    if deck.get("isBuiltIn"):
+    # Built-in decks can only be edited by admins
+    user = _get_user(uid) or {}
+    is_admin = _is_admin_user(user.get("username", ""))
+    if deck.get("isBuiltIn") and not is_admin:
         return jsonify({"error": "Cannot upload logo for built-in deck"}), 400
 
-    if not _user_can_edit_deck(uid, deck_id):
+    if not _user_can_edit_deck(uid, deck_id) and not is_admin:
         return jsonify({"error": "not_owner"}), 403
 
     # Legacy deck: claim ownership on first edit action

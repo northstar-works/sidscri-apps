@@ -1,0 +1,7 @@
+{
+  "name": "Advanced Flashcards WebAppServer",
+  "version": "8.3.0",
+  "build": 51,
+  "released": "2026-01-29",
+  "notes": "8.3.0 (build 51): Packaged install detection + packaged-only Web Server version display; Admin deck access UX (status + add built-in); Custom Set randomization UI polish; Create-deck add-cards method selector with keyword auto-generate (25) and reset; forced password reset login flow improvements; docs updates."
+}

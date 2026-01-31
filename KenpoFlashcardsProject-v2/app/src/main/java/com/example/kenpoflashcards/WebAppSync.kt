@@ -1025,4 +1025,119 @@ object WebAppSync {
         val text = (if (code in 200..299) conn.inputStream else conn.errorStream).bufferedReader().readText()
         JSONObject(text)
     }
+
+    // ============ DECK MANAGEMENT (v5.5.0+) ============
+    
+    /**
+     * Update an existing deck (name/description)
+     * POST /api/decks/{deckId}
+     */
+    suspend fun updateDeck(serverUrl: String, token: String, deckId: String, name: String, description: String): SyncResult = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$serverUrl/api/decks/$deckId")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.doOutput = true
+            conn.connectTimeout = 10000
+            conn.readTimeout = 10000
+            
+            val body = JSONObject().apply {
+                put("name", name)
+                put("description", description)
+            }
+            
+            conn.outputStream.use { it.write(body.toString().toByteArray()) }
+            
+            if (conn.responseCode == 200) {
+                SyncResult(success = true, message = "Deck updated")
+            } else {
+                val err = try { conn.errorStream?.bufferedReader()?.readText() ?: "" } catch (_: Exception) { "" }
+                SyncResult(success = false, error = "Update failed: ${conn.responseCode} ${err.take(100)}")
+            }
+        } catch (e: Exception) {
+            SyncResult(success = false, error = e.message ?: "Update failed")
+        }
+    }
+    
+    /**
+     * Set a deck as the default
+     * POST /api/decks/{deckId}/set_default
+     */
+    suspend fun setDefaultDeck(serverUrl: String, token: String, deckId: String): SyncResult = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$serverUrl/api/decks/$deckId/set_default")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.doOutput = true
+            conn.connectTimeout = 10000
+            conn.readTimeout = 10000
+            
+            conn.outputStream.use { it.write("{}".toByteArray()) }
+            
+            if (conn.responseCode == 200) {
+                SyncResult(success = true, message = "Default deck set")
+            } else {
+                val err = try { conn.errorStream?.bufferedReader()?.readText() ?: "" } catch (_: Exception) { "" }
+                SyncResult(success = false, error = "Set default failed: ${conn.responseCode} ${err.take(100)}")
+            }
+        } catch (e: Exception) {
+            SyncResult(success = false, error = e.message ?: "Set default failed")
+        }
+    }
+    
+    /**
+     * Clear the default flag from a deck
+     * POST /api/decks/{deckId}/clear_default
+     */
+    suspend fun clearDefaultDeck(serverUrl: String, token: String, deckId: String): SyncResult = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$serverUrl/api/decks/$deckId/clear_default")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.doOutput = true
+            conn.connectTimeout = 10000
+            conn.readTimeout = 10000
+            
+            conn.outputStream.use { it.write("{}".toByteArray()) }
+            
+            if (conn.responseCode == 200) {
+                SyncResult(success = true, message = "Default cleared")
+            } else {
+                val err = try { conn.errorStream?.bufferedReader()?.readText() ?: "" } catch (_: Exception) { "" }
+                SyncResult(success = false, error = "Clear default failed: ${conn.responseCode} ${err.take(100)}")
+            }
+        } catch (e: Exception) {
+            SyncResult(success = false, error = e.message ?: "Clear default failed")
+        }
+    }
+    
+    /**
+     * Delete a user card from server
+     * DELETE /api/sync/user_cards/{cardId}
+     */
+    suspend fun deleteUserCard(serverUrl: String, token: String, cardId: String): SyncResult = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$serverUrl/api/sync/user_cards/$cardId")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "DELETE"
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.connectTimeout = 10000
+            conn.readTimeout = 10000
+            
+            if (conn.responseCode == 200) {
+                SyncResult(success = true, message = "Card deleted")
+            } else {
+                val err = try { conn.errorStream?.bufferedReader()?.readText() ?: "" } catch (_: Exception) { "" }
+                SyncResult(success = false, error = "Delete failed: ${conn.responseCode} ${err.take(100)}")
+            }
+        } catch (e: Exception) {
+            SyncResult(success = false, error = e.message ?: "Delete failed")
+        }
+    }
 }

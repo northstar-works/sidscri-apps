@@ -1,0 +1,265 @@
+============================================================
+FINAL Release Build (APK + AAB)
+Started: Thu 01/29/2026 22:43:13.82
+Folder : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2
+Output : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2\output\release
+Log    : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2\logs\final_release_build_20260129_224313.log
+============================================================
+[PROGRESS] 10% - gradlew --version
+
+------------------------------------------------------------
+[Thu 01/29/2026 22:43:13.90] CMD: .\gradlew.bat --version
+------------------------------------------------------------
+
+------------------------------------------------------------
+Gradle 8.7
+------------------------------------------------------------
+
+Build time:   2024-03-22 15:52:46 UTC
+Revision:     650af14d7653aa949fce5e886e685efc9cf97c10
+
+Kotlin:       1.9.22
+Groovy:       3.0.17
+Ant:          Apache Ant(TM) version 1.10.13 compiled on January 4 2023
+JVM:          17.0.17 (Eclipse Adoptium 17.0.17+10)
+OS:           Windows 10 10.0 amd64
+
+[ExitCode=0]
+[PROGRESS] 25% - clean
+
+------------------------------------------------------------
+[Thu 01/29/2026 22:43:15.26] CMD: .\gradlew.bat clean
+------------------------------------------------------------
+> Task :app:clean
+
+BUILD SUCCESSFUL in 2s
+1 actionable task: 1 executed
+[ExitCode=0]
+[PROGRESS] 45% - compileReleaseKotlin
+
+------------------------------------------------------------
+[Thu 01/29/2026 22:43:18.64] CMD: .\gradlew.bat :app:compileReleaseKotlin --stacktrace
+------------------------------------------------------------
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:generateReleaseResValues
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:checkReleaseAarMetadata
+> Task :app:generateReleaseResources
+> Task :app:packageReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+> Task :app:parseReleaseLocalResources
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
+> Task :app:processReleaseManifestForPackage
+> Task :app:mergeReleaseResources
+> Task :app:processReleaseResources
+
+> Task :app:compileReleaseKotlin
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:125:59 'Help: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Help
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:127:59 'List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:134:59 'Help: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Help
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:136:59 'List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:209:55 Parameter 'landscape' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:292:5 Parameter 'showSearch' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:346:104 'VolumeUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.VolumeUp
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:482:138 Unnecessary safe call on a non-null receiver of type FlashCard?
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:482:163 Unnecessary safe call on a non-null receiver of type FlashCard?
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:482:256 'VolumeUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.VolumeUp
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:646:257 'VolumeUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.VolumeUp
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:684:9 Variable 'landscape' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:762:9 Variable 'progress' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:896:275 'VolumeUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.VolumeUp
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:958:261 'VolumeUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.VolumeUp
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1017:21 'Divider(Modifier = ..., Dp = ..., Color = ...): Unit' is deprecated. Renamed to HorizontalDivider
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1098:9 Variable 'csvLauncher' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1242:9 Variable 'redeemCode' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1255:92 'ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1636:209 'ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1700:36 'MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1733:9 Variable 'redeemCode' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1739:209 'ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1763:40 'Logout: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Logout
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1848:40 'Login: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Login
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1881:9 Variable 'redeemCode' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1888:217 'ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:1905:106 'Login: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Login
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:2030:214 'ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:2141:9 Variable 'context' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:2151:9 Variable 'redeemCode' is never used
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:2222:92 'ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/MainActivity.kt:2457:78 Parameter 'idx' is never used, could be renamed to _
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Repository.kt:37:35 Condition 'it.deckId == null' is always 'false'
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:305:216 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:366:58 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:366:63 Unnecessary safe call on a non-null receiver of type String!
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:367:130 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:367:135 Unnecessary safe call on a non-null receiver of type String!
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:610:52 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:610:57 Unnecessary safe call on a non-null receiver of type String!
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:614:48 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:614:53 Unnecessary safe call on a non-null receiver of type String!
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:632:48 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:632:53 Unnecessary safe call on a non-null receiver of type String!
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:634:40 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/Store.kt:634:45 Unnecessary safe call on a non-null receiver of type String!
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/WebAppSync.kt:242:67 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/WebAppSync.kt:566:67 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/WebAppSync.kt:570:63 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/WebAppSync.kt:663:63 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/WebAppSync.kt:665:55 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/WebAppSync.kt:764:63 Type mismatch: inferred type is Nothing? but String was expected
+w: file:///C:/Users/Sidscri/Documents/GitHub/sidscri-apps/KenpoFlashcardsProject-v2/app/src/main/java/com/example/kenpoflashcards/WebAppSync.kt:766:55 Type mismatch: inferred type is Nothing? but String was expected
+
+BUILD SUCCESSFUL in 32s
+15 actionable tasks: 15 executed
+[ExitCode=0]
+[PROGRESS] 70% - assembleRelease (APK)
+
+------------------------------------------------------------
+[Thu 01/29/2026 22:43:52.19] CMD: .\gradlew.bat :app:assembleRelease --stacktrace
+------------------------------------------------------------
+> Task :app:buildKotlinToolingMetadata
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:processReleaseManifest UP-TO-DATE
+> Task :app:processReleaseManifestForPackage UP-TO-DATE
+> Task :app:processReleaseResources UP-TO-DATE
+> Task :app:compileReleaseKotlin UP-TO-DATE
+> Task :app:javaPreCompileRelease
+> Task :app:extractProguardFiles
+> Task :app:compileReleaseJavaWithJavac NO-SOURCE
+> Task :app:generateReleaseLintVitalReportModel
+> Task :app:mergeReleaseJniLibFolders
+> Task :app:mergeReleaseNativeLibs
+
+> Task :app:stripReleaseDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libdatastore_shared_counter.so.
+
+> Task :app:checkReleaseDuplicateClasses
+> Task :app:dexBuilderRelease
+> Task :app:extractReleaseNativeSymbolTables
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeReleaseArtProfile
+> Task :app:mergeReleaseShaders
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseGlobalSynthetics
+> Task :app:mergeReleaseAssets
+> Task :app:extractReleaseVersionControlInfo
+> Task :app:compressReleaseAssets
+> Task :app:processReleaseJavaRes
+> Task :app:collectReleaseDependencies
+> Task :app:optimizeReleaseResources
+> Task :app:sdkReleaseDependencyData
+> Task :app:writeReleaseAppMetadata
+> Task :app:writeReleaseSigningConfigVersions
+> Task :app:mergeReleaseJavaResource
+> Task :app:mergeExtDexRelease
+> Task :app:mergeDexRelease
+> Task :app:compileReleaseArtProfile
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:assembleRelease
+
+BUILD SUCCESSFUL in 41s
+48 actionable tasks: 33 executed, 15 up-to-date
+[ExitCode=0]
+[PROGRESS] 82% - bundleRelease (AAB)
+
+------------------------------------------------------------
+[Thu 01/29/2026 22:44:34.57] CMD: .\gradlew.bat :app:bundleRelease --stacktrace
+------------------------------------------------------------
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest UP-TO-DATE
+> Task :app:processReleaseManifest UP-TO-DATE
+> Task :app:processApplicationManifestReleaseForBundle
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:processReleaseManifestForPackage UP-TO-DATE
+> Task :app:processReleaseResources UP-TO-DATE
+> Task :app:extractReleaseVersionControlInfo UP-TO-DATE
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:compileReleaseKotlin UP-TO-DATE
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:compileReleaseJavaWithJavac NO-SOURCE
+> Task :app:dexBuilderRelease UP-TO-DATE
+> Task :app:desugarReleaseFileDependencies UP-TO-DATE
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeExtDexRelease UP-TO-DATE
+> Task :app:mergeDexRelease UP-TO-DATE
+> Task :app:mergeReleaseShaders UP-TO-DATE
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseGlobalSynthetics UP-TO-DATE
+> Task :app:processReleaseJavaRes UP-TO-DATE
+> Task :app:mergeReleaseJavaResource UP-TO-DATE
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeReleaseNativeLibs UP-TO-DATE
+> Task :app:stripReleaseDebugSymbols UP-TO-DATE
+> Task :app:writeReleaseAppMetadata UP-TO-DATE
+> Task :app:mergeReleaseArtProfile UP-TO-DATE
+> Task :app:compileReleaseArtProfile UP-TO-DATE
+> Task :app:collectReleaseDependencies UP-TO-DATE
+> Task :app:configureReleaseDependencies
+> Task :app:extractReleaseNativeSymbolTables UP-TO-DATE
+> Task :app:parseReleaseIntegrityConfig
+> Task :app:bundleReleaseResources
+> Task :app:buildReleasePreBundle
+> Task :app:packageReleaseBundle
+> Task :app:signReleaseBundle
+> Task :app:produceReleaseBundleIdeListingFile
+> Task :app:createReleaseBundleListingFileRedirect
+> Task :app:bundleRelease
+
+BUILD SUCCESSFUL in 7s
+46 actionable tasks: 10 executed, 36 up-to-date
+[ExitCode=0]
+[PROGRESS] 90% - copy outputs to .\output\release
+
+------------------------------------------------------------
+[Thu 01/29/2026 22:44:42.70] Copy outputs
+------------------------------------------------------------
+        1 file(s) copied.
+        1 file(s) copied.
+ Volume in drive C has no label.
+ Volume Serial Number is 80C4-5A58
+
+ Directory of C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2\output\release
+
+01/29/2026  10:44 PM    <DIR>          .
+01/29/2026  10:44 PM    <DIR>          ..
+01/29/2026  10:44 PM        14,412,488 app-release-unsigned.apk
+01/29/2026  10:44 PM        13,609,979 app-release.aab
+               2 File(s)     28,022,467 bytes
+               2 Dir(s)  178,206,269,440 bytes free
+[PROGRESS] 100% - DONE

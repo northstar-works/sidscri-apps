@@ -489,6 +489,66 @@ suspend fun addDeck(deck: StudyDeck) {
     }
 
     /**
+     * Update an existing deck (name/description)
+     */
+    suspend fun updateDeck(deckId: String, name: String, description: String) {
+        if (deckId == "kenpo") return  // Cannot update built-in default deck
+        context.dataStore.edit { prefs ->
+            val raw = prefs[KEY_DECKS_JSON] ?: "[]"
+            val arr = try { JSONArray(raw) } catch (_: Exception) { JSONArray() }
+            val newArr = JSONArray()
+            for (i in 0 until arr.length()) {
+                val obj = arr.optJSONObject(i)
+                if (obj?.optString("id") == deckId) {
+                    obj.put("name", name)
+                    obj.put("description", description)
+                    obj.put("updatedAt", System.currentTimeMillis() / 1000)
+                    newArr.put(obj)
+                } else {
+                    newArr.put(obj)
+                }
+            }
+            prefs[KEY_DECKS_JSON] = newArr.toString()
+        }
+    }
+
+    /**
+     * Set a deck as the default (isDefault = true, others = false)
+     */
+    suspend fun setDefaultDeck(deckId: String) {
+        context.dataStore.edit { prefs ->
+            val raw = prefs[KEY_DECKS_JSON] ?: "[]"
+            val arr = try { JSONArray(raw) } catch (_: Exception) { JSONArray() }
+            val newArr = JSONArray()
+            for (i in 0 until arr.length()) {
+                val obj = arr.optJSONObject(i)
+                obj?.put("isDefault", obj.optString("id") == deckId)
+                newArr.put(obj)
+            }
+            prefs[KEY_DECKS_JSON] = newArr.toString()
+        }
+    }
+
+    /**
+     * Clear the default flag from a deck
+     */
+    suspend fun clearDefaultDeck(deckId: String) {
+        context.dataStore.edit { prefs ->
+            val raw = prefs[KEY_DECKS_JSON] ?: "[]"
+            val arr = try { JSONArray(raw) } catch (_: Exception) { JSONArray() }
+            val newArr = JSONArray()
+            for (i in 0 until arr.length()) {
+                val obj = arr.optJSONObject(i)
+                if (obj?.optString("id") == deckId) {
+                    obj.put("isDefault", false)
+                }
+                newArr.put(obj)
+            }
+            prefs[KEY_DECKS_JSON] = newArr.toString()
+        }
+    }
+
+    /**
      * Delete a user-created deck (cannot delete built-in decks)
      */
     suspend fun deleteDeck(deckId: String) {
