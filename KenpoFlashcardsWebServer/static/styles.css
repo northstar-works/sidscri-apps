@@ -2705,3 +2705,103 @@ body.modalLock{ overflow:hidden; }
 .aiInstrRow{display:flex; gap:10px; align-items:flex-start;}
 .aiInstrRow textarea{width:75%; resize:none; overflow:hidden;}
 .aiInstrRow .aiInstrClearBtn{height:32px; margin-top:2px;}
+
+
+/* Collapsible sections (Decks page) */
+.collapsibleSection{
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+  background: rgba(255,255,255,0.02);
+}
+.collapsibleHeader{
+  width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.03);
+  border: none;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+.collapsibleChevron{
+  opacity: 0.8;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+.collapsibleBody{
+  padding: 14px;
+}
+.collapsibleSection.collapsed .collapsibleBody{
+  display: none;
+}
+.collapsibleSection:not(.collapsed) .collapsibleChevron{
+  transform: rotate(180deg);
+}
+
+/* Sub-tabs inside Add Cards */
+.subTabs{
+  display:flex;
+  gap: 8px;
+  margin: 12px 0 6px 0;
+  flex-wrap: wrap;
+}
+.subTabBtn{
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.subTabBtn:hover{
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+}
+.subTabBtn.active{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.subTabSection{
+  padding-top: 10px;
+}
+.subTabSection:not(.active){
+  display:none;
+}
+
+/* Reuse generator tab styles for bulk generators */
+.bulkGenMethodTabs, .editBulkGenMethodTabs{
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.bulkGenMethodTab, .editBulkGenMethodTab{
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.bulkGenMethodTab:hover, .editBulkGenMethodTab:hover{
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+}
+.bulkGenMethodTab.active, .editBulkGenMethodTab.active{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.bulkGenMethodSection.hidden, .editBulkGenMethodSection.hidden{
+  display:none;
+}

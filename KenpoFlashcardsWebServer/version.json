@@ -1,8 +1,9 @@
 {
   "name": "Advanced Flashcards WebAppServer",
-  "version": "8.7.0",
-  "build": 60,
+  "version": "8.8.0",
+  "build": 61,
   "released": "2026-02-06",
   "is_packaged": false,
-  "notes": "8.7.0 (b60): AI Deck Generator UX refinements (Clear always visible, textarea auto-expands, clears keywords/resets max on exit) + settings label rename to \"Example format template\"."
+  "notes": "8.8.0 (b61): Decks UI updates (collapsed Create New Deck / Redeem), Add Cards sub-tabs (manual + Bulk Add with AI), AI Generator renamed to 'Create Deck w/ AiGen', Edit Deck modal adds 'Add Card' tab (Bulk AI), defaults back to Switch on exit; version bump.",
+  "date": "2026-02-06"
 }

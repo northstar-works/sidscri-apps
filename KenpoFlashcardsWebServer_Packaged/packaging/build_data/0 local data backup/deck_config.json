@@ -1,0 +1,7 @@
+{
+  "newUsersGetBuiltInDecks": true,
+  "allowNonAdminDeckEdits": false,
+  "builtInDecks": [
+    "kenpo"
+  ]
+}

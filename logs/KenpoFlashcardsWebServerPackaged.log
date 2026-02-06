@@ -1,15 +1,15 @@
-START Fri 02/06/2026 16:24:04.51
+START Fri 02/06/2026 17:29:27.37
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged_Synced
 VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged_Synced\version.json
 PROJ_ZIP=KenpoFlashcardsWebServer_Packaged
 SEVENZIP=C:\Program Files\7-Zip\7z.exe
-VER=5.2.1
-BUILD=21
-WSVER=8.7.0
-WSBUILD=60
-WSSUFFIX=-ws8.7.0_b60
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.1 v21-ws8.7.0_b60.zip
+VER=5.3.0
+BUILD=22
+WSVER=8.8.0
+WSBUILD=61
+WSSUFFIX=-ws8.8.0_b61
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.3.0 v22-ws8.8.0_b61.zip
 STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage
 
 ROBOCOPY_EXIT_CODE=1
@@ -19,15 +19,15 @@ Running 7z (from stage)...
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-41 folders, 117 files, 17340747 bytes (17 MiB)
+40 folders, 112 files, 3380209 bytes (3301 KiB)
 
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.1 v21-ws8.7.0_b60.zip
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.3.0 v22-ws8.8.0_b61.zip
 
-Add new data to archive: 41 folders, 117 files, 17340747 bytes (17 MiB)
+Add new data to archive: 40 folders, 112 files, 3380209 bytes (3301 KiB)
 
 
-Files read from disk: 117
-Archive size: 15921547 bytes (16 MiB)
+Files read from disk: 112
+Archive size: 2504866 bytes (2447 KiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 SUCCESS

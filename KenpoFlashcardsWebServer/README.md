@@ -6,12 +6,35 @@
 Flask-based web application providing sync API and web UI for Advanced Flashcards WebApp.
 
 
-**Current Version:** v8.7.0 (build 60)  
+**Current Version:** v8.8.0 (build 61)  
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 
 
-## ✅ Recent FAC (v8.7.0 build 60)
+## ✅ Recent FAC (v8.8.0 build 61)
+
+### Added
+- **Decks UI improvements**
+  - Settings menu: **Edit Decks** renamed to **Decks**
+  - On Decks > Switch: **Create New Deck** and **Redeem Invite Code** are collapsed by default and expand/collapse on tap
+- **Decks > Add Cards**
+  - New sub-tabs: **Add a New Card** and **Bulk Add with AI**
+  - Bulk Add uses the same AI generation methods (Keywords / Photo / Document) to add multiple cards to an existing deck
+- **Edit Deck modal**
+  - New **Add Card** tab: Bulk Add with AI, locked to the deck you’re editing
+
+### Changed
+- **AI Generator** tab renamed to **Create Deck w/ AiGen**
+- When exiting the Decks page, it resets back to the **Switch** tab by default (next open starts on Switch)
+- After adding cards via AI Generator, the Decks window closes and returns you to Study
+
+### Fixed
+- N/A
+
+
+---
+
+### Previous (v8.7.0 build 60)
 
 ### Added
 - **AI generator instructions override**: if you type specific instructions, they take priority over any “Short answers only” setting.

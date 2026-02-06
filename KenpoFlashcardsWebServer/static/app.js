@@ -2908,18 +2908,53 @@ function hideAllViews(){
 function openEditDecks(){
   hideAllViews();
   $("viewEditDecks").classList.remove("hidden");
+  // Always start on Switch tab
+  try { switchEditDecksTab("switch"); } catch(e){}
+  try { switchAddCardsSubTab("single"); } catch(e){}
+  try { resetDecksCollapsibles(); } catch(e){}
   loadDecks();
   loadUserCards();
   loadDeletedCards();
-  // Default to Switch tab whenever Edit Decks is opened
-  switchEditDecksTab("switch");
 }
 
 // Close Edit Decks page
 function closeEditDecks(){
+  // Reset Decks UI so next open defaults correctly
+  try { switchEditDecksTab("switch"); } catch(e){}
+  try { switchAddCardsSubTab("single"); } catch(e){}
+  try { resetDecksCollapsibles(); } catch(e){}
   hideAllViews();
   $("viewStudy").classList.remove("hidden");
   refresh();
+}
+
+
+function toggleCollapsible(id){
+  const el = $(id);
+  if(!el) return;
+  el.classList.toggle("collapsed");
+}
+
+function resetDecksCollapsibles(){
+  ["collCreateDeck","collRedeemCode"].forEach(id => {
+    const el = $(id);
+    if(el) el.classList.add("collapsed");
+  });
+}
+
+function switchAddCardsSubTab(sub){
+  // Buttons
+  document.querySelectorAll("#addCardsSubTabs .subTabBtn").forEach(b => b.classList.remove("active"));
+  document.querySelector(`#addCardsSubTabs .subTabBtn[data-subtab="${sub}"]`)?.classList.add("active");
+
+  // Sections
+  document.querySelectorAll("#editDecksAddTab .subTabSection").forEach(s => s.classList.remove("active"));
+  document.querySelector(`#editDecksAddTab .subTabSection[data-subtab-body="${sub}"]`)?.classList.add("active");
+
+  // Clear any visible status when switching
+  if(sub === "single"){
+    // nothing
+  }
 }
 
 // Switch Edit Decks tabs
@@ -3214,6 +3249,19 @@ function showEditDeckModal(deck){
   if(nameEl){
     nameEl.textContent = deck && deck.name ? `(${deck.name})` : "";
   }
+
+  // Populate "Add Card" tab target deck (fixed to this deck)
+  try{
+    const sel = $("editDeckBulkAiDeckSelect");
+    if(sel){
+      sel.innerHTML = "";
+      const opt = document.createElement("option");
+      opt.value = deck.id;
+      opt.textContent = deck.name;
+      opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }catch(e){}
 
   // Default to Edit Deck tab every time
   switchEditDeckModalTab("deck");
@@ -4345,16 +4393,18 @@ async function createDeck(){
 
 // Update deck dropdown in Add Cards tab
 function updateDeckDropdown(){
-  const select = $("addCardDeck");
-  if(!select) return;
-  
-  select.innerHTML = "";
-  for(const deck of currentDecks){
-    const opt = document.createElement("option");
-    opt.value = deck.id;
-    opt.textContent = deck.name;
-    if(deck.id === activeDeckId) opt.selected = true;
-    select.appendChild(opt);
+  const selects = [$("addCardsDeckSelect"), $("addCardDeck")].filter(Boolean);
+  if(selects.length === 0) return;
+
+  for(const select of selects){
+    select.innerHTML = "";
+    for(const deck of currentDecks){
+      const opt = document.createElement("option");
+      opt.value = deck.id;
+      opt.textContent = deck.name;
+      if(deck.id === activeDeckId) opt.selected = true;
+      select.appendChild(opt);
+    }
   }
 }
 
@@ -4419,7 +4469,7 @@ async function addUserCard(){
   const meaning = $("addCardMeaning").value.trim();
   const pron = $("addCardPron").value.trim();
   const group = $("addCardGroup").value.trim();
-  const deckId = $("addCardDeck").value;
+  const deckId = ($("addCardsDeckSelect")?.value || $("addCardDeck")?.value || activeDeckId || "kenpo");
   
   if(!term){
     showEditDecksStatus("Please enter a term", "error");
@@ -4705,6 +4755,16 @@ document.addEventListener("keydown", (e) => {
   $("addCardBtn")?.addEventListener("click", addUserCard);
   $("clearAddCardBtn")?.addEventListener("click", clearAddCardForm);
   $("toggleUserCardsBtn")?.addEventListener("click", toggleUserCards);
+
+
+  // Add Cards sub-tabs (manual vs bulk AI)
+  document.querySelectorAll("#addCardsSubTabs .subTabBtn").forEach(btn => {
+    btn.addEventListener("click", () => switchAddCardsSubTab(btn.dataset.subtab));
+  });
+
+  // Init Bulk Add AI generators
+  initBulkAddAiGenerator();
+  initEditDeckBulkAiGenerator();
   
   // AI buttons
   $("aiGenDefBtn")?.addEventListener("click", aiGenerateDefinition);
@@ -4731,6 +4791,679 @@ let aiDocData = null;
 let _aiGenPreExampleTimer = null;
 let _aiGenPreExampleLastSig = "";
 
+// ========== BULK ADD (AI) ==========
+let bulkAiGeneratedCards = [];
+let bulkAiSelectedIndices = new Set();
+let bulkAiPhotoData = null;
+let bulkAiDocData = null;
+let _bulkAiPreExampleTimer = null;
+let _bulkAiPreExampleLastSig = "";
+
+// ========== EDIT DECK MODAL: BULK ADD (AI) ==========
+let editBulkAiGeneratedCards = [];
+let editBulkAiSelectedIndices = new Set();
+let editBulkAiPhotoData = null;
+let editBulkAiDocData = null;
+let _editBulkAiPreExampleTimer = null;
+let _editBulkAiPreExampleLastSig = "";
+
+function getAddCardsTargetDeckId(){
+  return ($("addCardsDeckSelect")?.value || activeDeckId || "kenpo");
+}
+
+function initBulkAddAiGenerator(){
+  // Sub-generator in Decks > Add Cards
+  autoGrowTextarea($("bulkAiInstructions"));
+
+  // Method tabs (scoped via unique classes)
+  document.querySelectorAll(".bulkGenMethodTab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const method = tab.dataset.method;
+      document.querySelectorAll(".bulkGenMethodTab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".bulkGenMethodSection").forEach(s => s.classList.add("hidden"));
+      tab.classList.add("active");
+      document.querySelector(`.bulkGenMethodSection[data-method="${method}"]`)?.classList.remove("hidden");
+    });
+  });
+
+  $("bulkAiSearchBtn")?.addEventListener("click", bulkAiFromKeywords);
+  $("bulkAiPreviewAllBtn")?.addEventListener("click", bulkAiPreviewAll);
+  $("bulkAiClearInstructionsBtn")?.addEventListener("click", () => { if($("bulkAiInstructions")){ $("bulkAiInstructions").value=""; autoGrowTextarea($("bulkAiInstructions")); } bulkApplyUiSettings(); });
+
+  $("bulkAiKeywords")?.addEventListener("input", () => { bulkApplyUiSettings(); bulkSchedulePreExample(); });
+  $("bulkAiInstructions")?.addEventListener("input", () => { autoGrowTextarea($("bulkAiInstructions")); bulkApplyUiSettings(); bulkSchedulePreExample(); });
+
+  $("bulkAiInsertFormatBtn")?.addEventListener("click", () => {
+    $("bulkAiInsertFormatMenu")?.classList.toggle("hidden");
+  });
+  document.querySelectorAll("#bulkAiInsertFormatMenu .aiGenInsertItem").forEach(item => {
+    item.addEventListener("click", () => {
+      const which = item.dataset.insert;
+      bulkInsertExampleFormat(which);
+      $("bulkAiInsertFormatMenu")?.classList.add("hidden");
+    });
+  });
+
+  // Uploads
+  $("bulkPhotoFileInput")?.addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    if(f) bulkHandlePhotoFile(f);
+  });
+  $("bulkDocFileInput")?.addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    if(f) bulkHandleDocFile(f);
+  });
+  $("bulkAiPhotoBtn")?.addEventListener("click", bulkAiFromPhoto);
+  $("bulkAiDocBtn")?.addEventListener("click", bulkAiFromDocument);
+
+  // Results
+  $("bulkAiSelectAll")?.addEventListener("change", (e) => {
+    if(e.target.checked){
+      bulkAiSelectedIndices = new Set(bulkAiGeneratedCards.map((_, i) => i));
+    } else {
+      bulkAiSelectedIndices.clear();
+    }
+    bulkRenderResults();
+  });
+  $("bulkAiClearResultsBtn")?.addEventListener("click", bulkClearResults);
+  $("bulkAiAddSelectedBtn")?.addEventListener("click", bulkAddSelectedCards);
+
+  // Initial UI settings
+  bulkApplyUiSettings();
+}
+
+function initEditDeckBulkAiGenerator(){
+  // Generator inside Edit Deck modal (Add Card tab)
+  autoGrowTextarea($("editBulkAiInstructions"));
+
+  document.querySelectorAll(".editBulkGenMethodTab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const method = tab.dataset.method;
+      document.querySelectorAll(".editBulkGenMethodTab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".editBulkGenMethodSection").forEach(s => s.classList.add("hidden"));
+      tab.classList.add("active");
+      document.querySelector(`.editBulkGenMethodSection[data-method="${method}"]`)?.classList.remove("hidden");
+    });
+  });
+
+  $("editBulkAiSearchBtn")?.addEventListener("click", editBulkAiFromKeywords);
+  $("editBulkAiPreviewAllBtn")?.addEventListener("click", editBulkAiPreviewAll);
+  $("editBulkAiClearInstructionsBtn")?.addEventListener("click", () => { if($("editBulkAiInstructions")){ $("editBulkAiInstructions").value=""; autoGrowTextarea($("editBulkAiInstructions")); } editBulkApplyUiSettings(); });
+
+  $("editBulkAiKeywords")?.addEventListener("input", () => { editBulkApplyUiSettings(); editBulkSchedulePreExample(); });
+  $("editBulkAiInstructions")?.addEventListener("input", () => { autoGrowTextarea($("editBulkAiInstructions")); editBulkApplyUiSettings(); editBulkSchedulePreExample(); });
+
+  $("editBulkAiInsertFormatBtn")?.addEventListener("click", () => {
+    $("editBulkAiInsertFormatMenu")?.classList.toggle("hidden");
+  });
+  document.querySelectorAll("#editBulkAiInsertFormatMenu .aiGenInsertItem").forEach(item => {
+    item.addEventListener("click", () => {
+      const which = item.dataset.insert;
+      editBulkInsertExampleFormat(which);
+      $("editBulkAiInsertFormatMenu")?.classList.add("hidden");
+    });
+  });
+
+  // Uploads
+  $("editBulkPhotoFileInput")?.addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    if(f) editBulkHandlePhotoFile(f);
+  });
+  $("editBulkDocFileInput")?.addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    if(f) editBulkHandleDocFile(f);
+  });
+  $("editBulkAiPhotoBtn")?.addEventListener("click", editBulkAiFromPhoto);
+  $("editBulkAiDocBtn")?.addEventListener("click", editBulkAiFromDocument);
+
+  // Results
+  $("editBulkAiSelectAll")?.addEventListener("change", (e) => {
+    if(e.target.checked){
+      editBulkAiSelectedIndices = new Set(editBulkAiGeneratedCards.map((_, i) => i));
+    } else {
+      editBulkAiSelectedIndices.clear();
+    }
+    editBulkRenderResults();
+  });
+  $("editBulkAiClearResultsBtn")?.addEventListener("click", editBulkClearResults);
+  $("editBulkAiAddSelectedBtn")?.addEventListener("click", editBulkAddSelectedCards);
+
+  editBulkApplyUiSettings();
+}
+
+function bulkApplyUiSettings(){
+  const showHelpers = !!($("deckAiShowFormatHelpers") && $("deckAiShowFormatHelpers").checked);
+  $("bulkAiFormatHelpers")?.classList.toggle("hidden", !showHelpers);
+
+  const showExample = !!($("deckAiShowPreExample") && $("deckAiShowPreExample").checked);
+  const wrap = $("bulkAiPreExampleWrap");
+  if(wrap){
+    const shouldShow = showExample && bulkShouldShowPreExample();
+    wrap.classList.toggle("hidden", !shouldShow);
+  }
+}
+
+function bulkShouldShowPreExample(){
+  const kw = ($("bulkAiKeywords")?.value || "").trim();
+  const instr = ($("bulkAiInstructions")?.value || "").trim();
+  return !!(kw || instr);
+}
+
+function bulkSchedulePreExample(){
+  try{ clearTimeout(_bulkAiPreExampleTimer); }catch(e){}
+  _bulkAiPreExampleTimer = setTimeout(bulkUpdatePreExample, 250);
+}
+
+async function bulkUpdatePreExample(){
+  if(!($("deckAiShowPreExample") && $("deckAiShowPreExample").checked)) return;
+  if(!bulkShouldShowPreExample()) return;
+
+  const kw = ($("bulkAiKeywords")?.value || "").trim();
+  const instr = ($("bulkAiInstructions")?.value || "").trim();
+  const sig = `${kw}||${instr}`;
+  if(sig === _bulkAiPreExampleLastSig) return;
+  _bulkAiPreExampleLastSig = sig;
+
+  // Use the existing /api/ai/template endpoint if present, else show a simple preview
+  const box = $("bulkAiPreExampleBox");
+  if(!box) return;
+  box.innerHTML = `<div class="mini muted">Term — Definition</div><div>${escapeHtml(kw || "Example Term")} — ${escapeHtml(instr ? "Definition (per your instructions)" : "Example Definition")}</div>`;
+}
+
+function bulkInsertExampleFormat(which){
+  const ta = $("bulkAiInstructions");
+  if(!ta) return;
+  const termExample = "Term: {TERM}";
+  const defExample  = "Definition: {DEFINITION}";
+  if(which === "term") ta.value = (ta.value ? (ta.value+"\n") : "") + termExample;
+  if(which === "definition") ta.value = (ta.value ? (ta.value+"\n") : "") + defExample;
+  if(which === "both") ta.value = (ta.value ? (ta.value+"\n") : "") + termExample + "\n" + defExample;
+  autoGrowTextarea(ta);
+  bulkSchedulePreExample();
+}
+
+function bulkHandlePhotoFile(file){
+  if(!file.type.startsWith("image/")){
+    showEditDecksStatus("Please select an image file", "error");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    bulkAiPhotoData = e.target.result;
+    showEditDecksStatus("Photo loaded. Ready to generate.", "success");
+  };
+  reader.readAsDataURL(file);
+}
+
+function bulkHandleDocFile(file){
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    bulkAiDocData = {
+      name: file.name,
+      type: file.type || (ext === ".pdf" ? "application/pdf" : "text/plain"),
+      content: e.target.result
+    };
+    showEditDecksStatus("Document loaded. Ready to generate.", "success");
+  };
+  if(file.type === "application/pdf" || ext === ".pdf") reader.readAsDataURL(file);
+  else reader.readAsText(file);
+}
+
+async function bulkAiFromKeywords(){
+  const deckId = getAddCardsTargetDeckId();
+  let keywords = ($("bulkAiKeywords")?.value || "").trim();
+  const maxCards = parseInt($("bulkAiMaxCards")?.value) || 25;
+
+  if(!keywords){
+    const deck = currentDecks.find(d => d.id === deckId);
+    if(deck && deck.name){
+      keywords = deck.name + (deck.description ? (" " + deck.description) : "");
+    } else {
+      showEditDecksStatus("Please enter keywords or choose a target deck", "error");
+      return;
+    }
+  }
+
+  let shortAnswers = false;
+  let instructions = ($("bulkAiInstructions")?.value || "").trim();
+  try{
+    const ds = await jget(`/api/decks/${encodeURIComponent(deckId)}/settings`);
+    shortAnswers = !!ds.shortAnswers;
+  }catch(e){}
+  if(instructions) shortAnswers = false;
+
+  await bulkGenerateCards({ type:"keywords", keywords, maxCards, shortAnswers, instructions }, deckId);
+}
+
+async function bulkAiFromPhoto(){
+  const deckId = getAddCardsTargetDeckId();
+  if(!bulkAiPhotoData){
+    showEditDecksStatus("Please upload a photo first", "error");
+    return;
+  }
+  const maxCards = parseInt($("bulkAiPhotoMaxCards")?.value) || 25;
+  await bulkGenerateCards({ type:"photo", imageData: bulkAiPhotoData, maxCards }, deckId);
+}
+
+async function bulkAiFromDocument(){
+  const deckId = getAddCardsTargetDeckId();
+  if(!bulkAiDocData){
+    showEditDecksStatus("Please upload a document first", "error");
+    return;
+  }
+  const maxCards = parseInt($("bulkAiDocMaxCards")?.value) || 25;
+  await bulkGenerateCards({ type:"document", document: bulkAiDocData, maxCards }, deckId);
+}
+
+async function bulkGenerateCards(params, deckId){
+  $("bulkAiLoading")?.classList.remove("hidden");
+  $("bulkAiResults")?.classList.add("hidden");
+
+  try{
+    const result = await jpost("/api/ai/generate_deck", params);
+    if(result.cards && result.cards.length){
+      // existing terms in target deck
+      const existing = new Set();
+      const baseCards = await jget("/api/cards?deck_id=" + encodeURIComponent(deckId)).catch(() => []);
+      if(Array.isArray(baseCards)) baseCards.forEach(c => c.term && existing.add(c.term.toLowerCase().trim()));
+      const userCards = await jget("/api/user_cards?deck_id=" + encodeURIComponent(deckId)).catch(() => []);
+      if(Array.isArray(userCards)) userCards.forEach(c => c.term && existing.add(c.term.toLowerCase().trim()));
+
+      const newCards = result.cards.filter(card => !existing.has((card.term||"").toLowerCase().trim()));
+      const filteredCount = result.cards.length - newCards.length;
+
+      if(newCards.length){
+        bulkAiGeneratedCards = newCards;
+        bulkAiSelectedIndices = new Set(newCards.map((_, i) => i));
+        bulkRenderResults();
+        $("bulkAiResults")?.classList.remove("hidden");
+
+        let msg = `Generated ${newCards.length} new cards.`;
+        if(filteredCount>0) msg += ` (${filteredCount} duplicates filtered out)`;
+        showEditDecksStatus(msg, "success");
+      } else {
+        showEditDecksStatus(`All ${result.cards.length} generated cards already exist in your deck.`, "error");
+      }
+    } else {
+      showEditDecksStatus("AI could not generate cards. Try different input.", "error");
+    }
+  }catch(e){
+    showEditDecksStatus("Error: " + (e.message || "Failed to generate"), "error");
+  }
+
+  $("bulkAiLoading")?.classList.add("hidden");
+}
+
+function bulkRenderResults(){
+  const list = $("bulkAiResultsList");
+  if(!list) return;
+
+  list.innerHTML = bulkAiGeneratedCards.map((card, idx) => {
+    const selected = bulkAiSelectedIndices.has(idx);
+    return `
+      <div class="aiGenResultItem ${selected ? "selected" : ""}" data-idx="${idx}">
+        <input type="checkbox" ${selected ? "checked" : ""} />
+        <div class="aiGenResultInfo">
+          <div class="aiGenResultTerm">${escapeHtml(card.term)}</div>
+          <div class="aiGenResultDef">${escapeHtml(card.definition)}</div>
+          <div class="aiGenResultMeta">
+            ${card.group ? `<span class="aiGenResultGroup">${escapeHtml(card.group)}</span>` : ""}
+            ${card.pronunciation ? `<span class="aiGenResultPron">${escapeHtml(card.pronunciation)}</span>` : ""}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  list.querySelectorAll(".aiGenResultItem").forEach(item => {
+    item.addEventListener("click", (e) => {
+      if(e.target.type === "checkbox") return;
+      const idx = parseInt(item.dataset.idx);
+      bulkToggleSelection(idx);
+    });
+    item.querySelector("input")?.addEventListener("change", () => {
+      const idx = parseInt(item.dataset.idx);
+      bulkToggleSelection(idx);
+    });
+  });
+
+  // keep select-all checkbox in sync
+  const selAll = $("bulkAiSelectAll");
+  if(selAll){
+    selAll.checked = (bulkAiGeneratedCards.length>0 && bulkAiSelectedIndices.size === bulkAiGeneratedCards.length);
+  }
+}
+
+function bulkToggleSelection(idx){
+  if(bulkAiSelectedIndices.has(idx)) bulkAiSelectedIndices.delete(idx);
+  else bulkAiSelectedIndices.add(idx);
+  bulkRenderResults();
+}
+
+function bulkClearResults(){
+  bulkAiGeneratedCards = [];
+  bulkAiSelectedIndices.clear();
+  $("bulkAiResults")?.classList.add("hidden");
+  const selAll = $("bulkAiSelectAll");
+  if(selAll) selAll.checked = true;
+}
+
+function bulkAiPreviewAll(){
+  const results = $("bulkAiResults");
+  if(results && !results.classList.contains("hidden")){
+    results.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+}
+
+async function bulkAddSelectedCards(){
+  if(bulkAiSelectedIndices.size === 0){
+    showEditDecksStatus("Please select at least one card to add", "error");
+    return;
+  }
+  const deckId = getAddCardsTargetDeckId();
+  const deck = currentDecks.find(d => d.id === deckId);
+  const deckName = deck ? deck.name : "the deck";
+  const cardsToAdd = Array.from(bulkAiSelectedIndices).map(i => bulkAiGeneratedCards[i]);
+
+  let added = 0, failed = 0;
+  for(const card of cardsToAdd){
+    try{
+      await jpost("/api/user_cards", {
+        term: card.term,
+        meaning: card.definition,
+        pron: card.pronunciation || "",
+        group: card.group || "",
+        deckId
+      });
+      added++;
+    }catch(e){
+      console.error("Failed to add card:", e);
+      failed++;
+    }
+  }
+
+  if(added>0){
+    showEditDecksStatus(`Added ${added} cards to ${deckName}${failed>0 ? ` (${failed} failed)` : ""}`, "success");
+    bulkClearResults();
+    // refresh
+    loadUserCards();
+    loadDecks();
+    await refreshCounts();
+    if(deckId === activeDeckId) await loadDeckForStudy();
+  } else {
+    showEditDecksStatus("Failed to add cards", "error");
+  }
+}
+
+// -------------------- Edit Deck modal bulk add --------------------
+
+function getEditDeckTargetDeckId(){
+  return ($("editDeckId")?.value || editDeckModalDeck?.id || activeDeckId || "kenpo");
+}
+
+function editBulkApplyUiSettings(){
+  const showHelpers = !!($("deckAiShowFormatHelpers") && $("deckAiShowFormatHelpers").checked);
+  $("editBulkAiFormatHelpers")?.classList.toggle("hidden", !showHelpers);
+
+  const showExample = !!($("deckAiShowPreExample") && $("deckAiShowPreExample").checked);
+  const wrap = $("editBulkAiPreExampleWrap");
+  if(wrap){
+    const shouldShow = showExample && editBulkShouldShowPreExample();
+    wrap.classList.toggle("hidden", !shouldShow);
+  }
+}
+
+function editBulkShouldShowPreExample(){
+  const kw = ($("editBulkAiKeywords")?.value || "").trim();
+  const instr = ($("editBulkAiInstructions")?.value || "").trim();
+  return !!(kw || instr);
+}
+
+function editBulkSchedulePreExample(){
+  try{ clearTimeout(_editBulkAiPreExampleTimer); }catch(e){}
+  _editBulkAiPreExampleTimer = setTimeout(editBulkUpdatePreExample, 250);
+}
+
+async function editBulkUpdatePreExample(){
+  if(!($("deckAiShowPreExample") && $("deckAiShowPreExample").checked)) return;
+  if(!editBulkShouldShowPreExample()) return;
+
+  const kw = ($("editBulkAiKeywords")?.value || "").trim();
+  const instr = ($("editBulkAiInstructions")?.value || "").trim();
+  const sig = `${kw}||${instr}`;
+  if(sig === _editBulkAiPreExampleLastSig) return;
+  _editBulkAiPreExampleLastSig = sig;
+
+  const box = $("editBulkAiPreExampleBox");
+  if(!box) return;
+  box.innerHTML = `<div class="mini muted">Term — Definition</div><div>${escapeHtml(kw || "Example Term")} — ${escapeHtml(instr ? "Definition (per your instructions)" : "Example Definition")}</div>`;
+}
+
+function editBulkInsertExampleFormat(which){
+  const ta = $("editBulkAiInstructions");
+  if(!ta) return;
+  const termExample = "Term: {TERM}";
+  const defExample  = "Definition: {DEFINITION}";
+  if(which === "term") ta.value = (ta.value ? (ta.value+"\n") : "") + termExample;
+  if(which === "definition") ta.value = (ta.value ? (ta.value+"\n") : "") + defExample;
+  if(which === "both") ta.value = (ta.value ? (ta.value+"\n") : "") + termExample + "\n" + defExample;
+  autoGrowTextarea(ta);
+  editBulkSchedulePreExample();
+}
+
+function editBulkHandlePhotoFile(file){
+  if(!file.type.startsWith("image/")){
+    showEditDecksStatus("Please select an image file", "error");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    editBulkAiPhotoData = e.target.result;
+    showEditDecksStatus("Photo loaded. Ready to generate.", "success");
+  };
+  reader.readAsDataURL(file);
+}
+
+function editBulkHandleDocFile(file){
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    editBulkAiDocData = {
+      name: file.name,
+      type: file.type || (ext === ".pdf" ? "application/pdf" : "text/plain"),
+      content: e.target.result
+    };
+    showEditDecksStatus("Document loaded. Ready to generate.", "success");
+  };
+  if(file.type === "application/pdf" || ext === ".pdf") reader.readAsDataURL(file);
+  else reader.readAsText(file);
+}
+
+async function editBulkAiFromKeywords(){
+  const deckId = getEditDeckTargetDeckId();
+  let keywords = ($("editBulkAiKeywords")?.value || "").trim();
+  const maxCards = parseInt($("editBulkAiMaxCards")?.value) || 25;
+
+  if(!keywords){
+    const deck = currentDecks.find(d => d.id === deckId);
+    if(deck && deck.name){
+      keywords = deck.name + (deck.description ? (" " + deck.description) : "");
+    } else {
+      showEditDecksStatus("Please enter keywords", "error");
+      return;
+    }
+  }
+
+  let shortAnswers = false;
+  let instructions = ($("editBulkAiInstructions")?.value || "").trim();
+  try{
+    const ds = await jget(`/api/decks/${encodeURIComponent(deckId)}/settings`);
+    shortAnswers = !!ds.shortAnswers;
+  }catch(e){}
+  if(instructions) shortAnswers = false;
+
+  await editBulkGenerateCards({ type:"keywords", keywords, maxCards, shortAnswers, instructions }, deckId);
+}
+
+async function editBulkAiFromPhoto(){
+  const deckId = getEditDeckTargetDeckId();
+  if(!editBulkAiPhotoData){
+    showEditDecksStatus("Please upload a photo first", "error");
+    return;
+  }
+  const maxCards = parseInt($("editBulkAiPhotoMaxCards")?.value) || 25;
+  await editBulkGenerateCards({ type:"photo", imageData: editBulkAiPhotoData, maxCards }, deckId);
+}
+
+async function editBulkAiFromDocument(){
+  const deckId = getEditDeckTargetDeckId();
+  if(!editBulkAiDocData){
+    showEditDecksStatus("Please upload a document first", "error");
+    return;
+  }
+  const maxCards = parseInt($("editBulkAiDocMaxCards")?.value) || 25;
+  await editBulkGenerateCards({ type:"document", document: editBulkAiDocData, maxCards }, deckId);
+}
+
+async function editBulkGenerateCards(params, deckId){
+  $("editBulkAiLoading")?.classList.remove("hidden");
+  $("editBulkAiResults")?.classList.add("hidden");
+
+  try{
+    const result = await jpost("/api/ai/generate_deck", params);
+    if(result.cards && result.cards.length){
+      const existing = new Set();
+      const baseCards = await jget("/api/cards?deck_id=" + encodeURIComponent(deckId)).catch(() => []);
+      if(Array.isArray(baseCards)) baseCards.forEach(c => c.term && existing.add(c.term.toLowerCase().trim()));
+      const userCards = await jget("/api/user_cards?deck_id=" + encodeURIComponent(deckId)).catch(() => []);
+      if(Array.isArray(userCards)) userCards.forEach(c => c.term && existing.add(c.term.toLowerCase().trim()));
+
+      const newCards = result.cards.filter(card => !existing.has((card.term||"").toLowerCase().trim()));
+      const filteredCount = result.cards.length - newCards.length;
+
+      if(newCards.length){
+        editBulkAiGeneratedCards = newCards;
+        editBulkAiSelectedIndices = new Set(newCards.map((_, i) => i));
+        editBulkRenderResults();
+        $("editBulkAiResults")?.classList.remove("hidden");
+
+        let msg = `Generated ${newCards.length} new cards.`;
+        if(filteredCount>0) msg += ` (${filteredCount} duplicates filtered out)`;
+        showEditDecksStatus(msg, "success");
+      } else {
+        showEditDecksStatus(`All ${result.cards.length} generated cards already exist in your deck.`, "error");
+      }
+    } else {
+      showEditDecksStatus("AI could not generate cards. Try different input.", "error");
+    }
+  }catch(e){
+    showEditDecksStatus("Error: " + (e.message || "Failed to generate"), "error");
+  }
+
+  $("editBulkAiLoading")?.classList.add("hidden");
+}
+
+function editBulkRenderResults(){
+  const list = $("editBulkAiResultsList");
+  if(!list) return;
+
+  list.innerHTML = editBulkAiGeneratedCards.map((card, idx) => {
+    const selected = editBulkAiSelectedIndices.has(idx);
+    return `
+      <div class="aiGenResultItem ${selected ? "selected" : ""}" data-idx="${idx}">
+        <input type="checkbox" ${selected ? "checked" : ""} />
+        <div class="aiGenResultInfo">
+          <div class="aiGenResultTerm">${escapeHtml(card.term)}</div>
+          <div class="aiGenResultDef">${escapeHtml(card.definition)}</div>
+          <div class="aiGenResultMeta">
+            ${card.group ? `<span class="aiGenResultGroup">${escapeHtml(card.group)}</span>` : ""}
+            ${card.pronunciation ? `<span class="aiGenResultPron">${escapeHtml(card.pronunciation)}</span>` : ""}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  list.querySelectorAll(".aiGenResultItem").forEach(item => {
+    item.addEventListener("click", (e) => {
+      if(e.target.type === "checkbox") return;
+      const idx = parseInt(item.dataset.idx);
+      editBulkToggleSelection(idx);
+    });
+    item.querySelector("input")?.addEventListener("change", () => {
+      const idx = parseInt(item.dataset.idx);
+      editBulkToggleSelection(idx);
+    });
+  });
+
+  const selAll = $("editBulkAiSelectAll");
+  if(selAll){
+    selAll.checked = (editBulkAiGeneratedCards.length>0 && editBulkAiSelectedIndices.size === editBulkAiGeneratedCards.length);
+  }
+}
+
+function editBulkToggleSelection(idx){
+  if(editBulkAiSelectedIndices.has(idx)) editBulkAiSelectedIndices.delete(idx);
+  else editBulkAiSelectedIndices.add(idx);
+  editBulkRenderResults();
+}
+
+function editBulkClearResults(){
+  editBulkAiGeneratedCards = [];
+  editBulkAiSelectedIndices.clear();
+  $("editBulkAiResults")?.classList.add("hidden");
+  const selAll = $("editBulkAiSelectAll");
+  if(selAll) selAll.checked = true;
+}
+
+function editBulkAiPreviewAll(){
+  const results = $("editBulkAiResults");
+  if(results && !results.classList.contains("hidden")){
+    results.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+}
+
+async function editBulkAddSelectedCards(){
+  if(editBulkAiSelectedIndices.size === 0){
+    showEditDecksStatus("Please select at least one card to add", "error");
+    return;
+  }
+  const deckId = getEditDeckTargetDeckId();
+  const deck = currentDecks.find(d => d.id === deckId);
+  const deckName = deck ? deck.name : "the deck";
+  const cardsToAdd = Array.from(editBulkAiSelectedIndices).map(i => editBulkAiGeneratedCards[i]);
+
+  let added = 0, failed = 0;
+  for(const card of cardsToAdd){
+    try{
+      await jpost("/api/user_cards", {
+        term: card.term,
+        meaning: card.definition,
+        pron: card.pronunciation || "",
+        group: card.group || "",
+        deckId
+      });
+      added++;
+    }catch(e){
+      console.error("Failed to add card:", e);
+      failed++;
+    }
+  }
+
+  if(added>0){
+    showEditDecksStatus(`Added ${added} cards to ${deckName}${failed>0 ? ` (${failed} failed)` : ""}`, "success");
+    editBulkClearResults();
+    // refresh
+    loadUserCards();
+    loadDecks();
+    await refreshCounts();
+    if(deckId === activeDeckId) await loadDeckForStudy();
+  } else {
+    showEditDecksStatus("Failed to add cards", "error");
+  }
+}
+
 
 
 function aiGenClearInputs(options = {}){
@@ -4746,6 +5479,8 @@ function aiGenClearInputs(options = {}){
   if(hint) hint.textContent = "Example output (updates as you type):";
   // also clear any generated results UI selection (keep results if user wants)
   applyAiGeneratorUiSettings();
+  try{ bulkApplyUiSettings(); }catch(e){}
+  try{ editBulkApplyUiSettings(); }catch(e){}
 }
 
 function aiGenGoToSwitch(){
@@ -5181,9 +5916,9 @@ async function addSelectedAiCards(){
     // Also refresh counts and study deck
     await refreshCounts();
     await loadDeckForStudy();
-    // After adding, exit AI Generator and return to Switch tab
-    switchEditDecksTab("switch");
-    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch(e){}
+    // Close Decks page after adding and return to Study; next open defaults to Switch
+    try { switchEditDecksTab("switch"); } catch(e){}
+    try { closeEditDecks(); } catch(e){}
   } else {
     showEditDecksStatus("Failed to add cards", "error");
   }
@@ -5821,6 +6556,8 @@ async function toggleDeckAiShowFormatHelpers(){
   try {
     await jpost(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`, { aiShowFormatHelpers: cb.checked });
     applyAiGeneratorUiSettings();
+    try{ bulkApplyUiSettings(); }catch(e){}
+    try{ editBulkApplyUiSettings(); }catch(e){}
   } catch(e){
     console.error("Failed to save deck AI helper setting:", e);
   }
@@ -5832,6 +6569,8 @@ async function toggleDeckAiShowPreExample(){
   try {
     await jpost(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`, { aiShowPreExample: cb.checked });
     applyAiGeneratorUiSettings();
+    try{ bulkApplyUiSettings(); }catch(e){}
+    try{ editBulkApplyUiSettings(); }catch(e){}
   } catch(e){
     console.error("Failed to save deck AI example setting:", e);
   }

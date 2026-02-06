@@ -160,7 +160,7 @@
           
           <!-- Edit Decks Button -->
           <div class="settingsQuickAction">
-            <button id="openEditDecksBtn" class="appBtn primary fullWidth">📚 Edit Decks</button>
+            <button id="openEditDecksBtn" class="appBtn primary fullWidth">📚 Decks</button>
           </div>
           
           <!-- Saved Breakdowns Button -->
@@ -536,7 +536,7 @@
       <section id="viewEditDecks" class="view hidden">
         <div class="editDecksPage">
           <div class="editDecksHeader">
-            <h2>📚 Edit Decks</h2>
+            <h2>📚 Decks</h2>
             <button id="closeEditDecksBtn" class="appBtn secondary csBackBtn">← Back</button>
           </div>
 
@@ -544,7 +544,7 @@
           <div class="editDecksTabs">
             <button class="editDecksTab active" data-tab="switch">🔄 Switch</button>
             <button class="editDecksTab" data-tab="add">➕ Add Cards</button>
-            <button class="editDecksTab" data-tab="generate">🤖 AI Generator</button>
+            <button class="editDecksTab" data-tab="generate">🤖 Create Deck w/ AiGen</button>
             <button class="editDecksTab" data-tab="deleted">🗑️ Deleted</button>
           </div>
 
@@ -570,8 +570,13 @@
                 <!-- Populated by JS -->
               </div>
 
-              <div class="settingsSectionTitle" style="margin-top: 24px;">Create New Deck</div>
-              <div class="createDeckForm">
+                            <div class="collapsibleSection collapsed" id="collCreateDeck">
+                <button type="button" class="collapsibleHeader" onclick="toggleCollapsible('collCreateDeck')">
+                  <span>Create New Deck</span>
+                  <span class="collapsibleChevron">▾</span>
+                </button>
+                <div class="collapsibleBody">
+<div class="createDeckForm">
                 <label class="field">
                   <span>Deck Name</span>
                   <input id="newDeckName" placeholder="e.g., Japanese Vocabulary" />
@@ -593,8 +598,13 @@
 <button id="createDeckBtn" class="appBtn success">Create Deck</button>
               </div>
               
-              <div class="settingsSectionTitle" style="margin-top: 24px;">🎟️ Redeem Invite Code</div>
-              <div class="inviteCodeForm">
+                            <div class="collapsibleSection collapsed" id="collRedeemCode" style="margin-top: 16px;">
+                <button type="button" class="collapsibleHeader" onclick="toggleCollapsible('collRedeemCode')">
+                  <span>🎟️ Redeem Invite Code</span>
+                  <span class="collapsibleChevron">▾</span>
+                </button>
+                <div class="collapsibleBody">
+<div class="inviteCodeForm">
                 <label class="field">
                   <span>Invite Code</span>
                   <input id="inviteCodeInput" placeholder="e.g., KenpoStudy409" />
@@ -603,20 +613,31 @@
               </div>
             </div>
           </div>
-
+                </div>
+              </div>
           <!-- ADD CARDS TAB -->
           <div class="editDecksSection" id="editDecksAddTab" data-section="add">
             <div class="settingsCard">
-              <div class="settingsCardHeader">Add New Card</div>
-              <p class="settingDesc">Manually add a term and definition to your deck</p>
+              <div class="settingsCardHeader">Add Cards</div>
+              <p class="settingDesc">Add cards to an existing deck (manual or AI bulk add)</p>
 
-              <div class="addCardForm">
-                <label class="field">
+              <label class="field">
                   <span>Target Deck</span>
-                  <select id="addCardDeck">
+                  <select id="addCardsDeckSelect">
                     <option value="kenpo">Kenpo Vocabulary</option>
                   </select>
                 </label>
+
+
+              <div class="subTabSection active" id="addCardsSingleSection" data-subtab-body="single">
+<div class="addCardForm">
+                
+
+              <div class="subTabs" id="addCardsSubTabs">
+                <button type="button" class="subTabBtn active" data-subtab="single">➕ Add a New Card</button>
+                <button type="button" class="subTabBtn" data-subtab="bulkai">🤖 Bulk Add with AI</button>
+              </div>
+
 
                 <label class="field">
                   <span>Term *</span>
@@ -662,6 +683,102 @@
                   <button id="clearAddCardBtn" class="appBtn secondary">Clear</button>
                 </div>
               </div>
+</div>
+
+              <div class="subTabSection" id="addCardsBulkAiSection" data-subtab-body="bulkai">
+                <div class="settingsSectionTitle" style="margin-top: 10px;">Bulk Add with AI</div>
+                <p class="settingDesc">Generate multiple cards with AI and add them to the selected deck.</p>
+
+                <div class="bulkGenMethodTabs">
+                  <button type="button" class="bulkGenMethodTab active" data-method="keywords">📝 Keywords</button>
+                  <button type="button" class="bulkGenMethodTab" data-method="photo">📷 Photo</button>
+                  <button type="button" class="bulkGenMethodTab" data-method="document">📄 Document</button>
+                </div>
+
+                <div class="bulkGenMethodSection" id="bulkGenKeywordsSection" data-method="keywords">
+                  <label class="field">
+                    <span>Search Keywords / Topic</span>
+                    <input id="bulkAiKeywords" placeholder="e.g., Greek mythology, Spanish numbers 1-20" />
+                  </label>
+                  <label class="field">
+                    <span>Max Cards to Generate</span>
+                    <input id="bulkAiMaxCards" type="number" value="25" min="1" max="200" style="width: 100px;" />
+                  </label>
+                  <label class="field">
+                    <span>Instructions for the AI (optional)</span>
+                    <div class="aiInstrRow">
+                      <textarea id="bulkAiInstructions" rows="2" placeholder="Example: For definitions, output ONLY the state name (no 'Capital of...')."></textarea>
+                      <button type="button" class="appBtn secondary small" id="bulkAiClearInstructionsBtn">Clear</button>
+                    </div>
+                    <span class="mini muted">If you type instructions here, they override “Short answers only”.</span>
+                  </label>
+
+                  <div class="aiFormatHelpers hidden" id="bulkAiFormatHelpers">
+                    <div class="aiGenFormatRow">
+                      <button type="button" class="appBtn secondary small" id="bulkAiInsertFormatBtn">➕ Insert example format ▾</button>
+                    </div>
+                    <div class="aiGenInsertMenu hidden" id="bulkAiInsertFormatMenu">
+                      <button type="button" class="aiGenInsertItem" data-insert="term">Term example</button>
+                      <button type="button" class="aiGenInsertItem" data-insert="definition">Definition example</button>
+                      <button type="button" class="aiGenInsertItem" data-insert="both">Term + Definition example</button>
+                    </div>
+                  </div>
+
+                  <div class="aiGenPreExampleWrap hidden" id="bulkAiPreExampleWrap">
+                    <div class="aiGenPreExampleHeader">
+                      <span class="mini muted" id="bulkAiPreExampleHint">Example output (updates as you type):</span>
+                    </div>
+                    <div class="aiGenPreExampleBox" id="bulkAiPreExampleBox"></div>
+                  </div>
+
+                  <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
+                    <button type="button" class="appBtn primary" id="bulkAiSearchBtn">Generate</button>
+                    <button type="button" class="appBtn secondary" id="bulkAiPreviewAllBtn">Preview All</button>
+                  </div>
+                </div>
+
+                <div class="bulkGenMethodSection hidden" id="bulkGenPhotoSection" data-method="photo">
+                  <label class="field">
+                    <span>Upload Photo</span>
+                    <input id="bulkPhotoFileInput" type="file" accept="image/*" />
+                  </label>
+                  <label class="field">
+                    <span>Max Cards to Generate</span>
+                    <input id="bulkAiPhotoMaxCards" type="number" value="25" min="1" max="200" style="width: 100px;" />
+                  </label>
+                  <button type="button" class="appBtn primary" id="bulkAiPhotoBtn">Generate from Photo</button>
+                </div>
+
+                <div class="bulkGenMethodSection hidden" id="bulkGenDocSection" data-method="document">
+                  <label class="field">
+                    <span>Upload Document</span>
+                    <input id="bulkDocFileInput" type="file" accept=".txt,.pdf,.doc,.docx,.md,.rtf,.csv" />
+                  </label>
+                  <label class="field">
+                    <span>Max Cards to Generate</span>
+                    <input id="bulkAiDocMaxCards" type="number" value="25" min="1" max="200" style="width: 100px;" />
+                  </label>
+                  <button type="button" class="appBtn primary" id="bulkAiDocBtn">Generate from Document</button>
+                </div>
+
+                <div class="aiGenLoading hidden" id="bulkAiLoading">
+                  <div class="spinner"></div>
+                  <div class="mini muted">Generating cards...</div>
+                </div>
+
+                <div class="aiGenResults hidden" id="bulkAiResults">
+                  <div class="aiGenResultsHeader">
+                    <label class="mini"><input type="checkbox" id="bulkAiSelectAll" checked /> Select all</label>
+                    <div style="flex:1;"></div>
+                    <button type="button" class="appBtn secondary small" id="bulkAiClearResultsBtn">Clear</button>
+                  </div>
+                  <div class="aiGenResultsList" id="bulkAiResultsList"></div>
+                  <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button type="button" class="appBtn primary" id="bulkAiAddSelectedBtn">Add Selected</button>
+                  </div>
+                </div>
+              </div>
+
 
               <!-- User Cards Section -->
               <div class="settingsSectionTitle" style="margin-top: 24px;">
@@ -702,7 +819,7 @@
               </label>
             </div>
             <div class="settingsCard">
-              <div class="settingsCardHeader">🤖 AI Deck Generator</div>
+              <div class="settingsCardHeader">🤖 Create Deck w/ AiGen</div>
               <p class="settingDesc">Generate flashcards using AI from keywords, photos, or documents</p>
 
               <!-- Generation Method Tabs -->
@@ -1098,6 +1215,7 @@
       <div class="modalTabs">
         <button class="modalTab active" data-edittab="deck">Edit Deck</button>
         <button class="modalTab" data-edittab="cards">Edit Cards</button>
+        <button class="modalTab" data-edittab="addcard">Add Card</button>
 
         <!-- Close (shown only on Edit Cards tab) -->
         <button id="editCardsCloseTop" class="secondary smallClose hidden" type="button" style="margin-left:auto;">Close</button>
@@ -1170,6 +1288,107 @@
           <button class="secondary" id="refreshEditCardsBtn">Refresh</button>
         </div>
       </div>
+      <!-- TAB: Add Card -->
+      <div class="modalTabBody" data-edittab-body="addcard">
+        <div class="modalForm">
+          <p class="mini muted" style="margin-top:0;">Bulk Add with AI (adds to this deck only)</p>
+
+          <label class="field">
+            <span>Target Deck</span>
+            <select id="editDeckBulkAiDeckSelect" disabled></select>
+          </label>
+
+          <div class="bulkGenMethodTabs">
+            <button type="button" class="editBulkGenMethodTab active" data-method="keywords">📝 Keywords</button>
+            <button type="button" class="editBulkGenMethodTab" data-method="photo">📷 Photo</button>
+            <button type="button" class="editBulkGenMethodTab" data-method="document">📄 Document</button>
+          </div>
+
+          <div class="editBulkGenMethodSection" id="editBulkGenKeywordsSection" data-method="keywords">
+            <label class="field">
+              <span>Search Keywords / Topic</span>
+              <input id="editBulkAiKeywords" placeholder="e.g., Kenpo techniques by belt, Spanish verbs (present tense)" />
+            </label>
+            <label class="field">
+              <span>Max Cards to Generate</span>
+              <input id="editBulkAiMaxCards" type="number" value="25" min="1" max="200" style="width: 100px;" />
+            </label>
+            <label class="field">
+              <span>Instructions for the AI (optional)</span>
+              <div class="aiInstrRow">
+                <textarea id="editBulkAiInstructions" rows="2" placeholder="Example: For definitions, output ONLY the technique name (no extra words)."></textarea>
+                <button type="button" class="appBtn secondary small" id="editBulkAiClearInstructionsBtn">Clear</button>
+              </div>
+              <span class="mini muted">If you type instructions here, they override “Short answers only”.</span>
+            </label>
+
+            <div class="aiFormatHelpers hidden" id="editBulkAiFormatHelpers">
+              <div class="aiGenFormatRow">
+                <button type="button" class="appBtn secondary small" id="editBulkAiInsertFormatBtn">➕ Insert example format ▾</button>
+              </div>
+              <div class="aiGenInsertMenu hidden" id="editBulkAiInsertFormatMenu">
+                <button type="button" class="aiGenInsertItem" data-insert="term">Term example</button>
+                <button type="button" class="aiGenInsertItem" data-insert="definition">Definition example</button>
+                <button type="button" class="aiGenInsertItem" data-insert="both">Term + Definition example</button>
+              </div>
+            </div>
+
+            <div class="aiGenPreExampleWrap hidden" id="editBulkAiPreExampleWrap">
+              <div class="aiGenPreExampleHeader">
+                <span class="mini muted" id="editBulkAiPreExampleHint">Example output (updates as you type):</span>
+              </div>
+              <div class="aiGenPreExampleBox" id="editBulkAiPreExampleBox"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
+              <button type="button" class="appBtn primary" id="editBulkAiSearchBtn">Generate</button>
+              <button type="button" class="appBtn secondary" id="editBulkAiPreviewAllBtn">Preview All</button>
+            </div>
+          </div>
+
+          <div class="editBulkGenMethodSection hidden" id="editBulkGenPhotoSection" data-method="photo">
+            <label class="field">
+              <span>Upload Photo</span>
+              <input id="editBulkPhotoFileInput" type="file" accept="image/*" />
+            </label>
+            <label class="field">
+              <span>Max Cards to Generate</span>
+              <input id="editBulkAiPhotoMaxCards" type="number" value="25" min="1" max="200" style="width: 100px;" />
+            </label>
+            <button type="button" class="appBtn primary" id="editBulkAiPhotoBtn">Generate from Photo</button>
+          </div>
+
+          <div class="editBulkGenMethodSection hidden" id="editBulkGenDocSection" data-method="document">
+            <label class="field">
+              <span>Upload Document</span>
+              <input id="editBulkDocFileInput" type="file" accept=".txt,.pdf,.doc,.docx,.md,.rtf,.csv" />
+            </label>
+            <label class="field">
+              <span>Max Cards to Generate</span>
+              <input id="editBulkAiDocMaxCards" type="number" value="25" min="1" max="200" style="width: 100px;" />
+            </label>
+            <button type="button" class="appBtn primary" id="editBulkAiDocBtn">Generate from Document</button>
+          </div>
+
+          <div class="aiGenLoading hidden" id="editBulkAiLoading">
+            <div class="spinner"></div>
+            <div class="mini muted">Generating cards...</div>
+          </div>
+
+          <div class="aiGenResults hidden" id="editBulkAiResults">
+            <div class="aiGenResultsHeader">
+              <label class="mini"><input type="checkbox" id="editBulkAiSelectAll" checked /> Select all</label>
+              <div style="flex:1;"></div>
+              <button type="button" class="appBtn secondary small" id="editBulkAiClearResultsBtn">Clear</button>
+            </div>
+            <div class="aiGenResultsList" id="editBulkAiResultsList"></div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button type="button" class="appBtn primary" id="editBulkAiAddSelectedBtn">Add Selected</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1338,3 +1557,7 @@
 
 </body>
 </html>
+                </div>
+              </div>
+
+

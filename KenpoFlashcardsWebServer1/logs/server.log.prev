@@ -1,0 +1,71 @@
+{"timestamp": "2026-02-06 16:08:28", "level": "info", "message": "=== Server started ===", "user": ""}
+2026-02-06 16:08:28,227 | INFO | advanced_flashcards | [READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:8010 • http://192.168.0.129:8010
+2026-02-06 16:08:28,246 | INFO | werkzeug | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8010
+ * Running on http://192.168.0.129:8010
+2026-02-06 16:08:28,246 | INFO | werkzeug | [33mPress CTRL+C to quit[0m
+2026-02-06 16:08:43,755 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:43] "GET / HTTP/1.1" 200 -
+2026-02-06 16:08:43,932 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:43] "GET /styles.css HTTP/1.1" 200 -
+2026-02-06 16:08:43,940 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:43] "GET /app.js HTTP/1.1" 200 -
+2026-02-06 16:08:44,219 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/ai/status HTTP/1.1" 200 -
+2026-02-06 16:08:44,220 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/me HTTP/1.1" 200 -
+2026-02-06 16:08:44,305 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/me HTTP/1.1" 200 -
+2026-02-06 16:08:44,326 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/me HTTP/1.1" 200 -
+2026-02-06 16:08:44,343 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/me HTTP/1.1" 200 -
+2026-02-06 16:08:44,345 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-06 16:08:44,351 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/decks HTTP/1.1" 200 -
+2026-02-06 16:08:44,378 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-06 16:08:44,383 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/me HTTP/1.1" 200 -
+2026-02-06 16:08:44,386 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/decks HTTP/1.1" 200 -
+2026-02-06 16:08:44,436 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-06 16:08:44,442 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/decks HTTP/1.1" 200 -
+2026-02-06 16:08:44,479 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-06 16:08:44,485 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-06 16:08:44,489 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/ai HTTP/1.1" 200 -
+2026-02-06 16:08:44,489 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/groups?deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,492 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/health HTTP/1.1" 200 -
+2026-02-06 16:08:44,501 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/decks HTTP/1.1" 200 -
+2026-02-06 16:08:44,547 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-06 16:08:44,554 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-06 16:08:44,555 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/health HTTP/1.1" 200 -
+2026-02-06 16:08:44,557 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/ai HTTP/1.1" 200 -
+2026-02-06 16:08:44,558 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/groups?deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,568 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/decks HTTP/1.1" 200 -
+2026-02-06 16:08:44,632 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-06 16:08:44,635 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/health HTTP/1.1" 200 -
+2026-02-06 16:08:44,640 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/ai HTTP/1.1" 200 -
+2026-02-06 16:08:44,640 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/groups?deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,735 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-06 16:08:44,738 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/health HTTP/1.1" 200 -
+2026-02-06 16:08:44,738 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/ai HTTP/1.1" 200 -
+2026-02-06 16:08:44,740 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/groups?deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,745 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/cards?status=active&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,749 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/counts?&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,797 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-06 16:08:44,801 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/groups?deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,805 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/counts?&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,809 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/ai HTTP/1.1" 200 -
+2026-02-06 16:08:44,811 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/health HTTP/1.1" 200 -
+2026-02-06 16:08:44,813 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /res/decklogos/kenpo_vocabulary.png HTTP/1.1" 200 -
+2026-02-06 16:08:44,819 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/cards?status=active&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,903 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/counts?&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,906 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/cards?status=active&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:44,996 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:44] "GET /api/breakdown?id=db4fca1ad62f88e1 HTTP/1.1" 200 -
+2026-02-06 16:08:45,004 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:45] "GET /api/counts?&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:45,009 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:45] "GET /api/cards?status=active&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:45,034 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:45] "GET /api/counts?&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:45,037 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:45] "GET /api/cards?status=active&deck_id=kenpo HTTP/1.1" 200 -
+2026-02-06 16:08:45,102 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:08:45] "GET /res/webappicons/favicon-16.png HTTP/1.1" 200 -
+2026-02-06 16:09:02,506 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:02] "GET /api/ai HTTP/1.1" 200 -
+2026-02-06 16:09:02,526 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:02] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-06 16:09:05,543 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:05] "GET /api/cards?status=deleted HTTP/1.1" 200 -
+2026-02-06 16:09:05,548 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:05] "GET /api/user_cards HTTP/1.1" 200 -
+2026-02-06 16:09:05,551 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:05] "GET /api/decks HTTP/1.1" 200 -
+2026-02-06 16:09:05,579 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:05] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-06 16:09:05,600 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:05] "GET /res/decklogos/advanced_flashcards_logo.png HTTP/1.1" 200 -
+2026-02-06 16:09:09,200 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:09] "GET /api/cards?deck_id=deck_22e1482a&status=all HTTP/1.1" 200 -
+2026-02-06 16:09:14,108 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:14] "GET /api/decks/kenpo/settings HTTP/1.1" 200 -
+2026-02-06 16:09:28,546 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:09:28] "GET /api/decks/kenpo/settings HTTP/1.1" 200 -
+2026-02-06 16:10:02,930 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:10:02] "GET /api/decks/kenpo/settings HTTP/1.1" 200 -
+2026-02-06 16:10:11,985 | INFO | werkzeug | 127.0.0.1 - - [06/Feb/2026 16:10:11] "GET /api/decks/kenpo/settings HTTP/1.1" 200 -
