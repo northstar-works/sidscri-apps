@@ -1,3 +1,0 @@
-Fixes for v7.0.0 (versionCode 41)
-Created: Fri 02/06/2026 12:28:52.51
-

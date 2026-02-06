@@ -1,8 +1,0 @@
-{
-  "name": "Advanced Flashcards WebAppServer",
-  "version": "8.7.0.2",
-  "build": 60,
-  "released": "2026-02-05",
-  "is_packaged": false,
-  "notes": "8.7.0 (build 60): Roll-up release with AI generator instruction overrides + per-deck helper UI toggles, live example preview, and stability fixes (List views rendering, JS init, Edit Deck back button sizing), AI Generator live example preview now matches AI Template; improved generator controls (Generate spacing/size, Preview All + Cancel, Clear); updated AI Template field dropdown."
-}

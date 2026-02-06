@@ -7,7 +7,7 @@ An Android flashcard app designed for studying multiple subjects. It includes a 
 
 This app focuses on **active recall**, **progress tracking**, and **organized learning**, making it ideal for beginners through advanced practitioners.
 
-**Current Version:** v7.0.1 (build 42)
+**Current Version:** v7.0.2 (build 43)
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
@@ -228,6 +228,7 @@ app/src/main/
 
 | Version | Code | Key Changes |
 |---------|------|-------------|
+| **7.0.2** | 43 | Synced metadata from WebServer (TODO: add feature summary) |
 | **7.0.1** | 42 | Synced metadata from WebServer (TODO: add feature summary) |
 | **7.0.0** | 41 | Synced metadata from WebServer (TODO: add feature summary) |
 | **6.0.0** | 40 | Synced metadata from WebServer (TODO: add feature summary) |

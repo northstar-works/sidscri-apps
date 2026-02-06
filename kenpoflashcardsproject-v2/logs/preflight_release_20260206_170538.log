@@ -1,0 +1,47 @@
+============================================================
+Preflight Release Build
+Started: Fri 02/06/2026 17:05:38.24
+Folder : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\kenpoflashcardsproject-v2
+Log    : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\kenpoflashcardsproject-v2\logs\preflight_release_20260206_170538.log
+============================================================
+[PROGRESS] 0% - Starting...
+[PROGRESS] 5% - STEP 0/5: Sanity checks (gradlew, wrapper props)
+
+------------------------------------------------------------
+[Fri 02/06/2026 17:05:38.33] Wrapper properties
+CMD: type gradle\wrapper\gradle-wrapper.properties
+[ExitCode=0]
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+[PROGRESS] 20% - STEP 1/5: Verify Gradle wrapper JAR exists
+[PROGRESS] 35% - STEP 2/5: gradlew --version (confirm wrapper works)
+
+------------------------------------------------------------
+[Fri 02/06/2026 17:05:38.47] .\gradlew.bat --version
+------------------------------------------------------------
+
+------------------------------------------------------------
+Gradle 8.7
+------------------------------------------------------------
+
+Build time:   2024-03-22 15:52:46 UTC
+Revision:     650af14d7653aa949fce5e886e685efc9cf97c10
+
+Kotlin:       1.9.22
+Groovy:       3.0.17
+Ant:          Apache Ant(TM) version 1.10.13 compiled on January 4 2023
+JVM:          17.0.17 (Eclipse Adoptium 17.0.17+10)
+OS:           Windows 10 10.0 amd64
+
+[ExitCode=0]
+[PROGRESS] 50% - STEP 3/5: Clean
+
+------------------------------------------------------------
+[Fri 02/06/2026 17:05:40.18] .\gradlew.bat clean
+------------------------------------------------------------
+Starting a Gradle Daemon (subsequent builds will be faster)

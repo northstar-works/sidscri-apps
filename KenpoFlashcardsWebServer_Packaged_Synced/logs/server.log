@@ -1,0 +1,71 @@
+{"timestamp": "2026-02-05 22:11:51", "level": "info", "message": "=== Server started ===", "user": ""}
+2026-02-05 22:11:51,211 | INFO | advanced_flashcards | [READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:8010 • http://192.168.0.129:8010
+2026-02-05 22:11:51,233 | INFO | werkzeug | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8010
+ * Running on http://192.168.0.129:8010
+2026-02-05 22:11:51,234 | INFO | werkzeug | [33mPress CTRL+C to quit[0m
+2026-02-05 22:12:34,584 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET / HTTP/1.1" 200 -
+2026-02-05 22:12:34,662 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /styles.css HTTP/1.1" 200 -
+2026-02-05 22:12:34,670 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /app.js HTTP/1.1" 200 -
+2026-02-05 22:12:34,868 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /api/me HTTP/1.1" 200 -
+2026-02-05 22:12:34,875 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /api/ai/status HTTP/1.1" 200 -
+2026-02-05 22:12:34,883 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /api/me HTTP/1.1" 200 -
+2026-02-05 22:12:34,904 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /api/me HTTP/1.1" 200 -
+2026-02-05 22:12:34,905 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /api/me HTTP/1.1" 200 -
+2026-02-05 22:12:34,906 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:34] "GET /api/me HTTP/1.1" 200 -
+2026-02-05 22:12:35,761 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-05 22:12:35,779 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/decks HTTP/1.1" 200 -
+2026-02-05 22:12:35,863 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-05 22:12:35,872 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/decks HTTP/1.1" 200 -
+2026-02-05 22:12:35,883 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-05 22:12:35,904 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-05 22:12:35,914 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-05 22:12:35,916 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-05 22:12:35,919 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/groups?deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:35,920 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/decks HTTP/1.1" 200 -
+2026-02-05 22:12:35,924 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/health HTTP/1.1" 200 -
+2026-02-05 22:12:35,944 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/ai HTTP/1.1" 200 -
+2026-02-05 22:12:35,961 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /res/decklogos/advanced_flashcards_logo.png HTTP/1.1" 200 -
+2026-02-05 22:12:35,964 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /favicon.ico HTTP/1.1" 200 -
+2026-02-05 22:12:35,966 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-05 22:12:35,970 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/groups?deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:35,979 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:35] "GET /api/decks HTTP/1.1" 200 -
+2026-02-05 22:12:36,001 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/health HTTP/1.1" 200 -
+2026-02-05 22:12:36,001 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/ai HTTP/1.1" 200 -
+2026-02-05 22:12:36,006 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-05 22:12:36,013 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/groups?deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,019 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/health HTTP/1.1" 200 -
+2026-02-05 22:12:36,025 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/decks HTTP/1.1" 200 -
+2026-02-05 22:12:36,033 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/ai HTTP/1.1" 200 -
+2026-02-05 22:12:36,413 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-05 22:12:36,417 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/counts?&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,419 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/cards?status=active&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,422 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/groups?deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,425 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/health HTTP/1.1" 200 -
+2026-02-05 22:12:36,426 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/ai HTTP/1.1" 200 -
+2026-02-05 22:12:36,441 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/breakdowns/ids HTTP/1.1" 200 -
+2026-02-05 22:12:36,454 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/counts?&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,458 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/cards?status=active&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,465 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/groups?deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,466 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/health HTTP/1.1" 200 -
+2026-02-05 22:12:36,469 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/ai HTTP/1.1" 200 -
+2026-02-05 22:12:36,478 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/breakdown?id=b47d70c8fc894d2e HTTP/1.1" 200 -
+2026-02-05 22:12:36,484 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/counts?&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,497 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/cards?status=active&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,506 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/counts?&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,517 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/cards?status=active&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,526 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/counts?&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:36,533 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:36] "GET /api/cards?status=active&deck_id=deck_7bb3a7af HTTP/1.1" 200 -
+2026-02-05 22:12:37,044 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:37] "GET /api/version HTTP/1.1" 200 -
+2026-02-05 22:12:43,006 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:43] "GET /api/version HTTP/1.1" 200 -
+2026-02-05 22:12:46,112 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:46] "GET /api/ai HTTP/1.1" 200 -
+2026-02-05 22:12:46,154 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:46] "GET /api/settings?scope=all HTTP/1.1" 200 -
+2026-02-05 22:12:47,710 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:47] "GET /api/version HTTP/1.1" 200 -
+2026-02-05 22:12:48,578 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:48] "GET /admin HTTP/1.1" 200 -
+2026-02-05 22:12:48,695 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:48] "[36mGET /styles.css HTTP/1.1[0m" 304 -
+2026-02-05 22:12:48,770 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:48] "GET /api/admin/stats HTTP/1.1" 200 -
+2026-02-05 22:12:49,014 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:49] "GET /api/version HTTP/1.1" 200 -
+2026-02-05 22:12:49,016 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:49] "GET /api/admin/deck-config HTTP/1.1" 200 -
+2026-02-05 22:12:49,044 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:49] "GET /api/whoami HTTP/1.1" 200 -
+2026-02-05 22:12:50,589 | INFO | werkzeug | 47.188.42.192 - - [05/Feb/2026 22:12:50] "GET /api/health HTTP/1.1" 200 -

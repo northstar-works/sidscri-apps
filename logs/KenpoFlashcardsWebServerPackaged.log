@@ -1,17 +1,15 @@
-START Thu 02/05/2026 22:28:03.44
+START Fri 02/06/2026 16:24:04.51
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
-SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged
-VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\version.json
+SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged_Synced
+VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged_Synced\version.json
+PROJ_ZIP=KenpoFlashcardsWebServer_Packaged
 SEVENZIP=C:\Program Files\7-Zip\7z.exe
-RAW_VER=5.2.0
-RAW_BUILD=20
-SYNCLOGDIR=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\logs\Sync
-SYNCLOGPAT=v5.2.0*.log
-No matching Sync log found (will not append ws suffix
-WSVER_FROM_LOG=
-WSBUILD_FROM_LOG=
-WSSUFFIX=
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.0 v20.zip
+VER=5.2.1
+BUILD=21
+WSVER=8.7.0
+WSBUILD=60
+WSSUFFIX=-ws8.7.0_b60
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.1 v21-ws8.7.0_b60.zip
 STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage
 
 ROBOCOPY_EXIT_CODE=1
@@ -21,15 +19,15 @@ Running 7z (from stage)...
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-41 folders, 121 files, 17398272 bytes (17 MiB)
+41 folders, 117 files, 17340747 bytes (17 MiB)
 
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.0 v20.zip
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.1 v21-ws8.7.0_b60.zip
 
-Add new data to archive: 41 folders, 121 files, 17398272 bytes (17 MiB)
+Add new data to archive: 41 folders, 117 files, 17340747 bytes (17 MiB)
 
 
-Files read from disk: 121
-Archive size: 15922891 bytes (16 MiB)
+Files read from disk: 117
+Archive size: 15921547 bytes (16 MiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 SUCCESS

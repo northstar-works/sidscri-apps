@@ -1,5 +1,0 @@
-2026-02-05 10:01:59,652 | ERROR | werkzeug | 167.94.138.126 - - [05/Feb/2026 10:01:59] code 400, message Bad request version ('À\x14À')
-2026-02-05 10:02:10,725 | ERROR | werkzeug | 167.94.138.126 - - [05/Feb/2026 10:02:10] code 505, message Invalid HTTP version (2.0)
-2026-02-05 10:04:59,969 | ERROR | werkzeug | 167.94.138.126 - - [05/Feb/2026 10:04:59] code 400, message Bad request version ('À\x14À')
-2026-02-05 10:42:49,613 | ERROR | werkzeug | 216.180.246.3 - - [05/Feb/2026 10:42:49] code 400, message Bad request version ('À\x14À')
-2026-02-05 12:46:10,094 | ERROR | werkzeug | 91.230.168.66 - - [05/Feb/2026 12:46:10] code 400, message Bad request version ('\x7f2Ù2OÙ÷Êú5ô')

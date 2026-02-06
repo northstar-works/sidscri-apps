@@ -16,7 +16,7 @@ The format is simple and practical:
 
 ---
 
-## 8.7.0.2 (build 60) — 2026-02-06
+## 8.7.0 (build 60) — 2026-02-06
 
 ### Added
 - AI generator **Instructions** box that overrides “Short answers only” when provided.

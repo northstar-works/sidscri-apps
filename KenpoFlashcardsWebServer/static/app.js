@@ -2911,6 +2911,8 @@ function openEditDecks(){
   loadDecks();
   loadUserCards();
   loadDeletedCards();
+  // Default to Switch tab whenever Edit Decks is opened
+  switchEditDecksTab("switch");
 }
 
 // Close Edit Decks page
@@ -5179,6 +5181,9 @@ async function addSelectedAiCards(){
     // Also refresh counts and study deck
     await refreshCounts();
     await loadDeckForStudy();
+    // After adding, exit AI Generator and return to Switch tab
+    switchEditDecksTab("switch");
+    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch(e){}
   } else {
     showEditDecksStatus("Failed to add cards", "error");
   }
