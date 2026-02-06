@@ -1,0 +1,10 @@
+{
+  "app_name": "AdvancedFlashcards_Android",
+  "version": "7.0.0",
+  "build": 41,
+  "release_date": "2026-02-05",
+  "notes": "Synced from WebServer v8.7.0",
+  "webserver_feature_parity": "8.7.0",
+  "webserver_feature_parity_build": 60,
+  "last_sync": "2026-02-05T21:12:05.922721"
+}

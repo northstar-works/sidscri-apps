@@ -173,9 +173,15 @@ async function loadVersionIntoMenu() {
     const webVer   = v.web_version || v.web_ver || v.webVersion || v.version;
     const webBuild = (v.web_build !== undefined) ? v.web_build : (v.webBuild !== undefined ? v.webBuild : v.build);
 
-    // Render (dropdown should show ONLY webserver version)
-    const wb = (webBuild !== undefined && webBuild !== null && String(webBuild).trim() !== "") ? ` (build ${webBuild})` : "";
-    el.textContent = `Webserver Version: ${webVer || "unknown"}${wb}`;} catch (e) {
+    // Render (user dropdown: show APP version when packaged; otherwise show Webserver version)
+    if (isPackaged) {
+      const ab = (appBuild !== undefined && appBuild !== null && String(appBuild).trim() !== "") ? ` (build ${appBuild})` : "";
+      el.textContent = `App Version: ${appVer || "unknown"}${ab}`;
+    } else {
+      const wb = (webBuild !== undefined && webBuild !== null && String(webBuild).trim() !== "") ? ` (build ${webBuild})` : "";
+      el.textContent = `Webserver Version: ${webVer || "unknown"}${wb}`;
+    }
+  } catch (e) {
     // ignore
   }
 }
@@ -259,7 +265,7 @@ async function ensureLoggedIn(){
 
 
 async function jget(url){
-  const r = await fetch(url);
+  const r = await fetch(url, { cache: "no-store" });
   if(r.status === 401){
     await ensureLoggedIn();
     throw new Error("login_required");
@@ -1375,10 +1381,12 @@ async function setCurrentStatus(status){
   
   // For custom set, use custom set status API
   if(activeTab === "custom"){
-    await jpost("/api/custom_set/set_status", customSetBody({ id: c.id, status: status  }));
-  } else {
-    await jpost("/api/set_status", {id: c.id, status});
-  }
+  await jpost("/api/custom_set/set_status", customSetBody({ id: c.id, status }));
+  // ✅ refresh cached counts immediately
+  try { customSetData = await jget(customSetApiUrl() + "&_t=" + Date.now()); } catch(e){}
+} else {
+  await jpost("/api/set_status", { id: c.id, status });
+}
 
   deck.splice(deckIndex, 1);
   if(deckIndex >= deck.length) deckIndex = 0;
@@ -1628,22 +1636,34 @@ async function refresh(){
   updateFilterHighlight();
   updateLearnedViewHighlight();
   updateCustomViewHighlight();
+
   if(!currentUser){
     const ok = await ensureLoggedIn();
     if(!ok) return;
   }
 
+  // If settings panel is open, only refresh the header counts (don't swap views)
   if(!$("viewSettings").classList.contains("hidden")){
     await refreshCounts();
     return;
   }
 
-  const isStudyMode = (activeTab === "active" || activeTab === "unsure" || activeTab === "custom" || (activeTab === "learned" && learnedViewMode === "study"));
+  const isStudyMode = (
+    activeTab === "active" ||
+    activeTab === "unsure" ||
+    activeTab === "custom" ||
+    (activeTab === "learned" && learnedViewMode === "study")
+  );
 
   const rWrap = $("randomStudyWrap");
   if(rWrap){
     rWrap.classList.toggle("hidden", !isStudyMode);
-    if(isStudyMode){
+  }
+
+  if(isStudyMode){
+    $("viewStudy").classList.remove("hidden");
+    $("viewList").classList.add("hidden");
+
     if(activeTab === "custom"){
       // IMPORTANT: Do NOT run refreshCounts() in parallel with custom set load.
       // refreshCounts() pulls /api/counts for the whole deck and can overwrite the custom-set counts bar.
@@ -1653,33 +1673,34 @@ async function refresh(){
       updateHeaderCardCount(Array.isArray(deck) ? deck.length : 0);
 
       // Ensure the status line reflects Custom Set mode
-      const cvmLabel = customViewMode === "unsure" ? "Unsure" : (customViewMode === "learned" ? "Learned" : "Unlearned");
+      const cvmLabel = customViewMode === "unsure" ? "Unsure"
+                    : (customViewMode === "learned" ? "Learned" : "Unlearned");
       const prefix = (customRandomLimit > 0) ? "🎲 " : "";
       setStatus(`${prefix}Custom Set • Studying: ${cvmLabel}`);
-    } else {
-      // Non-custom: load counts and deck cards in parallel for speed
-      const deckPromise = loadDeckForStudy();
-      await Promise.all([ refreshCounts(), deckPromise ]);
+      return;
+    }
 
-      const s = window.__activeSettings || settingsAll || {};
-      const allLabel = (s.all_mode === "flat") ? "All (flat)" : "All (grouped)";
-      const studyLabel = (activeTab === "active") ? "Unlearned"
-                        : (activeTab === "learned" ? "Learned"
-                        : (activeTab === "unsure" ? "Unsure"
-                        : (activeTab || "")));
-      setStatus(`${(scopeGroup || (allCardsMode ? allLabel : ""))} • Studying: ${studyLabel}`);
-    }
-  } else {
-      studyLabel = (activeTab === "active") ? "Unlearned" : (activeTab === "learned" ? "Learned" : (activeTab === "unsure" ? "Unsure" : (activeTab||"")));
-    }
+    // Non-custom study: load counts and deck cards in parallel for speed
+    const deckPromise = loadDeckForStudy();
+    await Promise.all([ refreshCounts(), deckPromise ]);
+
+    const s = window.__activeSettings || settingsAll || {};
+    const allLabel = (s.all_mode === "flat") ? "All (flat)" : "All (grouped)";
+    const studyLabel = (activeTab === "active") ? "Unlearned"
+                     : (activeTab === "unsure") ? "Unsure"
+                     : (activeTab === "learned") ? "Learned"
+                     : (activeTab || "");
     setStatus(`${(scopeGroup || (allCardsMode ? allLabel : ""))} • Studying: ${studyLabel}`);
-  } else {
-    $("viewStudy").classList.add("hidden");
-    $("viewList").classList.remove("hidden");
-    // Load counts and list in parallel
-    await Promise.all([ refreshCounts(), loadList(activeTab) ]);
-    setStatus(`${(scopeGroup||"All")} • Viewing: ${activeTab}`);
+    return;
   }
+
+  // List mode
+  $("viewStudy").classList.add("hidden");
+  $("viewList").classList.remove("hidden");
+
+  // Load counts and list in parallel
+  await Promise.all([ refreshCounts(), loadList(activeTab) ]);
+  setStatus(`${(scopeGroup||"All")} • Viewing: ${activeTab}`);
 }
 
 async function openSettings(){
@@ -2422,15 +2443,37 @@ async function main(){
   bind("starStudyBtn","click", async ()=>{
     if(!deck.length) return;
     const c = deck[deckIndex];
+
     const inSet = await toggleCustomSet(c.id);
-    if(inSet !== null){
-      c.in_custom_set = inSet;
-      updateStudyStarButton(c);
-      setStatus(inSet ? "Added to Custom Set" : "Removed from Custom Set");
+    if(inSet === null) return;
+
+    // If we're studying the Custom Set and user removed the card, remove it immediately.
+    if(activeTab === "custom" && inSet === false){
+      // remove from current study queue
+      deck.splice(deckIndex, 1);
+      if(deckIndex >= deck.length) deckIndex = 0;
+
+      setStatus("Removed from Custom Set");
+
+      // refresh cached custom-set data + counts immediately
+      try { customSetData = await jget(customSetApiUrl() + "&_t=" + Date.now()); } catch(e){}
+      await refreshCounts();
+      renderStudyCard();
+      return;
+    }
+
+    // Otherwise just update local state + UI
+    c.in_custom_set = inSet;
+    updateStudyStarButton(c);
+    setStatus(inSet ? "Added to Custom Set" : "Removed from Custom Set");
+
+    // If we are in custom tab (added back), refresh counts too
+    if(activeTab === "custom"){
+      try { customSetData = await jget(customSetApiUrl() + "&_t=" + Date.now()); } catch(e){}
+      await refreshCounts();
     }
   });
-  
-  // Sort by status dropdown for All list
+// Sort by status dropdown for All list
   bind("sortByStatus","change", async ()=>{
     await refresh();
   });
@@ -2763,17 +2806,22 @@ async function doSyncBreakdowns(){
 function updateStudyStarButton(card){
   const btn = $("starStudyBtn");
   if(!btn) return;
-  
-  const inSet = (activeTab === "custom") ? true : (card && card.in_custom_set);
-  // Portrait/mobile: keep the label explicit (Prev / Speak / Custom / Next on one line)
-  const isMobile = window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
-  if(isMobile){
-    btn.textContent = (inSet ? "★" : "☆") + " Custom";
-  } else {
-    btn.textContent = inSet ? "★" : "☆";
+
+  // In Custom tab, every card shown is in the Custom Set by definition.
+  if(activeTab === "custom"){
+    btn.textContent = "★";
+    btn.classList.toggle("on", true);
+    btn.style.color = "goldenrod"; // fallback color
+    return;
   }
-  btn.classList.toggle("starred", inSet);
-  btn.title = inSet ? "Remove from Custom Set" : "Add to Custom Set";
+
+  // Other tabs: reflect actual membership
+  const inSet = !!(card && card.in_custom_set);
+  btn.textContent = inSet ? "★" : "☆";
+  btn.classList.toggle("on", inSet);
+
+  // Fallback color for all tabs when "on"
+  btn.style.color = inSet ? "goldenrod" : "";
 }
 
 // ============================================================
@@ -2875,7 +2923,7 @@ function switchEditDecksTab(tabName){
   document.querySelector(`.editDecksSection[data-section="${tabName}"]`)?.classList.add("active");
   
   // Load deck-specific settings when generate tab opens
-  if(tabName === "generate") loadDeckShortAnswersSetting();
+  if(tabName === "generate") loadDeckAiSettings();
 }
 
 // Show status message in Edit Decks
@@ -3534,6 +3582,16 @@ async function openAiTemplateModal(){
 
   // Reset form each time it opens
   aiTemplateResetForm(ids.length);
+
+  // Show/hide formatting helpers based on deck setting
+  try {
+    const s = await jget(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`);
+    $("aiTemplateFormatHelpers")?.classList.toggle("hidden", !s.aiShowFormatHelpers);
+  } catch(e){
+    $("aiTemplateFormatHelpers")?.classList.add("hidden");
+  }
+  aiTemplateBindFormatHelpers();
+
   modal.classList.remove("hidden");
 
   // Kick an initial example update (will show placeholder until instruction exists)
@@ -3541,6 +3599,17 @@ async function openAiTemplateModal(){
 }
 
 function aiTemplateGetSelectedFields(){
+
+const sel = $("aiTemplateFieldSelect");
+if(sel){
+  const v = (sel.value || "meaning").trim();
+  if(v === "both") return ["meaning","term"];
+  if(v === "term") return ["term"];
+  if(v === "pron") return ["pron"];
+  if(v === "group") return ["group"];
+  return ["meaning"];
+}
+
   const menu = $("aiTemplateFieldsMenu");
   // Backward compat (older HTML)
   const legacy = $("aiTemplateField");
@@ -3577,6 +3646,9 @@ function aiTemplateResetForm(selectedCount){
   // Reset instruction
   const instr = $("aiTemplateInstruction");
   if(instr) instr.value = "";
+  const sel = $("aiTemplateFieldSelect");
+  if(sel) sel.value = "meaning";
+
 
   // Reset field selection to Definition only
   const menu = $("aiTemplateFieldsMenu");
@@ -3612,6 +3684,46 @@ function closeAiTemplateModal(){
 
 let _aiTemplateLastPreview = null;
 let _aiTemplateAutoTimer = null;
+
+
+let __aiTemplateFormatBound = false;
+function aiTemplateBindFormatHelpers(){
+  if(__aiTemplateFormatBound) return;
+  const btn = $("aiTemplateInsertFormatBtn");
+  const menu = $("aiTemplateInsertFormatMenu");
+  if(!btn || !menu) return;
+
+  __aiTemplateFormatBound = true;
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    menu.classList.toggle("hidden");
+  });
+
+  menu.querySelectorAll("button[data-kind]").forEach(b => {
+    b.addEventListener("click", () => {
+      const kind = b.dataset.kind || "both";
+      const ta = $("aiTemplateInstruction");
+      if(!ta) return;
+      const block = (kind === "term") ? "FORMAT EXAMPLE (TERM):\nTerm: <your term here>\n\n" :
+                   (kind === "definition") ? "FORMAT EXAMPLE (DEFINITION):\nDefinition: <your definition here>\n\n" :
+                   "FORMAT EXAMPLE (TERM + DEFINITION):\nTerm: <your term here>\nDefinition: <your definition here>\n\n";
+      ta.value = (ta.value || "") + (ta.value && !ta.value.endsWith("\n") ? "\n" : "") + block;
+      menu.classList.add("hidden");
+      aiTemplateScheduleAutoExample();
+      ta.focus();
+    });
+  });
+
+  document.addEventListener("click", (ev) => {
+    if(!menu.classList.contains("hidden")){
+      const t = ev.target;
+      if(!menu.contains(t) && t !== btn){
+        menu.classList.add("hidden");
+      }
+    }
+  });
+}
 
 function aiTemplateScheduleAutoExample(){
   if(_aiTemplateAutoTimer) clearTimeout(_aiTemplateAutoTimer);
@@ -3920,13 +4032,28 @@ function renderEditedHistory(items){
     div.innerHTML = `
       <div class="editedTop">
         <div class="editedTerm">${escapeHtml(it.term_after || it.term_before || "")}</div>
-        <div class="editedTime">${escapeHtml(timeStr)}</div>
+        <div class="editedTopRight">
+          <div class="editedTime">${escapeHtml(timeStr)}</div>
+          <button class="appBtn secondary small restoreEditBtn" title="Restore this card back to the 'Before' values">Restore</button>
+        </div>
       </div>
       <div class="editedDetail">
         <div class="before">Before: ${escapeHtml(it.meaning_before || "")}</div>
         <div>After: ${escapeHtml(it.meaning_after || "")}</div>
       </div>
     `;
+    div.querySelector(".restoreEditBtn")?.addEventListener("click", async () => {
+      if(!confirm("Restore this card back to the 'Before' values?")) return;
+      try{
+        await jpost("/api/edit_history/restore", { ts: it.ts, card_id: it.card_id });
+        showEditDecksStatus(`Restored "${it.term_before || it.term_after || ""}"`, "success");
+        await loadEditedHistory();
+        await loadEditDeckCards(true);
+        refreshCounts();
+      }catch(e){
+        showEditDecksStatus("Failed to restore: " + (e.message || e), "error");
+      }
+    });
     list.appendChild(div);
   }
 }
@@ -3956,6 +4083,21 @@ function initDeletedSubTabs(){
       loadEditedHistory();
     }catch(e){
       showEditDecksStatus("Failed to clear: " + (e.message || e), "error");
+    }
+  });
+
+
+  $("deletedSearch")?.addEventListener("input", () => loadDeletedCards());
+
+  $("clearDeletedAllBtn")?.addEventListener("click", async () => {
+    if(!confirm("Permanently clear all deleted cards? (This cannot be undone)")) return;
+    try{
+      await jpost("/api/deleted/clear_all", {});
+      showEditDecksStatus("Cleared deleted cards", "success");
+      loadDeletedCards();
+      refreshCounts();
+    }catch(e){
+      showEditDecksStatus("Failed to clear deleted: " + (e.message || e), "error");
     }
   });
 }
@@ -4485,6 +4627,34 @@ document.addEventListener("DOMContentLoaded", () => {
   // Init Edit Deck Modal (tabs + edit cards + bulk tools)
   initEditDeckModalBindings();
 
+// Global safety: ESC closes any open modal overlays
+document.addEventListener("keydown", (e) => {
+  if(e.key !== "Escape") return;
+  const ai = $("aiTemplateModal");
+  if(ai && !ai.classList.contains("hidden")){
+    closeAiTemplateModal();
+    return;
+  }
+  const prev = $("previewModal");
+  if(prev && !prev.classList.contains("hidden")){
+    const cancelBtn = $("previewCancelBtn");
+    if(cancelBtn) cancelBtn.click();
+    else prev.classList.add("hidden");
+    return;
+  }
+  const ed = $("editDeckModal");
+  if(ed && !ed.classList.contains("hidden")){
+    closeEditDecks();
+    return;
+  }
+  const ch = $("choiceModal");
+  if(ch && !ch.classList.contains("hidden")){
+    ch.classList.add("hidden");
+    return;
+  }
+});
+
+
   // Open/Close Edit Decks
   $("openEditDecksBtn")?.addEventListener("click", openEditDecks);
   $("closeEditDecksBtn")?.addEventListener("click", closeEditDecks);
@@ -4535,6 +4705,9 @@ let aiGeneratedCards = [];
 let aiSelectedIndices = new Set();
 let aiPhotoData = null;
 let aiDocData = null;
+let _aiGenPreExampleTimer = null;
+let _aiGenPreExampleLastSig = "";
+
 
 function initAiGenerator(){
   // Method tabs
@@ -4550,6 +4723,42 @@ function initAiGenerator(){
   
   // Keywords search
   $("aiGenSearchBtn")?.addEventListener("click", aiGenFromKeywords);
+  // Live example preview (before generating)
+  $("aiGenKeywords")?.addEventListener("input", () => { applyAiGeneratorUiSettings(); aiGenSchedulePreExample(); });
+  $("aiGenInstructions")?.addEventListener("input", () => { applyAiGeneratorUiSettings(); aiGenSchedulePreExample(); });
+
+  // Format helper dropdown (optional)
+  const fmtBtn = $("aiGenInsertFormatBtn");
+  const fmtMenu = $("aiGenInsertFormatMenu");
+  if(fmtBtn && fmtMenu){
+    fmtBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      fmtMenu.classList.toggle("hidden");
+    });
+    fmtMenu.querySelectorAll("button[data-kind]").forEach(b => {
+      b.addEventListener("click", () => {
+        const kind = b.dataset.kind || "both";
+        const ta = $("aiGenInstructions");
+        if(!ta) return;
+        const block = (kind === "term") ? "FORMAT EXAMPLE (TERM):\nTerm: <your term here>\n\n" :
+                     (kind === "definition") ? "FORMAT EXAMPLE (DEFINITION):\nDefinition: <your definition here>\n\n" :
+                     "FORMAT EXAMPLE (TERM + DEFINITION):\nTerm: <your term here>\nDefinition: <your definition here>\n\n";
+        ta.value = (ta.value || "") + (ta.value && !ta.value.endsWith("\n") ? "\n" : "") + block;
+        fmtMenu.classList.add("hidden");
+        applyAiGeneratorUiSettings();
+        ta.focus();
+      });
+    });
+    // click outside to close
+    document.addEventListener("click", (ev) => {
+      if(!fmtMenu.classList.contains("hidden")){
+        const t = ev.target;
+        if(!fmtMenu.contains(t) && t !== fmtBtn){
+          fmtMenu.classList.add("hidden");
+        }
+      }
+    });
+  }
   
   // Photo upload
   const photoZone = $("photoUploadZone");
@@ -4693,14 +4902,21 @@ async function aiGenFromKeywords(){
     }
   }
   
-  // Check deck-level short answers setting
+  // Deck AI settings (short answers + user instructions override)
   let shortAnswers = false;
+  let instructions = ($("aiGenInstructions")?.value || "").trim();
+
   try {
     const ds = await jget(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`);
     shortAnswers = !!ds.shortAnswers;
   } catch(e){}
-  
-  await generateCards({ type: "keywords", keywords, maxCards, shortAnswers });
+
+  // If user typed instructions, they override short-answers mode
+  if(instructions){
+    shortAnswers = false;
+  }
+
+  await generateCards({ type: "keywords", keywords, maxCards, shortAnswers, instructions });
 }
 
 async function aiGenFromPhoto(){
@@ -5497,13 +5713,22 @@ function deleteSavedSet(index){
 
 // ========== DECK-SPECIFIC SETTINGS ==========
 
-async function loadDeckShortAnswersSetting(){
-  const cb = $("deckShortAnswers");
-  if(!cb) return;
+async function loadDeckAiSettings(){
+  const cbShort = $("deckShortAnswers");
+  const cbHelpers = $("deckAiShowFormatHelpers");
+  const cbExample = $("deckAiShowPreExample");
+  if(!cbShort) return;
   try {
     const s = await jget(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`);
-    cb.checked = !!s.shortAnswers;
-  } catch(e){ cb.checked = false; }
+    cbShort.checked = !!s.shortAnswers;
+    if(cbHelpers) cbHelpers.checked = !!s.aiShowFormatHelpers; // default off
+    if(cbExample) cbExample.checked = (typeof s.aiShowPreExample === "boolean") ? s.aiShowPreExample : true; // default on
+  } catch(e){
+    cbShort.checked = false;
+    if(cbHelpers) cbHelpers.checked = false;
+    if(cbExample) cbExample.checked = true;
+  }
+  applyAiGeneratorUiSettings();
 }
 
 async function toggleDeckShortAnswers(){
@@ -5515,6 +5740,156 @@ async function toggleDeckShortAnswers(){
   } catch(e){
     console.error("Failed to save deck setting:", e);
   }
+}
+
+async function toggleDeckAiShowFormatHelpers(){
+  const cb = $("deckAiShowFormatHelpers");
+  if(!cb) return;
+  try {
+    await jpost(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`, { aiShowFormatHelpers: cb.checked });
+    applyAiGeneratorUiSettings();
+  } catch(e){
+    console.error("Failed to save deck AI helper setting:", e);
+  }
+}
+
+async function toggleDeckAiShowPreExample(){
+  const cb = $("deckAiShowPreExample");
+  if(!cb) return;
+  try {
+    await jpost(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`, { aiShowPreExample: cb.checked });
+    applyAiGeneratorUiSettings();
+  } catch(e){
+    console.error("Failed to save deck AI example setting:", e);
+  }
+}
+
+function applyAiGeneratorUiSettings(){
+  const showHelpers = !!($("deckAiShowFormatHelpers") && $("deckAiShowFormatHelpers").checked);
+  const helpersWrap = $("aiGenFormatHelpers");
+  if(helpersWrap) helpersWrap.classList.toggle("hidden", !showHelpers);
+
+  const showExample = !!($("deckAiShowPreExample") && $("deckAiShowPreExample").checked);
+  const exWrap = $("aiGenPreExampleWrap");
+  if(exWrap){
+    const shouldShow = showExample && aiGenShouldShowPreExample();
+    exWrap.classList.toggle("hidden", !shouldShow);
+  }
+  aiGenSchedulePreExample();
+}
+
+function aiGenShouldShowPreExample(){
+  const kw = ($("aiGenKeywords")?.value || "").trim();
+  const instr = ($("aiGenInstructions")?.value || "").trim();
+  const deckName = (window.activeDeckName || "").trim();
+  const deckDesc = (window.activeDeckDescription || "").trim();
+  return !!(kw || instr || deckName || deckDesc);
+}
+
+function aiGenSchedulePreExample(){
+  if(_aiGenPreExampleTimer) clearTimeout(_aiGenPreExampleTimer);
+  _aiGenPreExampleTimer = setTimeout(aiGenUpdatePreExample, 650);
+}
+
+async function aiGenUpdatePreExample(){
+  const box = $("aiGenPreExampleBox");
+  const wrap = $("aiGenPreExampleWrap");
+  const hint = $("aiGenPreExampleHint");
+  if(!box || !wrap) return;
+
+  // If the wrapper is hidden, clear and stop.
+  if(wrap.classList.contains("hidden")){
+    box.innerHTML = "";
+    if(hint) hint.textContent = "Example output (updates as you type):";
+    return;
+  }
+
+  // Only show preview when there is something to base it on.
+  const kw = ($("aiGenKeywords")?.value || "").trim();
+  const instr = ($("aiGenInstructions")?.value || "").trim();
+  const deckName = (window.activeDeckName || "").trim();
+  const deckDesc = (window.activeDeckDescription || "").trim();
+
+  if(!(kw || instr || deckName || deckDesc)){
+    box.innerHTML = "";
+    if(hint) hint.textContent = "Example output (updates as you type):";
+    return;
+  }
+
+  const cbShort = $("deckShortAnswers");
+  const shortOn = !!(cbShort && cbShort.checked);
+  const sig = JSON.stringify({ kw, instr, deckName, deckDesc, shortOn });
+
+  // Avoid re-requesting the same preview repeatedly.
+  if(sig === _aiGenPreExampleLastSig && box.innerHTML.trim()){
+    return;
+  }
+  _aiGenPreExampleLastSig = sig;
+
+  if(hint) hint.textContent = "Generating example...";
+  box.innerHTML = "";
+
+  // Try a real AI preview (like the AI Template), with graceful fallback.
+  try{
+    const res = await jpost("/api/ai/generate_deck_preview", {
+      type: "keywords",
+      keywords: kw || deckName || "Example",
+      instructions: instr,
+      shortAnswers: shortOn,
+      deckName,
+      deckDescription: deckDesc
+    });
+
+    if(res?.error){
+      throw new Error(res.error);
+    }
+
+    const c = res?.card || {};
+    const term = (c.term || kw.split(",")[0] || deckName || "Example Term").trim();
+    const def = (c.definition || "").trim() || "Example definition";
+    const pron = (c.pronunciation || "").trim();
+    const grp = (c.group || "").trim();
+
+    const extraBits = [
+      pron ? `<div class="mini muted">Pronunciation: ${escapeHtml(pron)}</div>` : "",
+      grp ? `<div class="mini muted">Group: ${escapeHtml(grp)}</div>` : ""
+    ].join("");
+
+    if(hint) hint.textContent = "Example output (updates as you type):";
+    box.innerHTML = `
+      <div class="previewItem">
+        <div class="top">
+          <div class="term">${escapeHtml(term)}</div>
+        </div>
+        <div class="mini muted">Definition: ${escapeHtml(def)}</div>
+        ${extraBits}
+      </div>
+    `;
+    return;
+
+  }catch(e){
+    console.warn("AI generator preview failed, falling back to local example:", e);
+  }
+
+  // Fallback: simple local example (no AI call)
+  let term = "";
+  if(kw){
+    term = kw.split(",")[0].split(";")[0].trim();
+  }
+  if(!term) term = (deckName || "Example Term");
+  const def = instr
+    ? "Follows your instruction (example output)."
+    : (shortOn ? "Short definition" : `Definition about ${term}`);
+
+  if(hint) hint.textContent = "Example output (updates as you type):";
+  box.innerHTML = `
+    <div class="previewItem">
+      <div class="top">
+        <div class="term">${escapeHtml(term || "Example Term")}</div>
+      </div>
+      <div class="mini muted">Definition: ${escapeHtml(def)}</div>
+    </div>
+  `;
 }
 
 // Bind custom set settings button

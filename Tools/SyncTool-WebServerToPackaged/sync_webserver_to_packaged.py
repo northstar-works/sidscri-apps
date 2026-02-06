@@ -52,6 +52,58 @@ import argparse
 import re
 from datetime import datetime
 from pathlib import Path
+import re
+
+def _print_json_error_context(path: Path, err: Exception, context_lines: int = 3) -> None:
+    raw = path.read_text(encoding="utf-8", errors="replace")
+    print("\n[ERROR] Failed to parse JSON:", str(path))
+    print("        ", repr(err))
+    line = getattr(err, "lineno", None)
+    col = getattr(err, "colno", None)
+    if line is None:
+        return
+    lines = raw.splitlines()
+    start = max(1, line - context_lines)
+    end = min(len(lines), line + context_lines)
+    print(f"        Context (around line {line}, col {col}):")
+    for i in range(start, end + 1):
+        prefix = ">>" if i == line else "  "
+        print(f"        {prefix} {i:4d}: {lines[i-1]}")
+    print("")
+
+def _strip_json_comments(s: str) -> str:
+    s = re.sub(r"(?m)^\s*//.*$", "", s)
+    s = re.sub(r"/\*.*?\*/", "", s, flags=re.S)
+    return s
+
+def _remove_trailing_commas(s: str) -> str:
+    return re.sub(r",(\s*[}\]])", r"\1", s)
+
+def load_json_lenient(path: Path):
+    raw = path.read_text(encoding="utf-8", errors="replace")
+    try:
+        return json.loads(raw), False
+    except json.JSONDecodeError as e1:
+        fixed = _remove_trailing_commas(_strip_json_comments(raw))
+        try:
+            return json.loads(fixed), True
+        except json.JSONDecodeError:
+            _print_json_error_context(path, e1)
+            raise
+
+def find_repo_root(start_dir: Path) -> Path:
+    """Walk upward looking for a folder named 'sidscri-apps'. Fallback to two levels up from tools folder."""
+    cur = start_dir.resolve()
+    for p in [cur] + list(cur.parents):
+        if p.name.lower() == "sidscri-apps":
+            return p
+    # Typical layout: <repo>\tools\SyncTool-WebServerToPackaged
+    try:
+        return cur.parents[1]
+    except Exception:
+        return cur
+
+
 from typing import Optional, Tuple, List, Dict
 
 
@@ -451,7 +503,7 @@ class WebServerSyncer:
         self.file_actions: List[Dict] = []
         self.output_mode = output_mode
         self.repo_root = _find_sidscri_apps_root(self.tools_dir)
-        self.sync_log_dir = self.repo_root / 'logs' / 'zips'
+        self.sync_log_dir = self.repo_root / 'tools' / 'logs' / 'Sync'
         
     def log(self, msg: str, level: str = "INFO"):
         """Log with timestamp and emoji prefix."""
@@ -474,7 +526,7 @@ class WebServerSyncer:
                        ws_build: int,
                        last_sync_iso: str,
                        backup_dir: Optional[Path] = None):
-        """Write a JSON log under <sidscri-apps>\logs\zips\ as vX_bY_YYYYMMDD_HHMMSS.log"""
+        """Write a JSON log under <sidscri-apps>\logs\Sync\ as vX_bY_YYYYMMDD_HHMMSS.log"""
         try:
             _ensure_dir(self.sync_log_dir)
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -798,13 +850,10 @@ class WebServerSyncer:
 # - DATA_DIR + LOG_DIR must be writable. When frozen (installed EXE) we use per-user AppData.
 import sys
 from pathlib import Path
+import traceback
 
-_FROZEN = bool(getattr(sys, "frozen", False))
-# Use AppData when:
-#  - frozen executable, OR
-#  - launcher provided KENPO_* env vars
-_USE_APPDATA = bool(_FROZEN or os.environ.get("KENPO_DATA_DIR") or os.environ.get("KENPO_LOG_DIR") or os.environ.get("KENPO_APPDATA_BASE_DIR"))
 
+# (duplicate JSON helper block removed)
 def _get_appdata_base() -> Path:
     base = (os.environ.get("KENPO_APPDATA_BASE_DIR") or "").strip()
     if base:
@@ -980,6 +1029,12 @@ _seed_appdata_from_bundle()
 
 
     def run(self):
+
+
+        # JSONFIX_SELF_CHECK_V1
+        if 'load_json_lenient' not in globals():
+            self.log("Internal error: load_json_lenient not loaded", "ERROR")
+            return False
         """Execute the full sync process."""
         print("\n" + "="*60)
         print("  KenpoFlashcards Web Server → Packaged Sync Tool")
@@ -1009,10 +1064,17 @@ _seed_appdata_from_bundle()
         else:
             self.log("Web server version.json not found", "ERROR")
             return False
-        
         if pkg_version_file.exists():
-            with open(pkg_version_file, 'r') as f:
-                pkg_ver = json.load(f)
+            pkg_version_file = Path(pkg_version_file)
+            try:
+                pkg_ver, _repaired = load_json_lenient(pkg_version_file)
+                if _repaired:
+                    self.log(f"[WARN] Auto-repaired JSON (comments/trailing commas): {pkg_version_file}")
+            except json.JSONDecodeError as e:
+                _print_json_error_context(pkg_version_file, e)
+                self.log("[ACTION] Your Packaged version.json is invalid JSON. Fix the syntax and re-run.", "ERROR")
+                return False
+
             old_pkg_version = pkg_ver.get('version', '0.0.0')
             old_pkg_build = pkg_ver.get('build', 0)
             old_ws_version = pkg_ver.get('webserver_version', '0.0.0')
@@ -1023,7 +1085,6 @@ _seed_appdata_from_bundle()
             old_pkg_build = 0
             old_ws_version = "0.0.0"
             old_ws_build = 0
-        
         print()
         
         # Prompt for upgrade level
@@ -1070,17 +1131,21 @@ _seed_appdata_from_bundle()
         print()
 
         # Post-sync: enforce AppData-safe runtime + hard-fail regression scan
-        self.log("Post-sync auto-patch (AppData-safe runtime paths)...")
-        if not self.post_sync_autopatch():
-            self.log("Auto-patch failed", "ERROR")
-            return False
-        print()
+        if self.dry_run:
+            self.log("DRY-RUN: would run post-sync auto-patch + regression scan (skipped).", "SKIP")
+            print()
+        else:
+            self.log("Post-sync auto-patch (AppData-safe runtime paths)...")
+            if not self.post_sync_autopatch():
+                self.log("Auto-patch failed", "ERROR")
+                return False
+            print()
 
-        self.log("Running regression scanner...")
-        if not self.regression_scan_or_fail():
-            self.log("Regression scanner hard-failed (refusing to continue)", "ERROR")
-            return False
-        print()
+            self.log("Running regression scanner...")
+            if not self.regression_scan_or_fail():
+                self.log("Regression scanner hard-failed (refusing to continue)", "ERROR")
+                return False
+            print()
 
         # Update documentation
         self.log("Updating documentation (AI-assisted)...")
@@ -1295,5 +1360,25 @@ Examples:
     sys.exit(0 if success else 1)
 
 
+
+# WRITE_FAILURE_LOG_V1
+def _safe_write_failure_log(tools_dir: Path, error_text: str, tb: str = "") -> None:
+    try:
+        repo_root = find_repo_root(tools_dir) if "find_repo_root" in globals() else tools_dir.parent
+        log_dir = repo_root / "tools" / "logs" / "Sync"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        p = log_dir / f"FAILED_{ts}.log"
+        payload = {"status": "failed", "timestamp": ts, "error": error_text, "traceback": (tb or traceback.format_exc())}
+        p.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(f"[INFO] Wrote failure log: {p}")
+    except Exception:
+        pass
+
+
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as _e:
+        _safe_write_failure_log(Path(__file__).parent, str(_e), traceback.format_exc())
+        raise

@@ -1,0 +1,5 @@
+{
+  "status": "failed",
+  "timestamp": "20260205_175201",
+  "error": "Internal error: load_json_lenient not loaded"
+}

@@ -1,8 +1,8 @@
 {
   "name": "Advanced Flashcards WebAppServer",
-  "version": "8.6.2",
-  "build": 59,
-  "released": "2026-02-04",
+  "version": "8.7.0",
+  "build": 60,
+  "released": "2026-02-05",
   "is_packaged": false,
-  "notes": "8.6.2 (build 59): Edit Decks now includes tabbed Edit Deck + Edit Cards management (search/filter/select, per-card edit/remove w/ soft-delete + restore, duplicate prompt, Deleted includes Edited history w/ clear). Added AI template bulk editor (multi-field, auto example preview, Preview All) and improved modal/mobile UI + stability fixes."
+  "notes": "8.7.0 (build 60): Roll-up release with AI generator instruction overrides + per-deck helper UI toggles, live example preview, and stability fixes (List views rendering, JS init, Edit Deck back button sizing), AI Generator live example preview now matches AI Template; improved generator controls (Generate spacing/size, Preview All + Cancel, Clear); updated AI Template field dropdown."
 }

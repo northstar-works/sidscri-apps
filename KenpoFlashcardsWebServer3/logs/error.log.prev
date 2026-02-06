@@ -1,0 +1,2 @@
+2026-02-06 12:43:28,021 | ERROR | werkzeug | 198.235.24.80 - - [06/Feb/2026 12:43:28] code 400, message Bad request syntax ('\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03\x1f')
+2026-02-06 12:43:28,367 | ERROR | werkzeug | 198.235.24.80 - - [06/Feb/2026 12:43:28] code 400, message Bad request version ('À(À$À\x14À')

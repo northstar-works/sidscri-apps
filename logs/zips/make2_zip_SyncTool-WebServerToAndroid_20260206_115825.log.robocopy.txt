@@ -1,0 +1,48 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows                              
+-------------------------------------------------------------------------------
+
+  Started : Friday, February 6, 2026 11:58:26 AM
+   Source : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\
+     Dest : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\_zip_staging\SyncTool-WebServerToAndroid-v2.1.0_b5\
+
+    Files : *.*
+	    
+Exc Files : *.log
+	    *.zip
+	    
+ Exc Dirs : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\output
+	    C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\logs
+	    C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\__pycache__
+	    C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\sync_backups
+	    C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\.git
+	    C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\_zip_staging
+	    
+  Options : *.* /S /E /DCOPY:DA /COPY:DAT /PURGE /MIR /R:1000000 /W:30 
+
+------------------------------------------------------------------------------
+
+	                   8	C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\
+	    New File  		     344	CHANGELOG.md 75%  100%  
+	    New File  		    3610	make2_zip_SyncTool-WebServerToAndroid.bat100%  
+	    New File  		     561	parity_report_2026-02-06.md100%  
+	    New File  		     921	README.md 88%  100%  
+	    New File  		    4747	README_ANDROID_SYNC_TOOL.md 97%  100%  
+	    New File  		    3742	sync_android.bat100%  
+	    New File  		   29799	sync_webserver_to_android.py 99%  100%  
+	    New File  		     393	version.json 77%  100%  
+
+------------------------------------------------------------------------------
+
+               Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :         3         0         3         0         0         0
+   Files :         8         8         0         0         0         0
+   Bytes :    43.0 k    43.0 k         0         0         0         0
+   Times :   0:00:00   0:00:00                       0:00:00   0:00:00
+
+
+   Speed :             3393615 Bytes/sec.
+   Speed :             194.184 MegaBytes/min.
+   Ended : Friday, February 6, 2026 11:58:26 AM
+

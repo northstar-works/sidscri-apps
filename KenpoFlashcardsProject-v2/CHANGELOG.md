@@ -32,6 +32,62 @@
 
 ---
 
+## 7.0.1 (build 42) — 2026-02-06
+
+
+### Changes
+
+- (Add changes here)
+
+
+### Technical Notes
+- Synced metadata from WebServer v8.7.0 (build 60)
+- Version bumped by sync_webserver_to_android.py v1.0.0
+
+---
+
+## 7.0.0 (build 41) — 2026-02-05
+
+
+### Synced — WebServer features through v8.7.0 (build 60)
+
+
+#### From WebServer 8.7.0: 2026-02-05
+- **TODO**: [Added]
+- **TODO**: AI generator **Instructions** box that overrides “Short answers only” when provided.
+- **TODO**: Deck AI setting (default OFF): show compact formatting helper buttons/dropdown for Term/Definition templates.
+- **TODO**: Deck AI setting (default ON): show a live “Example output” preview before generating when inputs are provided.
+- **TODO**: [Changed]
+- **TODO**: Treat AI instructions as an explicit formatting/behavior override (client + server).
+- **TODO**: [Fixed]
+- **TODO**: Learned/All **List** tabs could render blank due to a JS runtime error.
+
+#### From WebServer 8.6.2: 2026-02-04
+- **TODO**: [Added]
+- **TODO**: **Edit Deck modal tabs:** the deck edit button now opens a tabbed view: **Edit Deck** (existing) + **Edit Cards** (new).
+- **TODO**: **Edit Cards management:** search / group filter / select cards for the active deck, with **Select all**, **Clear selection**, and **# Selected** counter.
+- **TODO**: **Per‑card actions:** inline **Edit** (term / definition / pron / group) and **Remove** (soft delete → `deleted`).
+- **TODO**: **Restore flows:** restore deleted cards from **Edit Decks → Deleted**, and also via **Restore** on cards shown when **Show deleted** is enabled in the Edit Cards list.
+- **TODO**: **Duplicate handling prompt:** when an edit would duplicate another card term, prompt with **Add duplicate**, **Replace duplicate**, or **Cancel**.
+- **TODO**: **Edited history:** edited cards are tracked under Deleted → **Edited**, with a **Clear edited history** action.
+- **TODO**: **AI template bulk editor (with preview):** replaced the non-working “State‑only” tool with an **AI template** flow:
+
+#### From WebServer 8.6.1: 2026-02-03
+- **TODO**: [Added]
+- **TODO**: **Packaged support metadata:** add `webappserver_version.json` (web server core version file).
+- **TODO**: **Version API upgrade:** `/api/version` returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
+- **TODO**: **Packaged support version metadata:** add `webappserver_version.json` (web server core version file).
+- **TODO**: **Version API upgrade:** `/api/version` now returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
+- **TODO**: **Admin/System version display:** App Information shows a single **Web Server** version line for stand-alone and dual **App + Web** versions when `is_packaged: true`.
+- **TODO**: **User dropdown version display:** mirrors stand-alone vs packaged behavior (single vs dual version lines).
+- **TODO**: [Changed]
+
+### Technical Notes
+- Synced metadata from WebServer v8.7.0 (build 60)
+- Version bumped by sync_webserver_to_android.py v1.0.0
+
+---
+
 ## 6.0.0 (build 40) — 2026-02-03
 
 

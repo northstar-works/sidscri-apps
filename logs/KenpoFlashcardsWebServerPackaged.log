@@ -1,17 +1,17 @@
-START Tue 02/03/2026 14:10:32.48
+START Thu 02/05/2026 22:28:03.44
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged
 VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged\version.json
 SEVENZIP=C:\Program Files\7-Zip\7z.exe
-RAW_VER=5.1.1
-RAW_BUILD=19
+RAW_VER=5.2.0
+RAW_BUILD=20
 SYNCLOGDIR=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\logs\Sync
-SYNCLOGPAT=v5.1.1*.log
-Using Sync log: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\logs\Sync\v5.1.1_b19_20260201_131341.log
-WSVER_FROM_LOG= =
-WSBUILD_FROM_LOG= =
+SYNCLOGPAT=v5.2.0*.log
+No matching Sync log found (will not append ws suffix
+WSVER_FROM_LOG=
+WSBUILD_FROM_LOG=
 WSSUFFIX=
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.1.1 v19.zip
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.0 v20.zip
 STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage
 
 ROBOCOPY_EXIT_CODE=1
@@ -21,15 +21,15 @@ Running 7z (from stage)...
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-40 folders, 114 files, 3274423 bytes (3198 KiB)
+41 folders, 121 files, 17398272 bytes (17 MiB)
 
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.1.1 v19.zip
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer_Packaged-v5.2.0 v20.zip
 
-Add new data to archive: 40 folders, 114 files, 3274423 bytes (3198 KiB)
+Add new data to archive: 41 folders, 121 files, 17398272 bytes (17 MiB)
 
 
-Files read from disk: 114
-Archive size: 2480141 bytes (2423 KiB)
+Files read from disk: 121
+Archive size: 15922891 bytes (16 MiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 SUCCESS

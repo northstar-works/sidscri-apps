@@ -1,7 +1,7 @@
 {
   "name": "SyncTool-WebServerToPackaged",
-  "version": "3.0.4",
-  "build": 14,
+  "version": "3.0.5",
+  "build": 15,
   "released": "2026-02-03",
   "description": "Sync a clean copy of KenpoFlashcardsWebServer into KenpoFlashcardsWebServer_Packaged with exclusions (no .venv/build/dist/output/log noise).",
   "entrypoints": {

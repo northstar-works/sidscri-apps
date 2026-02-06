@@ -47,12 +47,74 @@ def find_sidscri_apps_root(start: Path) -> Optional[Path]:
     for _ in range(6):
         ws = p / "KenpoFlashcardsWebServer"
         android = p / "KenpoFlashcardsProject-v2"
-        if ws.is_dir() and android.is_dir():
+        android2 = p / "kenpoflashcardsproject-v2"
+        if ws.is_dir() and (android.is_dir() or android2.is_dir()):
             return p
         p = p.parent
     return None
 
 
+
+
+def _find_first_version_json(start_dir: Path) -> Optional[Path]:
+    # If version.json isn't at start_dir/version.json, search shallowly for it.
+    # Skips common noisy folders (.venv, .git, build, dist, packaging, node_modules).
+    start_dir = start_dir.resolve()
+    direct = start_dir / "version.json"
+    if direct.exists():
+        return direct
+
+    skip = {".venv", ".git", "build", "dist", "packaging", "node_modules", "__pycache__"}
+    candidates: List[Path] = []
+
+    # Shallow scan (depth <= 3)
+    for root, dirs, files in os.walk(start_dir):
+        rel = Path(root).resolve().relative_to(start_dir)
+        dirs[:] = [d for d in dirs if d not in skip and not d.startswith(".")]
+        if len(rel.parts) > 3:
+            dirs[:] = []
+            continue
+        if "version.json" in files:
+            candidates.append(Path(root) / "version.json")
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda p: (len(p.resolve().relative_to(start_dir).parts), str(p)))
+    return candidates[0]
+
+
+def _resolve_webserver_root(ws_dir: Path, logger=None) -> Path:
+    # Ensure ws_dir points to the folder that contains version.json.
+    ws_dir = ws_dir.resolve()
+    if (ws_dir / "version.json").exists():
+        return ws_dir
+
+    found = _find_first_version_json(ws_dir)
+    if found:
+        root = found.parent
+        if logger:
+            logger(f"Auto-detected WebServer version.json at: {found}")
+            logger(f"Using WebServer root: {root}")
+        return root
+
+    return ws_dir
+
+
+def _resolve_android_gradle(android_dir: Path, logger=None) -> Tuple[Path, Path]:
+    # Return (android_root, gradle_file_path). Supports build.gradle or build.gradle.kts.
+    android_dir = android_dir.resolve()
+    gradle = android_dir / "app" / "build.gradle"
+    if gradle.exists():
+        return android_dir, gradle
+
+    gradle_kts = android_dir / "app" / "build.gradle.kts"
+    if gradle_kts.exists():
+        return android_dir, gradle_kts
+
+    if logger:
+        logger(f"Android Gradle file not found under: {android_dir / 'app'}")
+    return android_dir, gradle
 def parse_semver(v: str) -> Tuple[int, int, int]:
     parts = v.strip().split(".")
     return (int(parts[0]), int(parts[1]), int(parts[2]) if len(parts) > 2 else 0)
@@ -389,17 +451,43 @@ def create_backup(android_dir: Path, tools_dir: Path,
 
 class AndroidSyncer:
     def __init__(self, ws_dir: Path, android_dir: Path, tools_dir: Path,
-                 dry_run: bool = False, upgrade_level: Optional[int] = None):
+                 dry_run: bool = False, upgrade_level: Optional[int] = None,
+                 output_mode: str = 'synced'):
         self.ws_dir = ws_dir
         self.android_dir = android_dir
         self.tools_dir = tools_dir
         self.dry_run = dry_run
         self.upgrade_level = upgrade_level
+        self.output_mode = output_mode
+        self.repo_root = find_sidscri_apps_root(tools_dir) or tools_dir.parent.parent
+        self.sync_log_dir = self.repo_root / 'logs' / 'Sync' / 'WebServerToAndroid'
+        self._log_lines = []
+        self._log_file_path: Optional[Path] = None
 
     def log(self, msg: str, level: str = "INFO"):
         prefix = {"INFO": "ℹ️", "SUCCESS": "✅", "WARN": "⚠️", "ERROR": "❌", "SKIP": "⏭️"}.get(level, "  ")
         ts = datetime.now().strftime("%H:%M:%S")
-        print(f"[{ts}] {prefix} {msg}")
+        line = f"[{ts}] {prefix} {msg}"
+        print(line)
+        self._log_lines.append(line)
+
+    def _init_log_file(self):
+        """Initialize sync log file."""
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.sync_log_dir.mkdir(parents=True, exist_ok=True)
+        self._log_file_path = self.sync_log_dir / f"Android_PENDING_{ts}.log"
+        header = [
+            "="*72,
+            f"WebServerToAndroid Sync Log  (tool v{TOOL_VERSION})",
+            f"Timestamp: {ts}",
+            f"Tools Dir: {self.tools_dir}",
+            f"WebServer : {self.ws_dir}",
+            f"AndroidSrc: {self.android_dir}",
+            f"OutputMode: {self.output_mode}",
+            "="*72,
+            ""
+        ]
+        self._log_lines.extend(header)
 
     def prompt_upgrade_level(self) -> int:
         print("\n" + "=" * 60)
@@ -425,6 +513,8 @@ class AndroidSyncer:
         print(f"  v{TOOL_VERSION}")
         print("=" * 60 + "\n")
 
+        self._init_log_file()
+
         if self.dry_run:
             self.log("DRY RUN MODE — no files will be changed", "WARN")
             print()
@@ -437,10 +527,41 @@ class AndroidSyncer:
             self.log(f"Android folder not found: {self.android_dir}", "ERROR")
             return False
 
+        # ── Output mode ──
+        if self.output_mode == "synced":
+            src_android = self.android_dir
+            synced_name = src_android.name + "_synced"
+            target_android = self.repo_root / synced_name
+            self.log(f"Preparing synced output: {target_android}")
+
+            def _ignore(dirpath, names):
+                ignore_names = {".gradle", ".idea", ".git", ".vs", ".vscode", "build"}
+                out = []
+                for n in names:
+                    if n in ignore_names:
+                        out.append(n)
+                    if n.endswith(".iml") or n == "local.properties":
+                        out.append(n)
+                # also skip app/build
+                if os.path.basename(dirpath) == "app" and "build" in names:
+                    out.append("build")
+                return out
+
+            if target_android.exists() and not self.dry_run:
+                shutil.rmtree(target_android)
+            if not self.dry_run:
+                shutil.copytree(src_android, target_android, ignore=_ignore)
+            self.android_dir = target_android
+            self.log(f"Android output folder: {self.android_dir}", "SUCCESS")
+        else:
+            self.log(f"Android output folder: {self.android_dir}", "INFO")
+
         # ── Read WebServer version ──
+        self.ws_dir = _resolve_webserver_root(self.ws_dir, logger=lambda m: self.log(m, "INFO"))
         ws_ver_path = self.ws_dir / "version.json"
         if not ws_ver_path.exists():
-            self.log("WebServer version.json not found", "ERROR")
+            self.log("WebServer version.json not found (expected at WebServer root).", "ERROR")
+            self.log(f"Looked in: {self.ws_dir}", "ERROR")
             return False
         ws_ver = json.loads(ws_ver_path.read_text(encoding="utf-8"))
         ws_version = ws_ver.get("version", "0.0.0")
@@ -572,7 +693,26 @@ class AndroidSyncer:
         print("    6. git add / commit / push")
         print()
 
+        # ── Finalize log file ──
+        try:
+            if self._log_file_path:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                final_name = f"Android_v{new_name}_b{new_code}_{ts}.log"
+                final_path = self._log_file_path.with_name(final_name)
+                # Write log contents
+                final_path.write_text("\n".join(self._log_lines) + "\n", encoding="utf-8")
+                # Remove the pending file if it exists
+                if self._log_file_path.exists() and self._log_file_path != final_path:
+                    try:
+                        self._log_file_path.unlink()
+                    except Exception:
+                        pass
+                self.log(f"Sync log: {final_path}", "SUCCESS")
+        except Exception as e:
+            self.log(f"Failed to write sync log: {e}", "WARN")
+
         return True
+
 
 
 # ── CLI Entry Point ───────────────────────────────────────────
@@ -588,6 +728,8 @@ def main():
     parser.add_argument("--dry-run", "-n", action="store_true", help="Preview without changes")
     parser.add_argument("--level", "-l", type=int, choices=[1, 2, 3],
                         help="Upgrade level: 1=patch, 2=minor, 3=major")
+    parser.add_argument("--output", choices=["synced","inplace"], default="synced",
+                        help="Where to write changes: synced writes to *_synced folder; inplace modifies the source Android folder")
 
     args = parser.parse_args()
 
@@ -608,7 +750,7 @@ def main():
     else:
         root = find_sidscri_apps_root(tools_dir)
         if root:
-            android_dir = root / "KenpoFlashcardsProject-v2"
+            android_dir = (root / "kenpoflashcardsproject-v2") if (root / "kenpoflashcardsproject-v2").is_dir() else (root / "KenpoFlashcardsProject-v2")
         else:
             android_dir = tools_dir.parent / "KenpoFlashcardsProject-v2"
 
@@ -618,6 +760,7 @@ def main():
         tools_dir=tools_dir,
         dry_run=args.dry_run,
         upgrade_level=args.level,
+        output_mode=args.output,
     )
     success = syncer.run()
     sys.exit(0 if success else 1)

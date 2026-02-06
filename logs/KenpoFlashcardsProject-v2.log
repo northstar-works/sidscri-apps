@@ -1,31 +1,31 @@
-START Tue 02/03/2026  0:56:13.75
+START Fri 02/06/2026 12:29:28.29
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2
 GRADLE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2\app\build.gradle
 SEVENZIP=C:\Program Files\7-Zip\7z.exe
-PARSED_versionCode=40
-PARSED_versionName=6.0.0
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v6.0.0 v40.zip
-FIXES_NAME=Fixes v6.0.0 v40.txt
+PARSED_versionCode=42
+PARSED_versionName=7.0.1
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v7.0.1 v42.zip
+FIXES_NAME=Fixes v7.0.1 v42.txt
 STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject
 
 ROBOCOPY_EXIT_CODE=1
 Could Not Find C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\*.iml
-Fixes file already correct: "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v6.0.0 v40.txt"
+Renaming fixes file: "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v7.0.0 v41.txt" > "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v7.0.1 v42.txt"
 Running 7z (from stage)...
 
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-35 folders, 85 files, 29621477 bytes (29 MiB)
+35 folders, 85 files, 29624743 bytes (29 MiB)
 
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v6.0.0 v40.zip
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v7.0.1 v42.zip
 
-Add new data to archive: 35 folders, 85 files, 29621477 bytes (29 MiB)
+Add new data to archive: 35 folders, 85 files, 29624743 bytes (29 MiB)
 
 
 Files read from disk: 85
-Archive size: 27391035 bytes (27 MiB)
+Archive size: 27391896 bytes (27 MiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 SUCCESS

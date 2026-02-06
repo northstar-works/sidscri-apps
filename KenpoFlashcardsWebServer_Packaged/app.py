@@ -15,6 +15,7 @@ from flask import Flask, jsonify, request, send_from_directory, session, send_fi
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import logging
+from werkzeug.exceptions import HTTPException
 # APPDATA_SAFE_PATHS_PATCH_v1
 
 # =========================================================
@@ -160,6 +161,11 @@ HELPER_PATH = os.path.join(DATA_DIR, "helper.json")
 # helper.json cache (term<->id mapping)
 _helper_cache = {}
 _helper_cache_mtime = -1.0
+
+# kenpo_words.json cards cache
+_cards_cache = []
+_cards_cache_mtime = -1.0
+
 _ID16_RE = re.compile(r"^[0-9a-f]{16}$", re.I)
 
 # Optional AI provider (server-side) for breakdown auto-fill.
@@ -755,70 +761,255 @@ def _make_session_permanent():
 # Version + request audit log
 # ----------------------------
 VERSION_FILE = os.path.join(app.root_path, "version.json")
-_VERSION_CACHE = None
-_VERSION_MTIME = 0.0
+WEBAPPSERVER_VERSION_FILE = os.path.join(app.root_path, "webappserver_version.json")
+WEBAPP_VERSION_FILE = os.path.join(app.root_path, "webapp_version.json")  # legacy fallback name
+
+
+# Cache (simple, mtime-based) so /api/version is cheap.
+_version_cache = {
+    "ts": 0.0,
+    "mtime": 0.0,
+    "v": None,
+    "web_mtime": 0.0,
+}
+
+def _read_json(path, default=None):
+    """Read a JSON file into a dict (robust against minor file issues).
+
+    - Handles UTF-8 BOM.
+    - Attempts to recover from trailing commas.
+    - If JSON parsing fails, falls back to extracting common fields with regex.
+    """
+    default = default or {}
+    try:
+        # Read as bytes so we can strip BOM reliably
+        with open(path, "rb") as f:
+            raw = f.read()
+        text = raw.decode("utf-8-sig", errors="ignore")
+        try:
+            data = json.loads(text)
+        except Exception:
+            # Try removing trailing commas like: {"a":1,}
+            text2 = re.sub(r",\s*([}\]])", r"\1", text)
+            data = json.loads(text2)
+        return data if isinstance(data, dict) else dict(default)
+    except Exception:
+        # Very loose recovery for simple version files
+        try:
+            txt = ""
+            try:
+                with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                    txt = f.read()
+            except Exception:
+                return dict(default)
+            out = dict(default)
+            for k in ["name", "version", "build", "released", "is_packaged"]:
+                m = re.search(r'"' + re.escape(k) + r'"\s*:\s*(".*?"|\d+|true|false)', txt, re.IGNORECASE | re.DOTALL)
+                if not m:
+                    continue
+                v = m.group(1).strip()
+                if v.lower() in ("true", "false"):
+                    out[k] = (v.lower() == "true")
+                elif v.startswith('"') and v.endswith('"'):
+                    out[k] = v[1:-1]
+                else:
+                    try:
+                        out[k] = int(v)
+                    except Exception:
+                        out[k] = v
+            return out
+        except Exception:
+            return dict(default)
+
+def _safe_mtime(path):
+    try:
+        return float(os.path.getmtime(path))
+    except Exception:
+        return 0.0
 
 def get_version():
-    """Load version.json with a tiny mtime-based cache."""
-    global _VERSION_CACHE, _VERSION_MTIME
-    try:
-        st = os.stat(VERSION_FILE)
-        if _VERSION_CACHE is None or st.st_mtime != _VERSION_MTIME:
-            with open(VERSION_FILE, "r", encoding="utf-8") as f:
-                _VERSION_CACHE = json.load(f)
-            _VERSION_MTIME = st.st_mtime
-    except Exception:
-        return {"name": "KenpoFlashcardsWebServer", "version": "unknown", "build": "unknown"}
-    return _VERSION_CACHE or {"name": "KenpoFlashcardsWebServer", "version": "unknown", "build": "unknown"}
+    """Return version info used by /api/version and the Admin UI.
 
-# Optional allowlist: set env var KENPO_ALLOWED_IPS="1.2.3.4,5.6.7.8"
-ALLOWED_IPS = {ip.strip() for ip in os.environ.get("KENPO_ALLOWED_IPS", "").split(",") if ip.strip()}
+    Rules:
+    - If version.json has is_packaged=true: treat version.json as the *Application* version (Packaged EXE),
+      and also try to read the embedded WebAppServer version from webappserver_version.json (preferred) or
+      webapp_version.json (legacy).
+    - Otherwise (stand-alone WebAppServer): treat version.json as the WebAppServer version only.
+    """
+    def _pick_existing(paths):
+        for p in paths:
+            try:
+                if p and os.path.exists(p):
+                    return p
+            except Exception:
+                continue
+        return ""
 
-@app.before_request
-def _access_log_and_optional_allowlist():
-    ip = (request.headers.get("X-Forwarded-For") or request.remote_addr or "").split(",")[0].strip()
-    ua = (request.headers.get("User-Agent") or "").strip()
-    uid = session.get("user_id")
-    uname = (_get_user(uid) or {}).get("username") if uid else "-"
-    if ALLOWED_IPS and ip not in ALLOWED_IPS:
-        print(f"[BLOCK] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
-        logger.warning(f"[BLOCK] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
-        return ("Forbidden", 403)
-    print(f"[REQ] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
-    logger.info(f"[REQ] ip={ip} user={uname} {request.method} {request.path} ua={ua[:120]}")
+    # Some launches run from different working dirs; try a few candidates.
+    version_path = _pick_existing([
+        VERSION_FILE,
+        os.path.join(os.getcwd(), "version.json"),
+    ])
+    web_path = _pick_existing([
+        WEBAPPSERVER_VERSION_FILE,
+        WEBAPP_VERSION_FILE,
+        os.path.join(os.getcwd(), "webappserver_version.json"),
+        os.path.join(os.getcwd(), "webapp_version.json"),
+    ])
 
-    # If an admin has forced a password reset, require the user to change password before continuing.
-    # Allow only the login/logout/version/whoami endpoints and the password change endpoint.
-    if uid:
-        u = _get_user(uid) or {}
-        if u.get("password_reset_required") and request.path.startswith("/api/"):
-            allowed = {"/api/login", "/api/logout", "/api/version", "/api/whoami", "/api/me", "/api/user/change_password"}
-            if request.path not in allowed:
-                return jsonify({"error": "password_reset_required"}), 403
+    now = time.time()
+    v_mtime = _safe_mtime(version_path) if version_path else 0.0
+    web_mtime = _safe_mtime(web_path) if web_path else 0.0
 
-_cards_cache: List[Dict[str, Any]] = []
-_cards_cache_mtime: float = -1.0
+    # Refresh cache at most once per second, or when either file changes
+    if (
+        _version_cache.get("v") is not None
+        and (now - _version_cache.get("ts", 0.0)) < 1.0
+        and _version_cache.get("mtime", 0.0) == v_mtime
+        and _version_cache.get("web_mtime", 0.0) == web_mtime
+    ):
+        return dict(_version_cache["v"])
 
+    base = _read_json(version_path, default={}) if version_path else {}
+    is_packaged = bool(base.get("is_packaged", False))
 
-def _now() -> str:
-    return time.strftime("%Y-%m-%d %H:%M:%S")
+    def _norm_release(d):
+        return str(d.get("released") or d.get("release_date") or d.get("date") or "").strip()
 
+    def _s(x, fallback=""):
+        """Safe string conversion that treats None/''/'none' as missing."""
+        try:
+            if x is None:
+                return fallback
+            s = str(x).strip()
+            if s == "" or s.lower() == "none":
+                return fallback
+            return s
+        except Exception:
+            return fallback
 
-def _stable_id(group: str, subgroup: str, term: str, meaning: str, pron: str) -> str:
-    base = f"{group}||{subgroup}||{term}||{meaning}||{pron}".encode("utf-8")
-    return hashlib.sha1(base).hexdigest()[:16]
+    def _fmt(ver, build):
+        ver_s = _s(ver, "unknown") or "unknown"
+        b_s = _s(build, "")
+        return f"{ver_s} (build {b_s})" if b_s else ver_s
 
+    if is_packaged:
+        # App (EXE) version from version.json
+        app_name = _s(base.get("name") or base.get("application") or "Packaged EXE", "Packaged EXE")
+        app_version = _s(base.get("version"), "unknown") or "unknown"
+        app_build = _s(base.get("build"), "")
+        app_released = _norm_release(base) or "-"
 
-def _load_json_file(path: str) -> Any:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        # WebAppServer (embedded) version from webappserver_version.json or legacy webapp_version.json
+        web = _read_json(web_path, default={}) if web_path else {}
+        web_name = _s(web.get("name") or "WebAppServer", "WebAppServer")
+        web_version = _s(web.get("version"), "unknown") or "unknown"
+        web_build = _s(web.get("build"), "")
+        web_released = _norm_release(web) or "-"
+        # Packaged builds may embed the originating WebAppServer version in version.json
+        # (fields: webserver_version/webserver_build) instead of a separate webappserver_version.json.
+        if (not web_path) or (web_version in ("unknown", "") or web_version.lower() == "unknown"):
+            ws_v = _s(base.get("webserver_version") or base.get("web_version") or base.get("web_ver"), "")
+            ws_b = _s(base.get("webserver_build") or base.get("web_build") or base.get("webBuild"), "")
+            if ws_v:
+                web_version = ws_v
+            if ws_b:
+                web_build = ws_b
+        # If we still don't have a web release date, use last_sync date (YYYY-MM-DD) when available.
+        if (not web_released) or web_released == "-":
+            ls = _s(base.get("last_sync") or base.get("synced") or base.get("sync_date"), "")
+            if ls and len(ls) >= 10:
+                web_released = ls[:10]
 
+        v = {
+            "is_packaged": True,
+            "mode": "packaged",
+
+            # App (EXE) fields
+            "app_name": app_name,
+            "app_version": app_version,
+            "app_build": app_build,
+            "app_released": app_released,
+
+            # WebAppServer fields
+            "web_name": web_name,
+            "web_version": web_version,
+            "web_build": web_build,
+            "web_released": web_released,
+
+            # Backward compat
+            "name": app_name,
+            "version": app_version,
+            "build": app_build,
+            "released": app_released,
+
+            # UI helpers
+            "display_name": app_name,
+            "display_version": f"App: {_fmt(app_version, app_build)}<br>Web: {_fmt(web_version, web_build)}",
+            "display_released": web_released,
+        }
+    else:
+        # Stand-alone WebAppServer: version.json is the web server version
+        web_name = _s(base.get("name") or "WebAppServer", "WebAppServer")
+        web_version = _s(base.get("version"), "unknown") or "unknown"
+        web_build = _s(base.get("build"), "")
+        web_released = _norm_release(base) or "-"
+
+        v = {
+            "is_packaged": False,
+            "mode": "webappserver",
+
+            # WebAppServer fields
+            "web_name": web_name,
+            "web_version": web_version,
+            "web_build": web_build,
+            "web_released": web_released,
+
+            # Backward compat
+            "name": web_name,
+            "version": web_version,
+            "build": web_build,
+            "released": web_released,
+
+            # UI helpers
+            "display_name": web_name,
+            "display_version": _fmt(web_version, web_build),
+            "display_released": web_released,
+        }
+
+    _version_cache["ts"] = now
+    _version_cache["mtime"] = v_mtime
+    _version_cache["web_mtime"] = web_mtime
+    _version_cache["v"] = dict(v)
+    return dict(v)
 
 def _get_first(d: Dict[str, Any], keys: List[str]) -> Any:
     for k in keys:
         if k in d and d[k] is not None:
             return d[k]
     return None
+
+
+def _now() -> str:
+    """Local timestamp string used in JSON log records."""
+    return time.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _stable_id(group: str, subgroup: str, term: str, meaning: str, pron: str) -> str:
+    """Deterministic short id for cards to keep references stable across runs."""
+    base = f"{group}||{subgroup}||{term}||{meaning}||{pron}".encode("utf-8")
+    return hashlib.sha1(base).hexdigest()[:16]
+
+
+def _load_json_file(path: str) -> Any:
+    """Load JSON from disk. Returns {} on any error (missing/invalid)."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
 
 
 def _normalize_cards(raw: Any) -> List[Dict[str, Any]]:
@@ -1222,6 +1413,51 @@ def save_progress(user_id: str, p: Dict[str, Any]) -> None:
         json.dump(p, f, ensure_ascii=False, indent=2)
 
 
+
+# ------------------------------------------------------------
+# Edited cards history (for Edit Decks > Deleted tab)
+# Stored per-user in progress JSON under "__edit_history__"
+# ------------------------------------------------------------
+def _append_edit_history(uid: str, before: Dict[str, Any], after: Dict[str, Any], action: str = "edit") -> None:
+    try:
+        progress = load_progress(uid)
+        hist = progress.get("__edit_history__", [])
+        if not isinstance(hist, list):
+            hist = []
+        entry = {
+            "ts": int(time.time()),
+            "card_id": str(after.get("id") or before.get("id") or ""),
+            "deck_id": str(after.get("deckId") or before.get("deckId") or ""),
+            "action": action,
+            "term_before": before.get("term", ""),
+            "meaning_before": before.get("meaning", ""),
+            "pron_before": before.get("pron", ""),
+            "group_before": before.get("group", ""),
+            "term_after": after.get("term", ""),
+            "meaning_after": after.get("meaning", ""),
+            "pron_after": after.get("pron", ""),
+            "group_after": after.get("group", ""),
+        }
+        # Only log if something changed
+        if (
+            entry["term_before"] == entry["term_after"]
+            and entry["meaning_before"] == entry["meaning_after"]
+            and entry["pron_before"] == entry["pron_after"]
+            and entry["group_before"] == entry["group_after"]
+        ):
+            return
+
+        hist.append(entry)
+        # Keep last 300 edits
+        if len(hist) > 300:
+            hist = hist[-300:]
+        progress["__edit_history__"] = hist
+        save_progress(uid, progress)
+    except Exception:
+        # Never block card updates due to history issues
+        return
+
+
 def card_status(progress: Dict[str, Any], card_id: str) -> str:
     entry = progress.get(card_id)
     if isinstance(entry, dict):
@@ -1364,6 +1600,158 @@ def api_logout():
     if username:
         log_activity("info", f"User logged out: {username}", username)
     return jsonify({"ok": True})
+
+
+@app.get("/api/edit_history")
+def api_edit_history():
+    uid, _ = require_user()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+    progress = load_progress(uid)
+    hist = progress.get("__edit_history__", [])
+    if not isinstance(hist, list):
+        hist = []
+    return jsonify(hist)
+
+
+@app.post("/api/edit_history/clear")
+def api_edit_history_clear():
+    uid, _ = require_user()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+    progress = load_progress(uid)
+    progress["__edit_history__"] = []
+    save_progress(uid, progress)
+    return jsonify({"ok": True})
+
+@app.post("/api/edit_history/restore")
+def api_edit_history_restore():
+    """Restore a card back to the 'before' values from an edit-history entry."""
+    uid, _ = require_user()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+
+    data = request.get_json(force=True) or {}
+    try:
+        ts = int(data.get("ts") or 0)
+    except Exception:
+        ts = 0
+    card_id = str(data.get("card_id") or "").strip()
+    if not ts or not card_id:
+        return jsonify({"error": "ts and card_id required"}), 400
+
+    progress = load_progress(uid)
+    hist = progress.get("__edit_history__", [])
+    if not isinstance(hist, list):
+        hist = []
+
+    entry = None
+    for it in hist:
+        try:
+            if str(it.get("card_id")) == card_id and int(it.get("ts") or 0) == ts:
+                entry = it
+                break
+        except Exception:
+            continue
+
+    if not entry:
+        return jsonify({"error": "history_entry_not_found"}), 404
+
+    # Restore editable card fields
+    storage, current_deck_id, cards, idx = _find_editable_card(uid, card_id)
+    if storage is None or idx < 0:
+        return jsonify({"error": "Card not found"}), 404
+
+    before = {
+        "id": card_id,
+        "deckId": entry.get("deck_id") or current_deck_id,
+        "term": entry.get("term_before", ""),
+        "meaning": entry.get("meaning_before", ""),
+        "pron": entry.get("pron_before", ""),
+        "group": entry.get("group_before", ""),
+    }
+    after = dict(cards[idx])
+    cards[idx]["term"] = str(before.get("term") or "").strip()
+    cards[idx]["meaning"] = str(before.get("meaning") or "").strip()
+    cards[idx]["pron"] = str(before.get("pron") or "").strip()
+    cards[idx]["group"] = str(before.get("group") or "").strip()
+    cards[idx]["updatedAt"] = int(time.time())
+
+    # Persist to correct storage
+    if storage == "user":
+        _save_user_cards(uid, cards)
+    elif storage == "deck":
+        _save_deck_cards(current_deck_id, cards)
+
+
+    # Log restore into edit history (so user can see it happened)
+    try:
+        _append_edit_history(uid, after, dict(cards[idx]), action="restore")
+    except Exception:
+        pass
+
+    return jsonify({"ok": True})
+
+
+
+@app.post("/api/deleted/clear_all")
+def api_deleted_clear_all():
+    """Clear all deleted cards for the active deck.
+    - For user-created cards in a user/owned deck, this permanently removes the card from storage.
+    - For built-in cards, it clears the deleted status (so they are no longer in Deleted).
+    """
+    uid, _ = require_user()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+
+    progress = load_progress(uid)
+    settings = progress.get("__settings__", _default_settings())
+    active_deck_id = _get_active_deck_id(settings, "kenpo")
+
+    # Cards in active deck
+    all_cards = _load_cards_for_deck(uid, active_deck_id)
+    card_map = {str(c.get("id")): c for c in all_cards if c.get("id") is not None}
+
+    deleted_ids = [cid for cid in card_map.keys() if card_status(progress, cid) == "deleted"]
+    if not deleted_ids:
+        return jsonify({"ok": True, "cleared": 0})
+
+    # 1) Permanently remove deleted cards from storage if this is a user-owned deck.
+    removed_storage = 0
+    try:
+        if active_deck_id == "kenpo":
+            # Personal kenpo user-cards live in user_cards.json
+            ucards = _load_user_cards(uid)
+            before_len = len(ucards)
+            ucards = [c for c in ucards if str(c.get("id")) not in deleted_ids]
+            if len(ucards) != before_len:
+                removed_storage += (before_len - len(ucards))
+                _save_user_cards(uid, ucards)
+        else:
+            # Deck-scoped cards
+            try:
+                dcards = _load_deck_cards(active_deck_id)
+                before_len = len(dcards)
+                dcards = [c for c in dcards if str(c.get("id")) not in deleted_ids]
+                if len(dcards) != before_len:
+                    removed_storage += (before_len - len(dcards))
+                    _save_deck_cards(active_deck_id, dcards)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # 2) Clear deleted status flags so they no longer appear in Deleted (built-ins and any remaining)
+    for cid in deleted_ids:
+        if cid in progress:
+            progress.pop(cid, None)
+
+    save_progress(uid, progress)
+    return jsonify({"ok": True, "cleared": len(deleted_ids), "removed": removed_storage})
+
+
+
+
 
 
 @app.post("/api/user/change_password")
@@ -1757,167 +2145,389 @@ def api_counts():
 
 # ============ CUSTOM SET API ============
 
+def _settings_all_view(settings_obj: Any) -> Dict[str, Any]:
+    """Return the 'all' settings dict from either new schema (settings['all']) or legacy flat schema."""
+    if isinstance(settings_obj, dict) and isinstance(settings_obj.get("all"), dict):
+        return settings_obj.get("all") or {}
+    return settings_obj if isinstance(settings_obj, dict) else {}
+
+
+def _ensure_custom_sets_deck_scoped(uid: str, progress: Dict[str, Any], settings_obj: Any) -> bool:
+    """Migrate legacy global custom_set/custom_set_status into deck-scoped structures.
+
+    New keys live inside settings['all'] (or legacy root):
+      - custom_sets: { deck_id: [card_id, ...] }
+      - custom_set_statuses: { deck_id: {card_id: status} }
+
+    Returns True if a migration occurred.
+    """
+    try:
+        # Normalize settings object to newest schema for storage.
+        settings_obj = _migrate_settings(settings_obj or _default_settings())
+        settings_all = _settings_all_view(settings_obj)
+
+        if isinstance(settings_all.get("custom_sets"), dict) and isinstance(settings_all.get("custom_set_statuses"), dict):
+            progress["__settings__"] = settings_obj
+            return False
+
+        legacy_ids = settings_all.get("custom_set") or []
+        legacy_status = settings_all.get("custom_set_status") or {}
+        if not legacy_ids and not legacy_status:
+            # Ensure keys exist so future code doesn't fall back to legacy/global behavior.
+            settings_all.setdefault("custom_sets", {})
+            settings_all.setdefault("custom_set_statuses", {})
+            progress["__settings__"] = settings_obj
+            return True
+
+        # Build a card-id -> deck-id map across accessible decks to bucketize correctly.
+        id_to_deck: Dict[str, str] = {}
+
+        # Kenpo built-in + kenpo user cards
+        try:
+            cards, status = load_cards_cached()
+            if status == "ok":
+                for c in cards:
+                    cid = str(c.get("id", ""))
+                    if cid:
+                        id_to_deck[cid] = "kenpo"
+        except Exception:
+            pass
+
+        try:
+            _migrate_user_deck_cards(uid)
+            user_cards = _load_user_cards(uid) or []
+            for c in user_cards:
+                cid = str(c.get("id", ""))
+                if not cid:
+                    continue
+                deck_id = str(c.get("deckId", "kenpo") or "kenpo")
+                id_to_deck.setdefault(cid, deck_id)
+        except Exception:
+            pass
+
+        # Deck-owned cards (shared/owned)
+        try:
+            decks = _load_decks(user_id=uid) or []
+            for d in decks:
+                did = d.get("id")
+                if not did:
+                    continue
+                if did == "kenpo":
+                    continue
+                # Only include decks user can access.
+                if not _user_can_access_deck(uid, did):
+                    continue
+                try:
+                    deck_cards = _load_deck_cards(did) or []
+                    for c in deck_cards:
+                        cid = str(c.get("id", ""))
+                        if cid:
+                            id_to_deck.setdefault(cid, did)
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+        fallback_deck = _get_active_deck_id(settings_obj, "kenpo")
+        custom_sets: Dict[str, List[str]] = {}
+        custom_statuses: Dict[str, Dict[str, str]] = {}
+
+        for raw_id in legacy_ids:
+            cid = str(raw_id)
+            if not cid:
+                continue
+            did = id_to_deck.get(cid) or fallback_deck
+            custom_sets.setdefault(did, []).append(cid)
+
+        for raw_id, st in (legacy_status or {}).items():
+            cid = str(raw_id)
+            if not cid:
+                continue
+            did = id_to_deck.get(cid) or fallback_deck
+            custom_statuses.setdefault(did, {})[cid] = str(st)
+
+        settings_all["custom_sets"] = custom_sets
+        settings_all["custom_set_statuses"] = custom_statuses
+
+        progress["__settings__"] = settings_obj
+        save_progress(uid, progress)
+        return True
+    except Exception:
+        return False
+
+
+def _load_cards_for_deck(uid: str, deck_id: str) -> List[Dict[str, Any]]:
+    """Return all cards for a specific deck, respecting access rules."""
+    deck_id = str(deck_id or "kenpo")
+    if deck_id == "kenpo":
+        cards, status = load_cards_cached()
+        if status != "ok":
+            return []
+        all_cards = list(cards)
+        _migrate_user_deck_cards(uid)
+        user_cards = _load_user_cards(uid) or []
+        kenpo_user_cards = [c for c in user_cards if str(c.get("deckId", "kenpo") or "kenpo") == "kenpo"]
+        return all_cards + kenpo_user_cards
+
+    _migrate_user_deck_cards(uid)
+    if not _user_can_access_deck(uid, deck_id):
+        return []
+
+    deck = _get_deck_by_id(deck_id)
+    owner_id = _deck_owner_id(deck)
+    if not owner_id:
+        # Legacy deck: cards were still per-user
+        user_cards = _load_user_cards(uid) or []
+        return [c for c in user_cards if c.get("deckId") == deck_id]
+
+    return _load_deck_cards(deck_id) or []
+
+
 @app.get("/api/custom_set")
 def api_custom_set_get():
-    """Get custom set cards with their status."""
+    """Get custom set cards + their custom-set status for the active deck."""
     uid, _ = require_user()
     if not uid:
         return jsonify({"error": "login_required"}), 401
-    
-    cards, status = load_cards_cached()
-    if status != "ok":
-        return jsonify({"error": status}), 500
-    
+
+    deck_id = (request.args.get("deck_id") or "").strip()
+
     progress = load_progress(uid)
-    settings = progress.get("__settings__", _default_settings())
-    custom_set_ids = settings.get("custom_set", [])
-    custom_set_status = settings.get("custom_set_status", {})
-    
-    # Build card lookup
-    cards_by_id = {c["id"]: c for c in cards}
-    
-    out = []
-    for cid in custom_set_ids:
-        card = cards_by_id.get(cid)
-        if card:
-            cc = dict(card)
-            cc["custom_status"] = custom_set_status.get(cid, "active")
-            cc["main_status"] = card_status(progress, cid)
-            out.append(cc)
-    
+    settings_obj = progress.get("__settings__", _default_settings())
+    settings_obj = _migrate_settings(settings_obj)
+    settings_all = _settings_all_view(settings_obj)
+
+    active_deck_id = deck_id or _get_active_deck_id(settings_obj, "kenpo")
+
+    # One-time migration from legacy global list → deck scoped maps
+    _ensure_custom_sets_deck_scoped(uid, progress, settings_obj)
+
+    # Re-load after migration
+    progress = load_progress(uid)
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+
+    custom_sets = settings_all.get("custom_sets") or {}
+    custom_statuses = settings_all.get("custom_set_statuses") or {}
+
+    deck_custom_ids = [str(x) for x in (custom_sets.get(active_deck_id) or [])]
+    deck_status_map = custom_statuses.get(active_deck_id) or {}
+
+    all_cards = _load_cards_for_deck(uid, active_deck_id)
+    card_map = {str(c.get("id")): c for c in all_cards if c.get("id") is not None}
+
+    out_cards: List[Dict[str, Any]] = []
+    for cid in deck_custom_ids:
+        c = card_map.get(str(cid))
+        if not c:
+            continue
+        cc = dict(c)
+        cc["custom_status"] = str(deck_status_map.get(cid, "active"))
+        cc["main_status"] = card_status(progress, cid)
+        out_cards.append(cc)
+
+    # Build counts breakdown from custom_status values
+    cs_active = sum(1 for c in out_cards if c.get("custom_status") == "active")
+    cs_unsure = sum(1 for c in out_cards if c.get("custom_status") == "unsure")
+    cs_learned = sum(1 for c in out_cards if c.get("custom_status") == "learned")
+
     return jsonify({
-        "cards": out,
+        "deck_id": active_deck_id,
+        "count": len(out_cards),
+        "cards": out_cards,
         "counts": {
-            "total": len(out),
-            "active": sum(1 for c in out if c.get("custom_status") == "active"),
-            "unsure": sum(1 for c in out if c.get("custom_status") == "unsure"),
-            "learned": sum(1 for c in out if c.get("custom_status") == "learned"),
-        }
+            "total": len(out_cards),
+            "active": cs_active,
+            "unsure": cs_unsure,
+            "learned": cs_learned,
+        },
     })
 
 
 @app.post("/api/custom_set/add")
 def api_custom_set_add():
-    """Add a card to custom set."""
     uid, _ = require_user()
     if not uid:
         return jsonify({"error": "login_required"}), 401
-    
+
     data = request.get_json(force=True) or {}
-    cid = data.get("id")
+    cid = str(data.get("id") or "").strip()
+    deck_id = str((data.get("deck_id") or request.args.get("deck_id") or "").strip())
+
     if not cid:
         return jsonify({"error": "id required"}), 400
-    
+
     progress = load_progress(uid)
-    settings = progress.setdefault("__settings__", _default_settings())
-    custom_set = settings.setdefault("custom_set", [])
-    
-    if cid not in custom_set:
-        custom_set.append(cid)
-        save_progress(uid, progress)
-    
-    return jsonify({"ok": True, "in_custom_set": True})
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+
+    active_deck_id = deck_id or _get_active_deck_id(settings_obj, "kenpo")
+
+    _ensure_custom_sets_deck_scoped(uid, progress, settings_obj)
+    progress = load_progress(uid)
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+
+    settings_all.setdefault("custom_sets", {})
+    settings_all.setdefault("custom_set_statuses", {})
+
+    deck_list = settings_all["custom_sets"].setdefault(active_deck_id, [])
+    if cid not in deck_list:
+        deck_list.append(cid)
+
+    # default status
+    settings_all["custom_set_statuses"].setdefault(active_deck_id, {})
+    settings_all["custom_set_statuses"][active_deck_id].setdefault(cid, "active")
+
+    progress["__settings__"] = settings_obj
+    save_progress(uid, progress)
+    return jsonify({"ok": True})
 
 
 @app.post("/api/custom_set/remove")
 def api_custom_set_remove():
-    """Remove a card from custom set."""
     uid, _ = require_user()
     if not uid:
         return jsonify({"error": "login_required"}), 401
-    
+
     data = request.get_json(force=True) or {}
-    cid = data.get("id")
+    cid = str(data.get("id") or "").strip()
+    deck_id = str((data.get("deck_id") or request.args.get("deck_id") or "").strip())
     if not cid:
         return jsonify({"error": "id required"}), 400
-    
+
     progress = load_progress(uid)
-    settings = progress.setdefault("__settings__", _default_settings())
-    custom_set = settings.setdefault("custom_set", [])
-    custom_set_status = settings.setdefault("custom_set_status", {})
-    
-    if cid in custom_set:
-        custom_set.remove(cid)
-        custom_set_status.pop(cid, None)
-        save_progress(uid, progress)
-    
-    return jsonify({"ok": True, "in_custom_set": False})
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+    active_deck_id = deck_id or _get_active_deck_id(settings_obj, "kenpo")
+
+    _ensure_custom_sets_deck_scoped(uid, progress, settings_obj)
+    progress = load_progress(uid)
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+
+    custom_sets = settings_all.get("custom_sets") or {}
+    deck_list = custom_sets.get(active_deck_id) or []
+
+    if cid in deck_list:
+        deck_list = [x for x in deck_list if str(x) != cid]
+        custom_sets[active_deck_id] = deck_list
+        settings_all["custom_sets"] = custom_sets
+
+    custom_statuses = settings_all.get("custom_set_statuses") or {}
+    if active_deck_id in custom_statuses and cid in (custom_statuses.get(active_deck_id) or {}):
+        custom_statuses[active_deck_id].pop(cid, None)
+        settings_all["custom_set_statuses"] = custom_statuses
+
+    progress["__settings__"] = settings_obj
+    save_progress(uid, progress)
+    return jsonify({"ok": True})
 
 
 @app.post("/api/custom_set/toggle")
 def api_custom_set_toggle():
-    """Toggle a card in/out of custom set."""
     uid, _ = require_user()
     if not uid:
         return jsonify({"error": "login_required"}), 401
-    
+
     data = request.get_json(force=True) or {}
-    cid = data.get("id")
+    cid = str(data.get("id") or "").strip()
+    deck_id = str((data.get("deck_id") or request.args.get("deck_id") or "").strip())
     if not cid:
         return jsonify({"error": "id required"}), 400
-    
+
     progress = load_progress(uid)
-    settings = progress.setdefault("__settings__", _default_settings())
-    custom_set = settings.setdefault("custom_set", [])
-    custom_set_status = settings.setdefault("custom_set_status", {})
-    
-    if cid in custom_set:
-        custom_set.remove(cid)
-        custom_set_status.pop(cid, None)
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+    active_deck_id = deck_id or _get_active_deck_id(settings_obj, "kenpo")
+
+    _ensure_custom_sets_deck_scoped(uid, progress, settings_obj)
+    progress = load_progress(uid)
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+
+    settings_all.setdefault("custom_sets", {})
+    settings_all.setdefault("custom_set_statuses", {})
+
+    deck_list = settings_all["custom_sets"].setdefault(active_deck_id, [])
+
+    if cid in deck_list:
+        deck_list[:] = [x for x in deck_list if str(x) != cid]
+        settings_all["custom_set_statuses"].setdefault(active_deck_id, {})
+        settings_all["custom_set_statuses"][active_deck_id].pop(cid, None)
         in_set = False
     else:
-        custom_set.append(cid)
+        deck_list.append(cid)
+        settings_all["custom_set_statuses"].setdefault(active_deck_id, {})
+        settings_all["custom_set_statuses"][active_deck_id].setdefault(cid, "active")
         in_set = True
-    
+
+    progress["__settings__"] = settings_obj
     save_progress(uid, progress)
     return jsonify({"ok": True, "in_custom_set": in_set})
 
 
 @app.post("/api/custom_set/set_status")
 def api_custom_set_set_status():
-    """Set custom set internal status for a card."""
     uid, _ = require_user()
     if not uid:
         return jsonify({"error": "login_required"}), 401
-    
+
     data = request.get_json(force=True) or {}
-    cid = data.get("id")
-    status = data.get("status")
-    reflect_main = data.get("reflect_main", False)
-    
+    cid = str(data.get("id") or "").strip()
+    status = str(data.get("status") or "").strip()
+    deck_id = str((data.get("deck_id") or request.args.get("deck_id") or "").strip())
+
     if not cid or status not in ("active", "unsure", "learned"):
-        return jsonify({"error": "id and valid status required"}), 400
-    
+        return jsonify({"error": "id and status required"}), 400
+
     progress = load_progress(uid)
-    settings = progress.setdefault("__settings__", _default_settings())
-    custom_set_status = settings.setdefault("custom_set_status", {})
-    
-    custom_set_status[cid] = status
-    
-    # Optionally reflect status change in main deck
-    if reflect_main:
-        set_card_status(progress, cid, status)
-    
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    active_deck_id = deck_id or _get_active_deck_id(settings_obj, "kenpo")
+
+    _ensure_custom_sets_deck_scoped(uid, progress, settings_obj)
+    progress = load_progress(uid)
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+
+    settings_all.setdefault("custom_set_statuses", {})
+    settings_all["custom_set_statuses"].setdefault(active_deck_id, {})
+    settings_all["custom_set_statuses"][active_deck_id][cid] = status
+
+    progress["__settings__"] = settings_obj
     save_progress(uid, progress)
     return jsonify({"ok": True})
 
 
 @app.post("/api/custom_set/clear")
 def api_custom_set_clear():
-    """Clear entire custom set."""
     uid, _ = require_user()
     if not uid:
         return jsonify({"error": "login_required"}), 401
-    
+
+    data = request.get_json(force=True) or {}
+    deck_id = str((data.get("deck_id") or request.args.get("deck_id") or "").strip())
+
     progress = load_progress(uid)
-    settings = progress.setdefault("__settings__", _default_settings())
-    settings["custom_set"] = []
-    settings["custom_set_status"] = {}
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    active_deck_id = deck_id or _get_active_deck_id(settings_obj, "kenpo")
+
+    _ensure_custom_sets_deck_scoped(uid, progress, settings_obj)
+    progress = load_progress(uid)
+    settings_obj = _migrate_settings(progress.get("__settings__", _default_settings()))
+    settings_all = _settings_all_view(settings_obj)
+
+    custom_sets = settings_all.get("custom_sets") or {}
+    custom_sets[active_deck_id] = []
+    settings_all["custom_sets"] = custom_sets
+
+    custom_statuses = settings_all.get("custom_set_statuses") or {}
+    custom_statuses[active_deck_id] = {}
+    settings_all["custom_set_statuses"] = custom_statuses
+
+    progress["__settings__"] = settings_obj
     save_progress(uid, progress)
-    
     return jsonify({"ok": True})
-
-
 # ============ ADMIN STATS API ============
 
 @app.get("/api/admin/stats")
@@ -2100,17 +2710,32 @@ MAX_LOG_ENTRIES = 500
 # ---- File-based logging ----
 def _ensure_log_dir():
     os.makedirs(LOG_DIR, exist_ok=True)
-
 def _rotate_log_file(fpath):
-    """Rename current log to .prev (keeps 1 previous)."""
+    """Rotate current log to .prev (keeps 1 previous).
+
+    Windows can fail renaming if another process has the file open (WinError 32).
+    In that case we fall back to copy-then-truncate so the server can still start.
+    """
     if os.path.exists(fpath) and os.path.getsize(fpath) > 0:
         prev = fpath + ".prev"
         try:
             if os.path.exists(prev):
                 os.remove(prev)
-            os.rename(fpath, prev)
+            os.replace(fpath, prev)
         except Exception as e:
-            print(f"[LOG] rotate failed {fpath}: {e}")
+            try:
+                import shutil
+                if os.path.exists(prev):
+                    os.remove(prev)
+                shutil.copy2(fpath, prev)
+                # Best-effort truncate original
+                try:
+                    with open(fpath, "w", encoding="utf-8"):
+                        pass
+                except Exception:
+                    pass
+            except Exception as e2:
+                print(f"[LOG] rotate failed {fpath}: {e2} (original: {e})")
 
 def _init_log_files():
     """On server start: rotate server/error logs; keep user_activity continuous."""
@@ -2864,8 +3489,20 @@ def api_cards():
         else:
             all_cards = _load_deck_cards(active_deck_id)
     
-    # Get custom set IDs for this user
-    custom_set_ids = set(settings.get("custom_set", []))
+    # Get custom set IDs for this user (active deck only)
+    try:
+        _ensure_custom_sets_deck_scoped(uid, progress, settings)
+    except Exception:
+        pass
+    try:
+        settings_obj = _migrate_settings(progress.get("__settings__", settings))
+        settings_all = _settings_all_view(settings_obj)
+        custom_sets = settings_all.get("custom_sets") or {}
+        legacy_list = settings_all.get("custom_set") or []
+        deck_list = custom_sets.get(active_deck_id) or legacy_list
+        custom_set_ids = set(str(x) for x in (deck_list or []))
+    except Exception:
+        custom_set_ids = set()
     
     out: List[Dict[str, Any]] = []
     for c in all_cards:
@@ -2883,7 +3520,7 @@ def api_cards():
 
         cc = dict(c)
         cc["status"] = s
-        cc["in_custom_set"] = c["id"] in custom_set_ids
+        cc["in_custom_set"] = str(c["id"]) in custom_set_ids
         out.append(cc)
 
     return jsonify(out)
@@ -4489,6 +5126,10 @@ def api_update_deck_settings(deck_id: str):
             existing = d.get("settings", {})
             if "shortAnswers" in data:
                 existing["shortAnswers"] = bool(data["shortAnswers"])
+            if "aiShowFormatHelpers" in data:
+                existing["aiShowFormatHelpers"] = bool(data["aiShowFormatHelpers"])
+            if "aiShowPreExample" in data:
+                existing["aiShowPreExample"] = bool(data["aiShowPreExample"])
             d["settings"] = existing
             break
 
@@ -4898,6 +5539,7 @@ def api_update_user_card(card_id: str):
     if storage is None or idx < 0:
         return jsonify({"error": "Card not found"}), 404
 
+    before_card = dict(cards[idx])
     card = dict(cards[idx])
     target_deck_id = str(data.get("deckId", current_deck_id) or current_deck_id).strip() or "kenpo"
 
@@ -4943,6 +5585,7 @@ def api_update_user_card(card_id: str):
                 new_store.append(card)
                 _save_deck_cards(target_deck_id, new_store)
 
+        _append_edit_history(uid, before_card, card, action="edit")
         return jsonify(card)
 
     # Same deck: update in place
@@ -4952,6 +5595,7 @@ def api_update_user_card(card_id: str):
     else:
         _save_deck_cards(current_deck_id, cards)
 
+    _append_edit_history(uid, before_card, card, action="edit")
     return jsonify(card)
 
 
@@ -5027,6 +5671,293 @@ Do NOT include explanations or full sentences."""
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+
+# ---------------------------
+# Bulk AI template for Edit Cards (selected cards)
+# ---------------------------
+
+def _ai_template_prompt(field_label: str, instruction: str, cards: List[Dict[str, Any]]) -> str:
+    # Provide a strict JSON object schema so we can parse with _extract_json_object
+    # Return ONLY a JSON object with {"items":[{"id":"...","value":"..."}]}
+    cards_payload = []
+    for c in cards:
+        cards_payload.append({
+            "id": str(c.get("id") or ""),
+            "term": str(c.get("term") or ""),
+            "meaning": str(c.get("meaning") or ""),
+            "pron": str(c.get("pron") or ""),
+            "group": str(c.get("group") or "")
+        })
+
+    return (
+        "You are editing flashcards in bulk.\n"
+        f"Task: Update ONLY the '{field_label}' field using the user's instruction.\n"
+        "Rules:\n"
+        "1) Only change the requested field; keep other fields exactly as-is.\n"
+        "2) Return ONLY valid JSON (no markdown, no code fences, no extra text).\n"
+        "3) Output schema: {\"items\":[{\"id\":\"...\",\"value\":\"...\"}, ...]}\n"
+        "4) 'value' must be a plain string.\n\n"
+        f"User instruction:\n{instruction}\n\n"
+        "Cards (JSON):\n"
+        + json.dumps(cards_payload, ensure_ascii=False)
+    )
+
+
+@app.post("/api/ai_template/preview")
+def api_ai_template_preview():
+    uid, _ = require_user()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+
+    data = request.get_json(force=True) or {}
+    ids = data.get("ids") or []
+    instruction = (data.get("instruction") or "").strip()
+
+    # Support either legacy "field" (string) or new "fields" (list)
+    raw_fields = data.get("fields")
+    field = (data.get("field") or "meaning").strip().lower()
+    if isinstance(raw_fields, list):
+        fields = [str(x).strip().lower() for x in raw_fields if str(x).strip()]
+    else:
+        fields = [field]
+
+    # de-dupe while preserving order
+    seen = set()
+    fields = [f for f in fields if not (f in seen or seen.add(f))]
+
+    if not isinstance(ids, list) or not ids:
+        return jsonify({"error": "no_ids"}), 400
+    if not instruction:
+        return jsonify({"error": "no_instruction"}), 400
+
+    field_map = {
+        "term": ("term", "Term"),
+        "meaning": ("meaning", "Definition"),
+        "pron": ("pron", "Pronunciation"),
+        "group": ("group", "Group"),
+    }
+    for f in fields:
+        if f not in field_map:
+            return jsonify({"error": "bad_field"}), 400
+
+    if not OPENAI_API_KEY:
+        return jsonify({"error": "openai_not_configured"}), 400
+
+    try:
+        _migrate_user_deck_cards(uid)
+
+        # Build an index of editable cards for this user (user cards + owned decks)
+        ucards = _load_user_cards(uid)
+        owned = _owned_decks_for_user(uid)
+        deck_cards_map = {}
+        for d in owned:
+            did = str(d.get("id") or "")
+            if did:
+                deck_cards_map[did] = _load_deck_cards(did)
+
+        idx_map = {}
+        for i, c in enumerate(ucards):
+            cid = str(c.get("id") or "")
+            if cid:
+                idx_map[cid] = ("user", str(c.get("deckId") or "kenpo"), ucards, i)
+
+        for did, dcards in deck_cards_map.items():
+            for i, c in enumerate(dcards):
+                cid = str(c.get("id") or "")
+                if cid:
+                    idx_map[cid] = ("deck", did, dcards, i)
+
+        ids_clean = [str(x) for x in ids if str(x)]
+        sample_ids = ids_clean[:25]  # keep prompts small
+        cards = []
+        for cid in sample_ids:
+            meta = idx_map.get(cid)
+            if not meta:
+                continue
+            _, _, cards_list, i = meta
+            cards.append(cards_list[i])
+
+        if not cards:
+            return jsonify({"ok": True, "fields": fields, "changes": [], "truncated": False, "total": len(ids_clean)})
+
+        all_changes = []
+        # Run one prompt per selected field and merge results
+        for f in fields:
+            key, field_label = field_map[f]
+            prompt = _ai_template_prompt(field_label, instruction, cards)
+            raw = _call_openai_chat(prompt, OPENAI_MODEL, OPENAI_API_KEY)
+            obj = _extract_json_object(raw) or {}
+            items = obj.get("items", [])
+            if not isinstance(items, list):
+                items = []
+
+            out_map = {}
+            for it in items:
+                if not isinstance(it, dict):
+                    continue
+                cid = str(it.get("id") or "")
+                val = it.get("value")
+                if cid and isinstance(val, (str, int, float)):
+                    out_map[cid] = str(val)
+
+            for c in cards:
+                cid = str(c.get("id") or "")
+                before = str(c.get(key) or "")
+                after = str(out_map.get(cid, before) or "")
+                if after != before:
+                    all_changes.append({
+                        "id": cid,
+                        "term": str(c.get("term") or ""),
+                        "field": f,
+                        "before": before,
+                        "after": after,
+                    })
+
+        return jsonify({
+            "ok": True,
+            "fields": fields,
+            "changes": all_changes,
+            "truncated": len(ids_clean) > len(sample_ids),
+            "total": len(ids_clean),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.post("/api/ai_template/apply")
+def api_ai_template_apply():
+    uid, _ = require_user()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+
+    data = request.get_json(force=True) or {}
+    ids = data.get("ids") or []
+    instruction = (data.get("instruction") or "").strip()
+
+    raw_fields = data.get("fields")
+    field = (data.get("field") or "meaning").strip().lower()
+    if isinstance(raw_fields, list):
+        fields = [str(x).strip().lower() for x in raw_fields if str(x).strip()]
+    else:
+        fields = [field]
+
+    seen = set()
+    fields = [f for f in fields if not (f in seen or seen.add(f))]
+
+    if not isinstance(ids, list) or not ids:
+        return jsonify({"error": "no_ids"}), 400
+    if not instruction:
+        return jsonify({"error": "no_instruction"}), 400
+
+    field_map = {
+        "term": ("term", "Term"),
+        "meaning": ("meaning", "Definition"),
+        "pron": ("pron", "Pronunciation"),
+        "group": ("group", "Group"),
+    }
+    for f in fields:
+        if f not in field_map:
+            return jsonify({"error": "bad_field"}), 400
+
+    if not OPENAI_API_KEY:
+        return jsonify({"error": "openai_not_configured"}), 400
+
+    try:
+        _migrate_user_deck_cards(uid)
+
+        ucards = _load_user_cards(uid)
+        owned = _owned_decks_for_user(uid)
+        deck_cards_map = {}
+        for d in owned:
+            did = str(d.get("id") or "")
+            if did:
+                deck_cards_map[did] = _load_deck_cards(did)
+
+        idx_map = {}
+        for i, c in enumerate(ucards):
+            cid = str(c.get("id") or "")
+            if cid:
+                idx_map[cid] = ("user", str(c.get("deckId") or "kenpo"), ucards, i)
+
+        for did, dcards in deck_cards_map.items():
+            for i, c in enumerate(dcards):
+                cid = str(c.get("id") or "")
+                if cid:
+                    idx_map[cid] = ("deck", did, dcards, i)
+
+        ids_clean = [str(x) for x in ids if str(x)]
+        # Process in batches to keep prompts manageable
+        BATCH = 25
+        changes_applied = 0
+        touched_user_cards = False
+        touched_decks = set()
+
+        for batch_start in range(0, len(ids_clean), BATCH):
+            batch_ids = ids_clean[batch_start:batch_start + BATCH]
+            cards = []
+            for cid in batch_ids:
+                meta = idx_map.get(cid)
+                if not meta:
+                    continue
+                _, _, cards_list, i = meta
+                cards.append(cards_list[i])
+
+            if not cards:
+                continue
+
+            # For each field, ask AI for new values for this batch, then apply
+            for f in fields:
+                key, field_label = field_map[f]
+                prompt = _ai_template_prompt(field_label, instruction, cards)
+                raw = _call_openai_chat(prompt, OPENAI_MODEL, OPENAI_API_KEY)
+                obj = _extract_json_object(raw) or {}
+                items = obj.get("items", [])
+                if not isinstance(items, list):
+                    items = []
+
+                out_map = {}
+                for it in items:
+                    if not isinstance(it, dict):
+                        continue
+                    cid = str(it.get("id") or "")
+                    val = it.get("value")
+                    if cid and isinstance(val, (str, int, float)):
+                        out_map[cid] = str(val)
+
+                for cid in batch_ids:
+                    meta = idx_map.get(cid)
+                    if not meta:
+                        continue
+                    kind, deck_id, cards_list, i = meta
+                    before_card = dict(cards_list[i])  # shallow copy for history
+                    before_val = str(cards_list[i].get(key) or "")
+                    after_val = str(out_map.get(cid, before_val) or "")
+
+                    if after_val == before_val:
+                        continue
+
+                    cards_list[i][key] = after_val
+                    after_card = dict(cards_list[i])
+
+                    # Log history
+                    _append_edit_history(uid, before_card, after_card, action="ai_template")
+
+                    changes_applied += 1
+                    if kind == "user":
+                        touched_user_cards = True
+                    else:
+                        touched_decks.add(deck_id)
+
+        # Persist changes
+        if touched_user_cards:
+            _save_user_cards(uid, ucards)
+        for did in touched_decks:
+            if did in deck_cards_map:
+                _save_deck_cards(did, deck_cards_map[did])
+
+        return jsonify({"ok": True, "applied": changes_applied, "fields": fields})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.post("/api/ai/generate_pronunciation")
 def api_ai_generate_pronunciation():
@@ -5114,6 +6045,7 @@ def api_ai_generate_deck():
     data = request.get_json() or {}
     gen_type = data.get("type", "keywords")
     max_cards = min(int(data.get("maxCards", 20)), 200)
+    instructions = str(data.get("instructions", "") or "").strip()
     
     try:
         if gen_type == "keywords":
@@ -5121,8 +6053,10 @@ def api_ai_generate_deck():
             if not keywords:
                 return jsonify({"error": "Keywords required"}), 400
             short_answers = bool(data.get("shortAnswers", False))
+            if instructions:
+                short_answers = False  # instructions override short-answers mode
             print(f"[AI GEN] Generating {max_cards} cards for keywords: {keywords[:100]} (short={short_answers})")
-            cards = _ai_generate_from_keywords(keywords, max_cards, short_answers=short_answers)
+            cards = _ai_generate_from_keywords(keywords, max_cards, short_answers=short_answers, instructions=instructions)
             print(f"[AI GEN] Generated {len(cards)} cards")
         
         elif gen_type == "photo":
@@ -5153,7 +6087,7 @@ def api_ai_generate_deck():
         return jsonify({"error": str(e)}), 500
 
 
-def _ai_generate_from_keywords(keywords: str, max_cards: int, short_answers: bool = False) -> list:
+def _ai_generate_from_keywords(keywords: str, max_cards: int, short_answers: bool = False, instructions: str = "") -> list:
     """Generate flashcards from search keywords."""
     if short_answers:
         answer_rule = """CRITICAL: ALL definitions MUST be SHORT (1-4 words max).
@@ -5168,6 +6102,12 @@ Examples:
   "Hola" -> "Hello" (1 word is enough)
   "Texas capital" -> "Austin" (1 word)
   "Nucleus" -> "Central part of a cell containing genetic material" (needs explanation)"""
+
+
+    instructions = (instructions or "").strip()
+    if instructions:
+        # User instructions override any automatic length rules.
+        answer_rule = f"""USER INSTRUCTIONS (OVERRIDE):\n{instructions}\n\nCRITICAL: Follow the user instructions exactly, even if they conflict with definition length rules."""
 
     prompt = f"""Generate exactly {max_cards} flashcards about: {keywords}
 

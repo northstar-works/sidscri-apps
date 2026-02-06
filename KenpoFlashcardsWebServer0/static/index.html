@@ -537,7 +537,7 @@
         <div class="editDecksPage">
           <div class="editDecksHeader">
             <h2>📚 Edit Decks</h2>
-            <button id="closeEditDecksBtn" class="appBtn secondary">← Back</button>
+            <button id="closeEditDecksBtn" class="appBtn secondary csBackBtn">← Back</button>
           </div>
 
           <!-- Tab navigation -->
@@ -685,6 +685,21 @@
                   <div class="settingDesc">AI keeps definitions to 1-4 words (e.g., capitals, translations). Turn off for science/complex topics.</div>
                 </div>
               </label>
+
+              <label class="settingRow">
+                <span class="switch small"><input type="checkbox" id="deckAiShowFormatHelpers" onchange="toggleDeckAiShowFormatHelpers()" /><span class="slider"></span></span>
+                <div class="settingText">
+                  <div class="settingTitle">Show formatting helper buttons</div>
+                  <div class="settingDesc">Adds small buttons in the AI Generator and AI Template so you can insert a term/definition example format.</div>
+                </div>
+              </label>
+              <label class="settingRow">
+                <span class="switch small"><input type="checkbox" id="deckAiShowPreExample" onchange="toggleDeckAiShowPreExample()" /><span class="slider"></span></span>
+                <div class="settingText">
+                  <div class="settingTitle">Show example before generating</div>
+                  <div class="settingDesc">Shows a live example preview as you type keywords/name/description (recommended).</div>
+                </div>
+              </label>
             </div>
             <div class="settingsCard">
               <div class="settingsCardHeader">🤖 AI Deck Generator</div>
@@ -707,6 +722,26 @@
                   <span>Max Cards to Generate</span>
                   <input id="aiGenMaxCards" type="number" value="25" min="1" max="200" style="width: 100px;" />
                 </label>
+                <label class="field">
+                  <span>Instructions for the AI (optional)</span>
+                  <textarea id="aiGenInstructions" rows="3" placeholder="Example: For definitions, output ONLY the state name (no 'Capital of...')."></textarea>
+                  <span class="mini muted">If you type instructions here, they override “Short answers only”.</span>
+                </label>
+
+                <div class="aiFormatHelpers hidden" id="aiGenFormatHelpers">
+                  <button type="button" class="appBtn secondary small" id="aiGenInsertFormatBtn">➕ Insert example format ▾</button>
+                  <div class="aiFormatMenu hidden" id="aiGenInsertFormatMenu">
+                    <button type="button" class="appBtn secondary small" data-kind="term">Term format block</button>
+                    <button type="button" class="appBtn secondary small" data-kind="definition">Definition format block</button>
+                    <button type="button" class="appBtn secondary small" data-kind="both">Term + Definition block</button>
+                  </div>
+                </div>
+
+                <div class="card hidden" id="aiGenPreExampleWrap" style="padding:12px; margin-top:10px;">
+                  <div class="mini muted" id="aiGenPreExampleHint">Example output (updates as you type):</div>
+                  <div class="previewList" id="aiGenPreExampleBox"></div>
+                </div>
+
                 <button id="aiGenSearchBtn" class="appBtn primary small">🔍 Generate</button>
               </div>
 
@@ -804,6 +839,10 @@
                 <div class="deletedSearchRow">
                   <input id="deletedSearch" placeholder="Search deleted cards..." />
                   <span class="deletedCount" id="deletedCount">0 deleted</span>
+                </div>
+
+                <div class="row" style="justify-content:flex-end; margin: 10px 0;">
+                  <button id="clearDeletedAllBtn" class="appBtn secondary small">Clear all deleted</button>
                 </div>
 
                 <div class="deletedCardsList" id="deletedCardsList">
@@ -1142,15 +1181,13 @@
     <div class="modalForm">
       <label class="field">
   <span>Field(s) to change</span>
-  <div class="multiSelect" id="aiTemplateFieldsWrap">
-    <button type="button" class="multiSelectBtn" id="aiTemplateFieldsBtn">Definition</button>
-    <div class="multiSelectMenu hidden" id="aiTemplateFieldsMenu">
-      <label class="msOpt"><input type="checkbox" value="meaning" checked /> <span>Definition</span></label>
-      <label class="msOpt"><input type="checkbox" value="term" /> <span>Term</span></label>
-      <label class="msOpt"><input type="checkbox" value="pron" /> <span>Pronunciation</span></label>
-      <label class="msOpt"><input type="checkbox" value="group" /> <span>Group</span></label>
-    </div>
-  </div>
+  <select id="aiTemplateFieldSelect" class="select compactSelect">
+  <option value="meaning" selected>Definition</option>
+  <option value="term">Terms</option>
+  <option value="both">Definition + Term</option>
+  <option value="pron">Pronunciation</option>
+  <option value="group">Group</option>
+</select>
   <span class="mini muted">Only the checked field(s) will be changed. Other fields are preserved.</span>
 </label>
 
@@ -1160,6 +1197,15 @@
           placeholder="Example: Change the definitions to contain ONLY the state name. If a definition is like 'Capital of Texas' or 'The Capital of Texas', output 'Texas'."></textarea>
         <span class="mini muted">Overrides other AI options like “Short terms only”.</span>
       </label>
+      <div class="aiFormatHelpers hidden" id="aiTemplateFormatHelpers" style="margin-top:6px;">
+        <button type="button" class="appBtn secondary small" id="aiTemplateInsertFormatBtn">➕ Insert example format ▾</button>
+        <div class="aiFormatMenu hidden" id="aiTemplateInsertFormatMenu">
+          <button type="button" class="appBtn secondary small" data-kind="term">Term format block</button>
+          <button type="button" class="appBtn secondary small" data-kind="definition">Definition format block</button>
+          <button type="button" class="appBtn secondary small" data-kind="both">Term + Definition block</button>
+        </div>
+      </div>
+
     </div>
 
     <div class="card" style="padding: 12px; margin-top: 10px;">
@@ -1284,6 +1330,3 @@
 
 </body>
 </html>
-
-              </div>
-

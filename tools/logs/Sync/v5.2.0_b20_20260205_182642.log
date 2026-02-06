@@ -1,0 +1,211 @@
+{
+  "version": "5.2.0",
+  "build": 20,
+  "last_sync": "2026-02-05T18:26:42.741934",
+  "webserver_version": "8.7.0",
+  "webserver_build": 60,
+  "output_mode": "synced",
+  "dry_run": false,
+  "backup_dir": null,
+  "summary": {
+    "total_records": 40,
+    "by_action": {
+      "added": 32,
+      "excluded_preserved": 1,
+      "mirrored": 1,
+      "merged": 1,
+      "autopatch_no_change": 1,
+      "regression_passed": 1,
+      "skipped_unchanged": 3
+    },
+    "protected_items": [
+      "packaging",
+      "windows_service",
+      "windows_tray",
+      "build_data",
+      "tools",
+      "KenpoFlashcardsTrayLauncher.py",
+      "Kenpo_Vocabulary_Study_Flashcards.ico",
+      "server_config.json",
+      "INSTALL_WINDOWS.md",
+      "RUN_AS_WINDOWS_SERVICE.md",
+      "PATCH_README.txt",
+      ".sync_backups",
+      "README.md",
+      "CHANGELOG.md",
+      "version.json"
+    ],
+    "static_excludes_preserved": [
+      "static/res/webappservericons/**",
+      "static/res/decklogos/user/**"
+    ]
+  },
+  "files": [
+    {
+      "path": "app.py",
+      "action": "added"
+    },
+    {
+      "path": "requirements.txt",
+      "action": "added"
+    },
+    {
+      "path": "LICENSE",
+      "action": "added"
+    },
+    {
+      "path": "BRANDING_NOTE.md",
+      "action": "added"
+    },
+    {
+      "path": ".gitattributes",
+      "action": "added"
+    },
+    {
+      "path": "static/about.html",
+      "action": "added"
+    },
+    {
+      "path": "static/admin.html",
+      "action": "added"
+    },
+    {
+      "path": "static/ai-access.html",
+      "action": "added"
+    },
+    {
+      "path": "static/app.js",
+      "action": "added"
+    },
+    {
+      "path": "static/favicon.ico",
+      "action": "added"
+    },
+    {
+      "path": "static/index.html",
+      "action": "added"
+    },
+    {
+      "path": "static/robots.txt",
+      "action": "added"
+    },
+    {
+      "path": "static/sitemap.xml",
+      "action": "added"
+    },
+    {
+      "path": "static/styles.css",
+      "action": "added"
+    },
+    {
+      "path": "static/user-guide.html",
+      "action": "added"
+    },
+    {
+      "path": "static/.well-known/security.txt",
+      "action": "added"
+    },
+    {
+      "path": "static/res/decklogos/advanced_flashcards_logo.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/decklogos/Kenpo Vovabulary Study Flashcards.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/decklogos/kenpo_vocabulary.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/decklogos/user/1cc70e61cd9e/deck_7bb3a7af_1769547768.jpg",
+      "action": "excluded_preserved",
+      "reason": "static exclude preserved in destination"
+    },
+    {
+      "path": "static/res/webappicons/Advanced Flashcards logo.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/webappicons/advanced_flashcards_logo.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/webappicons/favicon-128.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/webappicons/favicon-16.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/webappicons/favicon-256.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/webappicons/favicon-32.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/webappicons/favicon-64.png",
+      "action": "added"
+    },
+    {
+      "path": "static/res/webappicons/favicon.ico",
+      "action": "added"
+    },
+    {
+      "path": "static/",
+      "action": "mirrored",
+      "excludes_preserved": [
+        "static/res/webappservericons/**",
+        "static/res/decklogos/user/**"
+      ]
+    },
+    {
+      "path": "data/helper.json",
+      "action": "added"
+    },
+    {
+      "path": "data/admin_users.json",
+      "action": "added"
+    },
+    {
+      "path": "data/api_keys.enc",
+      "action": "added"
+    },
+    {
+      "path": "data/secret_key.txt",
+      "action": "added"
+    },
+    {
+      "path": "data/",
+      "action": "merged",
+      "copied": true
+    },
+    {
+      "path": "app.py",
+      "action": "autopatch_no_change"
+    },
+    {
+      "path": "app.py",
+      "action": "regression_passed"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "action": "skipped_unchanged"
+    },
+    {
+      "path": "README.md",
+      "action": "skipped_unchanged"
+    },
+    {
+      "path": "version.json",
+      "action": "added"
+    },
+    {
+      "path": "Version-WebServerPackaged-*.txt",
+      "action": "skipped_unchanged"
+    }
+  ]
+}

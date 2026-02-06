@@ -1,0 +1,33 @@
+========================================================================
+WebServerToAndroid Sync Log  (tool v1.0.0)
+Timestamp: 20260206_115613
+Tools Dir: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid
+WebServer : C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer
+AndroidSrc: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\kenpoflashcardsproject-v2
+OutputMode: synced
+========================================================================
+
+[11:56:13] ℹ️ Preparing synced output: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\kenpoflashcardsproject-v2_synced
+[11:56:15] ✅ Android output folder: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\kenpoflashcardsproject-v2_synced
+[11:56:15] ℹ️ WebServer: v8.7.0.1 (build 60)
+[11:56:15] ℹ️ Android:   v7.0.0 (build 41)
+[11:56:15] ℹ️ Last WS parity: v8.7.0
+[11:56:15] ℹ️ Found 0 WebServer version(s) since v8.7.0
+[11:56:56] ℹ️ Upgrade: Patch
+[11:56:56] ℹ️ New version: v7.0.1 (build 42)
+[11:56:56] ℹ️ Creating backup...
+[11:56:56] ✅ Backup at: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\sync_backups\android_v7.0.1_b42_20260206_115656
+[11:56:56] ℹ️ Bumping build.gradle...
+[11:56:56] ✅ build.gradle → versionCode=42, versionName="7.0.1"
+[11:56:56] ℹ️ Updating version.json...
+[11:56:56] ✅ version.json updated
+[11:56:56] ℹ️ Updating CHANGELOG.md...
+[11:56:56] ✅ CHANGELOG.md updated
+[11:56:56] ℹ️ Updating README.md...
+[11:56:56] ✅ README.md updated
+[11:56:56] ℹ️ Creating Version-AndroidApp-*.txt...
+[11:56:56] ✅ Created Version-AndroidApp-v7.0.1 v42.txt
+[11:56:56] ℹ️ Creating Fixes *.txt...
+[11:56:56] ✅ Created Fixes v7.0.1 v42.txt
+[11:56:56] ℹ️ Generating feature parity report...
+[11:56:56] ✅ Parity report: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\parity_report_2026-02-06.md

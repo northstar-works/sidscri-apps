@@ -78,22 +78,29 @@ async function postLoginInit(){
   let _activeDeckLoadedFromSettings = false;
   if(appInitialized) return;
   
-  // Load saved active deck from settings FIRST
+  // Load settings and decks in PARALLEL (they don't depend on each other)
+  let settingsResult = null;
+  let decksResult = null;
   try {
-    const settingsResp = await jget("/api/settings?scope=all").catch(async (e)=>{ return await jget("/api/settings"); });
-    const settings = (settingsResp && settingsResp.settings) ? settingsResp.settings : settingsResp;
+    [settingsResult, decksResult] = await Promise.all([
+      jget("/api/settings?scope=all").catch(async (e)=>{ return await jget("/api/settings"); }).catch(()=>null),
+      jget("/api/decks").catch(()=>[])
+    ]);
+  } catch(e){}
+  
+  // Apply settings
+  if(settingsResult) {
+    const settings = (settingsResult && settingsResult.settings) ? settingsResult.settings : settingsResult;
+    settingsAll = settings;  // Cache so getScopeSettings won't re-fetch
     if(settings && settings.activeDeckId){
       activeDeckId = settings.activeDeckId;
       _activeDeckLoadedFromSettings = true;
     }
-  } catch(e){}
+  }
   
-  // Load decks to get deck names for header
-  try {
-    currentDecks = await jget("/api/decks");
-
-    // If settings didn't provide a valid active deck (or it no longer exists),
-    // fall back to the deck marked isDefault (or first available) and persist.
+  // Apply decks
+  if(decksResult) {
+    currentDecks = decksResult;
     try {
       const ids = new Set((currentDecks || []).map(d => (d && d.id) ? d.id : null).filter(Boolean));
       const defaultDeck = (currentDecks || []).find(d => d && d.isDefault) || (currentDecks || [])[0];
@@ -103,21 +110,24 @@ async function postLoginInit(){
 
       if((shouldUseDefault || activeMissing) && defaultDeck && defaultDeck.id){
         activeDeckId = defaultDeck.id;
-        try { await jpost("/api/settings", { scope: "all", settings: { activeDeckId } }); } catch(e){}
+        try { jpost("/api/settings", { scope: "all", settings: { activeDeckId } }); } catch(e){}
       }
     } catch(e){}
 
     updateHeaderDeckName();
     updateHeaderDeckLogo();
-  } catch(e){}
+  }
   
-  // Load breakdown IDs for visual indicator
-  await loadBreakdownIds();
-  
-  await loadGroups();
-  await loadHealth();
-  try{ aiStatus = await jget("/api/ai"); } catch(e){ aiStatus = { openai_available:false, openai_model:"", gemini_available:false, gemini_model:"", selected_provider:"auto" }; }
-  await refreshCounts();
+  // Load breakdown IDs, groups, health, AI status in parallel
+  await Promise.all([
+    loadBreakdownIds(),
+    loadGroups(),
+    loadHealth(),
+    (async () => { try{ aiStatus = await jget("/api/ai"); } catch(e){ aiStatus = { openai_available:false, openai_model:"", gemini_available:false, gemini_model:"" }; } })()
+  ]);
+
+  // setTab() will call refresh() and refreshCounts()
+
   // default start view
   setTab("active");
   appInitialized = true;
@@ -147,18 +157,32 @@ function setAuthView(view){
   $("registerBox").classList.toggle("hidden", view !== "register");
 }
 
-async function loadVersionIntoMenu(){
-  try{
-    const v = await jget("/api/version");
-    const el = $("userMenuVersion");
-    if(el) el.textContent = `Version: ${v.version} (build ${v.build})`;
-    const adminLink = $("userMenuAdmin");
-    if(adminLink){
-      adminLink.style.display = isAdminUser() ? "block" : "none";
+async function loadVersionIntoMenu() {
+  try {
+    const v = await jget('/api/version');
+    const el = document.getElementById('userMenuVersion');
+    if (!el || !v) return;
+
+    // New API (preferred)
+    const isPackaged = (v.is_packaged === true) || (v.mode === 'packaged');
+    const appName  = v.app_name || v.app || v.application || v.name;
+    const appVer   = v.app_version || v.app_ver || v.appVersion;
+    const appBuild = (v.app_build !== undefined) ? v.app_build : v.appBuild;
+
+    const webName  = v.web_name || v.web || v.webapp || 'Web Server';
+    const webVer   = v.web_version || v.web_ver || v.webVersion || v.version;
+    const webBuild = (v.web_build !== undefined) ? v.web_build : (v.webBuild !== undefined ? v.webBuild : v.build);
+
+    // Render (user dropdown: show APP version when packaged; otherwise show Webserver version)
+    if (isPackaged) {
+      const ab = (appBuild !== undefined && appBuild !== null && String(appBuild).trim() !== "") ? ` (build ${appBuild})` : "";
+      el.textContent = `App Version: ${appVer || "unknown"}${ab}`;
+    } else {
+      const wb = (webBuild !== undefined && webBuild !== null && String(webBuild).trim() !== "") ? ` (build ${webBuild})` : "";
+      el.textContent = `Webserver Version: ${webVer || "unknown"}${wb}`;
     }
-  }catch(e){
-    const el = $("userMenuVersion");
-    if(el) el.textContent = "Version: unavailable";
+  } catch (e) {
+    // ignore
   }
 }
 
@@ -273,6 +297,12 @@ function escapeHtml(str){
   return String(str ?? "")
     .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
     .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+
+// Escape for putting values into HTML attributes (inputs)
+function escapeAttr(str){
+  return escapeHtml(str).replaceAll("\n"," ").replaceAll("\r"," ");
 }
 
 function shuffle(a){
@@ -426,6 +456,17 @@ function updateStudyActionButtons(){
 
 async function refreshCounts(){
   try{
+    // In Custom Set mode, use the custom-set counts and do NOT overwrite with /api/counts (whole deck)
+    if(activeTab === "custom"){
+      if(customSetData && customSetData.counts){
+        const counts = customSetData.counts || {};
+        $("countsLine").textContent = `Unlearned: ${counts.active || 0} | Unsure: ${counts.unsure || 0} | Learned: ${counts.learned || 0}`;
+        const total = (counts.total != null) ? counts.total : (Array.isArray(deck) ? deck.length : 0);
+        updateHeaderCardCount(total);
+      }
+      return;
+    }
+
     const groupParam = scopeGroup ? `&group=${encodeURIComponent(scopeGroup)}` : "";
     const deckParam = activeDeckId ? `&deck_id=${encodeURIComponent(activeDeckId)}` : "";
     const c = await jget(`/api/counts?${groupParam}${deckParam}`);
@@ -1256,7 +1297,7 @@ async function loadCustomSetForStudy(){
   const q = ($("searchBox").value || "").trim();
   
   try {
-    const res = await jget("/api/custom_set");
+    const res = await jget(customSetApiUrl());
     customSetData = res;
     
     let cards = res.cards || [];
@@ -1305,7 +1346,7 @@ async function loadCustomSetForStudy(){
       if(customRandomLimit > 0){
         statusMsg = `🎲 Random ${Math.min(customRandomLimit, deck.length)} of ${counts.total || 0} cards`;
       }
-      setStatus(statusMsg);
+      // Status line is set by refresh() to keep labels consistent.
     }
   } catch(e){
     console.error("Failed to load custom set:", e);
@@ -1317,7 +1358,7 @@ async function loadCustomSetForStudy(){
 
 async function toggleCustomSet(cardId){
   try {
-    const res = await jpost("/api/custom_set/toggle", { id: cardId });
+    const res = await jpost("/api/custom_set/toggle", customSetBody({ id: cardId  }));
     return res.in_custom_set;
   } catch(e){
     console.error("Failed to toggle custom set:", e);
@@ -1327,7 +1368,7 @@ async function toggleCustomSet(cardId){
 
 async function setCustomSetStatus(cardId, status){
   try {
-    await jpost("/api/custom_set/set_status", { id: cardId, status: status });
+    await jpost("/api/custom_set/set_status", customSetBody({ id: cardId, status: status  }));
     await refresh();
   } catch(e){
     console.error("Failed to set custom set status:", e);
@@ -1340,7 +1381,7 @@ async function setCurrentStatus(status){
   
   // For custom set, use custom set status API
   if(activeTab === "custom"){
-    await jpost("/api/custom_set/set_status", { id: c.id, status: status });
+    await jpost("/api/custom_set/set_status", customSetBody({ id: c.id, status: status  }));
   } else {
     await jpost("/api/set_status", {id: c.id, status});
   }
@@ -1593,44 +1634,71 @@ async function refresh(){
   updateFilterHighlight();
   updateLearnedViewHighlight();
   updateCustomViewHighlight();
+
   if(!currentUser){
     const ok = await ensureLoggedIn();
     if(!ok) return;
   }
-  await refreshCounts();
 
+  // If settings panel is open, only refresh the header counts (don't swap views)
   if(!$("viewSettings").classList.contains("hidden")){
+    await refreshCounts();
     return;
   }
 
-  const isStudyMode = (activeTab === "active" || activeTab === "unsure" || activeTab === "custom" || (activeTab === "learned" && learnedViewMode === "study"));
+  const isStudyMode = (
+    activeTab === "active" ||
+    activeTab === "unsure" ||
+    activeTab === "custom" ||
+    (activeTab === "learned" && learnedViewMode === "study")
+  );
 
   const rWrap = $("randomStudyWrap");
   if(rWrap){
     rWrap.classList.toggle("hidden", !isStudyMode);
-    if(isStudyMode){
-      const s = await getScopeSettings();
-      $("randomStudyChk").checked = !!getStudyRandomizeFlag(s);
-      updateRandomStudyUI();
-    }
   }
 
   if(isStudyMode){
+    $("viewStudy").classList.remove("hidden");
+    $("viewList").classList.add("hidden");
+
     if(activeTab === "custom"){
+      // IMPORTANT: Do NOT run refreshCounts() in parallel with custom set load.
+      // refreshCounts() pulls /api/counts for the whole deck and can overwrite the custom-set counts bar.
       await loadCustomSetForStudy();
-    } else {
-      await loadDeckForStudy();
+
+      // Ensure header card count reflects current custom set size
+      updateHeaderCardCount(Array.isArray(deck) ? deck.length : 0);
+
+      // Ensure the status line reflects Custom Set mode
+      const cvmLabel = customViewMode === "unsure" ? "Unsure"
+                    : (customViewMode === "learned" ? "Learned" : "Unlearned");
+      const prefix = (customRandomLimit > 0) ? "🎲 " : "";
+      setStatus(`${prefix}Custom Set • Studying: ${cvmLabel}`);
+      return;
     }
+
+    // Non-custom study: load counts and deck cards in parallel for speed
+    const deckPromise = loadDeckForStudy();
+    await Promise.all([ refreshCounts(), deckPromise ]);
+
     const s = window.__activeSettings || settingsAll || {};
     const allLabel = (s.all_mode === "flat") ? "All (flat)" : "All (grouped)";
-    const studyLabel = (activeTab === "active") ? "Unlearned" : (activeTab === "learned" ? "Learned" : (activeTab === "unsure" ? "Unsure" : (activeTab === "custom" ? "Custom Set" : (activeTab||""))));
+    const studyLabel = (activeTab === "active") ? "Unlearned"
+                     : (activeTab === "unsure") ? "Unsure"
+                     : (activeTab === "learned") ? "Learned"
+                     : (activeTab || "");
     setStatus(`${(scopeGroup || (allCardsMode ? allLabel : ""))} • Studying: ${studyLabel}`);
-  } else {
-    $("viewStudy").classList.add("hidden");
-    $("viewList").classList.remove("hidden");
-    await loadList(activeTab);
-    setStatus(`${(scopeGroup||"All")} • Viewing: ${activeTab}`);
+    return;
   }
+
+  // List mode
+  $("viewStudy").classList.add("hidden");
+  $("viewList").classList.remove("hidden");
+
+  // Load counts and list in parallel
+  await Promise.all([ refreshCounts(), loadList(activeTab) ]);
+  setStatus(`${(scopeGroup||"All")} • Viewing: ${activeTab}`);
 }
 
 async function openSettings(){
@@ -1700,6 +1768,7 @@ async function loadSettingsForm(scope){
 
 $("setShowGroup").checked = effective.show_group_label !== false;
   $("setShowSubgroup").checked = effective.show_subgroup_label !== false;
+  if($("setShowUiErrorLog")) $("setShowUiErrorLog").checked = !!effective.show_ui_error_log;
   $("setReverseFaces").checked = !!effective.reverse_faces;
   if($("setBreakdownApplyAll")) $("setBreakdownApplyAll").checked = !!effective.breakdown_apply_all_tabs;
   if($("setBreakdownRemoveAll")) $("setBreakdownRemoveAll").checked = !!effective.breakdown_remove_all_tabs;
@@ -1789,6 +1858,7 @@ async function saveSettings(){
     randomize: $("setRandomize").checked,
     show_group_label: $("setShowGroup").checked,
     show_subgroup_label: $("setShowSubgroup").checked,
+    show_ui_error_log: ($("setShowUiErrorLog") ? $("setShowUiErrorLog").checked : false),
     reverse_faces: $("setReverseFaces").checked,
     show_breakdown_on_definition: $("setShowBreakdownOnDef") ? $("setShowBreakdownOnDef").checked : true,
     breakdown_apply_all_tabs: $("setBreakdownApplyAll") ? $("setBreakdownApplyAll").checked : false,
@@ -2713,8 +2783,14 @@ function updateStudyStarButton(card){
   const btn = $("starStudyBtn");
   if(!btn) return;
   
-  const inSet = card && card.in_custom_set;
-  btn.textContent = inSet ? "★" : "☆";
+  const inSet = (activeTab === "custom") ? true : (card && card.in_custom_set);
+  // Portrait/mobile: keep the label explicit (Prev / Speak / Custom / Next on one line)
+  const isMobile = window.matchMedia && window.matchMedia("(max-width: 600px)").matches;
+  if(isMobile){
+    btn.textContent = (inSet ? "★" : "☆") + " Custom";
+  } else {
+    btn.textContent = inSet ? "★" : "☆";
+  }
   btn.classList.toggle("starred", inSet);
   btn.title = inSet ? "Remove from Custom Set" : "Add to Custom Set";
 }
@@ -2726,6 +2802,64 @@ function updateStudyStarButton(card){
 let currentDecks = [];
 let userCards = [];
 let activeDeckId = "kenpo";
+
+// Edit Deck Modal (Edit Deck / Edit Cards)
+
+
+// Edit Cards (within Edit Deck modal): in-modal notice that auto-hides
+let _editCardsNoticeTimer = null;
+function showEditCardsNotice(msg, type="error"){
+  const box = $("editCardsNotice");
+  if(!box) { 
+    // fallback to global status
+    try{ showEditDecksStatus(msg, type); }catch(e){}
+    return;
+  }
+  if(_editCardsNoticeTimer) clearTimeout(_editCardsNoticeTimer);
+  box.textContent = msg;
+  box.classList.remove("error","success","show","hidden");
+  box.classList.add("show");
+  box.classList.add(type === "success" ? "success" : "error");
+  _editCardsNoticeTimer = setTimeout(() => {
+    box.classList.remove("show","error","success");
+    box.textContent = "";
+  }, 3200);
+}
+
+function clearEditCardsNotice(){
+  const box = $("editCardsNotice");
+  if(!box) return;
+  if(_editCardsNoticeTimer) clearTimeout(_editCardsNoticeTimer);
+  box.classList.remove("show","error","success");
+  box.textContent = "";
+}
+
+function updateEditCardsSearchClear(){
+  const input = $("editCardsSearch");
+  const wrap = input?.closest(".searchWithClear");
+  const btn = $("editCardsSearchClear");
+  if(!input || !wrap || !btn) return;
+  const has = !!(input.value || "").trim();
+  if(has) wrap.classList.add("hasValue");
+  else wrap.classList.remove("hasValue");
+}
+
+function resetEditCardsState(){
+  // Clear search + selection when the Edit Deck modal is closed
+  const input = $("editCardsSearch");
+  if(input) input.value = "";
+  updateEditCardsSearchClear();
+  editDeckSelectedIds = new Set();
+  clearEditCardsNotice();
+  // Keep group filter + show-deleted as-is unless user changes it
+  const count = $("editCardsSelectedCount");
+  if(count) count.textContent = "0 selected";
+}
+let editDeckModalDeck = null;
+let editDeckCardsCache = [];
+let editDeckSelectedIds = new Set();
+let editDeckModalTab = "deck";
+
 
 // Hide all main views
 function hideAllViews(){
@@ -2760,7 +2894,7 @@ function switchEditDecksTab(tabName){
   document.querySelector(`.editDecksSection[data-section="${tabName}"]`)?.classList.add("active");
   
   // Load deck-specific settings when generate tab opens
-  if(tabName === "generate") loadDeckShortAnswersSetting();
+  if(tabName === "generate") loadDeckAiSettings();
 }
 
 // Show status message in Edit Decks
@@ -2816,7 +2950,6 @@ function renderDecksList(){
     const div = document.createElement("div");
     div.className = "deckItem" + (isActive ? " active" : "");
     div.innerHTML = `
-      <div class="deckRadio"></div>
       <img class="deckMiniLogo" alt="Deck icon" />
       <div class="deckInfo">
         <div class="deckName">
@@ -3025,15 +3158,981 @@ async function redeemInviteCode(){
 function showEditDeckModal(deck){
   const modal = $("editDeckModal");
   if(!modal) return;
-  
+
+  // Track current deck for the modal (Edit Deck / Edit Cards)
+  editDeckModalDeck = deck;
+
   $("editDeckId").value = deck.id;
   $("editDeckName").value = deck.name;
   $("editDeckDescription").value = deck.description || "";
-  
+
+  const nameEl = $("editDeckModalDeckName");
+  if(nameEl){
+    nameEl.textContent = deck && deck.name ? `(${deck.name})` : "";
+  }
+
+  // Default to Edit Deck tab every time
+  switchEditDeckModalTab("deck");
+
   modal.classList.remove("hidden");
+  document.body.classList.add("modalLock");
 }
 
 // Close edit deck modal
+
+
+// Switch Edit Deck Modal tabs
+function switchEditDeckModalTab(tab){
+  editDeckModalTab = tab;
+  document.querySelectorAll("#editDeckModal .modalTab").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("#editDeckModal .modalTabBody").forEach(s => s.classList.remove("active"));
+
+  document.querySelector(`#editDeckModal .modalTab[data-edittab="${tab}"]`)?.classList.add("active");
+  document.querySelector(`#editDeckModal .modalTabBody[data-edittab-body="${tab}"]`)?.classList.add("active");
+
+  // Top close button: show only on Edit Cards tab
+  const topClose = $("editCardsCloseTop");
+  if(topClose){
+    if(tab === "cards") topClose.classList.remove("hidden");
+    else topClose.classList.add("hidden");
+  }
+
+  if(tab === "cards"){
+    // Lazy-load cards only when the user opens Edit Cards
+    loadEditDeckCards(false);
+    updateEditCardsSearchClear();
+    clearEditCardsNotice();
+  }
+}
+
+// Utility: show a choice modal with buttons
+function showChoiceModal(title, text, options){
+  return new Promise((resolve) => {
+    const overlay = $("choiceModal");
+    if(!overlay){
+      // Fallback
+      const v = prompt(`${title}\n\n${text}\n\n${options.map((o,i)=>`${i+1}) ${o.label}`).join("\n")}`);
+      const idx = parseInt(v || "", 10) - 1;
+      resolve((idx >= 0 && idx < options.length) ? options[idx].key : null);
+      return;
+    }
+    $("choiceModalTitle").textContent = title || "Choose";
+    $("choiceModalText").textContent = text || "";
+    const btns = $("choiceModalBtns");
+    btns.innerHTML = "";
+    for(const opt of options){
+      const b = document.createElement("button");
+      b.className = opt.className || "secondary";
+      b.textContent = opt.label;
+      b.addEventListener("click", () => {
+        overlay.classList.add("hidden");
+        resolve(opt.key);
+      });
+      btns.appendChild(b);
+    }
+    overlay.classList.remove("hidden");
+  });
+}
+
+// Utility: preview modal for bulk actions
+function showPreviewModal(title, text, items, applyLabel="Apply"){
+  return new Promise((resolve) => {
+    const overlay = $("previewModal");
+    if(!overlay){
+      resolve(confirm(`${title}\n\n${text}\n\n${items.join("\n")}\n\nProceed?`));
+      return;
+    }
+    $("previewModalTitle").textContent = title || "Preview";
+    $("previewModalText").textContent = text || "";
+    const list = $("previewModalList");
+    list.innerHTML = items.join("");
+    $("previewApplyBtn").textContent = applyLabel;
+
+    const cancel = () => { overlay.classList.add("hidden"); resolve(false); };
+    const apply = () => { overlay.classList.add("hidden"); resolve(true); };
+
+    $("previewCancelBtn").onclick = cancel;
+    $("previewApplyBtn").onclick = apply;
+
+    overlay.classList.remove("hidden");
+  });
+}
+
+// Load cards for the deck currently being edited
+async function loadEditDeckCards(force){
+  if(!editDeckModalDeck) return;
+  if(!force && editDeckCardsCache && editDeckCardsCache.length){
+    renderEditDeckCards();
+    return;
+  }
+  try{
+    const deckId = editDeckModalDeck.id;
+    const cards = await jget(`/api/cards?deck_id=${encodeURIComponent(deckId)}&status=all`);
+    editDeckCardsCache = Array.isArray(cards) ? cards : [];
+    // Reset selection on refresh
+    editDeckSelectedIds = new Set();
+    buildEditCardsGroupFilter();
+    renderEditDeckCards();
+  }catch(e){
+    showEditDecksStatus("Failed to load deck cards: " + (e.message || e), "error");
+  }
+}
+
+function buildEditCardsGroupFilter(){
+  const sel = $("editCardsGroupFilter");
+  if(!sel) return;
+  const groups = new Set();
+  for(const c of editDeckCardsCache){
+    const g = (c.group || "").trim();
+    if(g) groups.add(g);
+  }
+  const current = sel.value || "";
+  sel.innerHTML = '<option value="">All groups</option>';
+  [...groups].sort((a,b)=>a.localeCompare(b)).forEach(g=>{
+    const o=document.createElement("option");
+    o.value=g; o.textContent=g;
+    sel.appendChild(o);
+  });
+  sel.value = current;
+}
+
+function getVisibleEditDeckCards(){
+  const q = ($("editCardsSearch")?.value || "").trim().toLowerCase();
+  const g = ($("editCardsGroupFilter")?.value || "").trim();
+  const showDeleted = !!$("editCardsShowDeleted")?.checked;
+
+  return editDeckCardsCache.filter(c=>{
+    if(!showDeleted && c.status === "deleted") return false;
+    if(g && (c.group || "") !== g) return false;
+    if(q){
+      const hay = `${c.term||""} ${c.meaning||""} ${c.pron||""}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function updateEditCardsSelectedCount(){
+  const el = $("editCardsSelectedCount");
+  if(el) el.textContent = `${editDeckSelectedIds.size} selected`;
+}
+
+function renderEditDeckCards(){
+  const list = $("editCardsList");
+  if(!list) return;
+
+  const cards = getVisibleEditDeckCards();
+  updateEditCardsSelectedCount();
+
+  if(cards.length === 0){
+    list.innerHTML = '<div class="emptyState"><div class="icon">🗂️</div>No cards match your filters</div>';
+    return;
+  }
+
+  list.innerHTML = "";
+  for(const card of cards){
+    const row = document.createElement("div");
+    row.className = "editCardRow" + (card.status === "deleted" ? " deleted" : "");
+    row.dataset.id = card.id;
+
+    row.innerHTML = `
+      <input class="editCardSelect" type="checkbox" ${editDeckSelectedIds.has(card.id) ? "checked" : ""} />
+      <div class="editCardMain">
+        <div class="editCardTerm">${escapeHtml(card.term || "")}</div>
+        <div class="editCardMeaning">${escapeHtml(card.meaning || "")}</div>
+        <div class="editCardMeta">${escapeHtml(card.pron || "")}${(card.pron && card.group) ? " • " : ""}${escapeHtml(card.group || "")}</div>
+      </div>
+      <div class="editCardActions">
+        <button class="appBtn secondary small editBtn">Edit</button>
+        ${card.status === "deleted" ? '<button class="appBtn secondary small restoreBtn">Restore</button>' : '<button class="appBtn danger small removeBtn">Remove</button>'}
+      </div>
+    `;
+
+    const cb = row.querySelector(".editCardSelect");
+    cb.addEventListener("change", () => {
+      if(cb.checked) editDeckSelectedIds.add(card.id);
+      else editDeckSelectedIds.delete(card.id);
+      updateEditCardsSelectedCount();
+    });
+
+    const removeBtn = row.querySelector(".removeBtn");
+    if(removeBtn){
+      removeBtn.addEventListener("click", async () => {
+        if(!confirm(`Remove "${card.term}" from study? (You can restore it in Deleted)`)) return;
+        try{
+          await jpost("/api/set_status", { id: card.id, status: "deleted" });
+          showEditDecksStatus(`Removed "${card.term}"`, "success");
+          await loadDeletedCards();
+          await loadEditDeckCards(true);
+          refreshCounts();
+        }catch(e){
+          showEditDecksStatus("Failed to remove: " + (e.message || e), "error");
+        }
+      });
+    }
+
+    const restoreBtn = row.querySelector(".restoreBtn");
+    if(restoreBtn){
+      restoreBtn.addEventListener("click", async () => {
+        try{
+          await jpost("/api/set_status", { id: card.id, status: "active" });
+          showEditDecksStatus(`Restored "${card.term}"`, "success");
+          await loadDeletedCards();
+          await loadEditDeckCards(true);
+          refreshCounts();
+        }catch(e){
+          showEditDecksStatus("Failed to restore: " + (e.message || e), "error");
+        }
+      });
+    }
+
+    row.querySelector(".editBtn").addEventListener("click", () => {
+      openInlineCardEditor(row, card);
+    });
+
+    list.appendChild(row);
+  }
+}
+
+// Inline editor UI for a single card
+function openInlineCardEditor(row, card){
+  const main = row.querySelector(".editCardMain");
+  const actions = row.querySelector(".editCardActions");
+  if(!main || !actions) return;
+
+  const orig = { term: card.term || "", meaning: card.meaning || "", pron: card.pron || "", group: card.group || "" };
+
+  // Render editor in a compact, list-like box (no accordion feel), with Save/Cancel contained
+  // inside the row to avoid layout issues on smaller screens.
+  main.innerHTML = `
+    <div class="editCardEditBox">
+      <div class="editCardEditGrid">
+        <label class="field">
+          <span>Term *</span>
+          <input class="editTerm" value="${escapeAttr(orig.term)}" />
+        </label>
+        <label class="field">
+          <span>Definition *</span>
+          <input class="editMeaning" value="${escapeAttr(orig.meaning)}" />
+        </label>
+        <div class="row2">
+          <label class="field">
+            <span>Pronunciation</span>
+            <input class="editPron" value="${escapeAttr(orig.pron)}" />
+          </label>
+          <label class="field">
+            <span>Group</span>
+            <input class="editGroup" value="${escapeAttr(orig.group)}" />
+          </label>
+        </div>
+      </div>
+      <div class="editCardEditBtns">
+        <button class="appBtn good small saveBtn">Save</button>
+        <button class="appBtn secondary small cancelBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  // Hide the right-side actions while editing so the row stays clean and responsive
+  actions.innerHTML = "";
+  actions.style.display = "none";
+
+  const cancelBtn = main.querySelector(".cancelBtn");
+  const saveBtn = main.querySelector(".saveBtn");
+
+  cancelBtn.addEventListener("click", () => {
+    // Restore original row render by reloading cached list
+    renderEditDeckCards();
+  });
+
+  saveBtn.addEventListener("click", async () => {
+    const newTerm = row.querySelector(".editTerm").value.trim();
+    const newMeaning = row.querySelector(".editMeaning").value.trim();
+    const newPron = row.querySelector(".editPron").value.trim();
+    const newGroup = row.querySelector(".editGroup").value.trim();
+
+    if(!newTerm){
+      showEditDecksStatus("Term is required", "error");
+      return;
+    }
+    if(!newMeaning){
+      showEditDecksStatus("Definition is required", "error");
+      return;
+    }
+
+    // Duplicate detection (within deck, excluding this card)
+    const dup = findDuplicateCardInCache(newTerm, card.id);
+    if(dup){
+      const choice = await showChoiceModal(
+        "Duplicate term detected",
+        `"${newTerm}" already exists in this deck.\n\nChoose what you want to do:`,
+        [
+          { key: "add", label: "Add duplicate (keep both)", className: "secondary" },
+          { key: "replace", label: "Replace existing duplicate", className: "primary" },
+          { key: "cancel", label: "Cancel", className: "secondary" }
+        ]
+      );
+      if(choice === "cancel" || !choice) return;
+
+      if(choice === "replace"){
+        try{
+          await fetch(`/api/user_cards/${dup.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ term: newTerm, meaning: newMeaning, pron: newPron, group: newGroup, deckId: editDeckModalDeck?.id })
+          });
+          // Remove this card from study (soft delete)
+          await jpost("/api/set_status", { id: card.id, status: "deleted" });
+          showEditDecksStatus(`Replaced duplicate "${newTerm}" (this card moved to Deleted)`, "success");
+          await loadDeletedCards();
+          await loadEditDeckCards(true);
+          return;
+        }catch(e){
+          showEditDecksStatus("Failed to replace duplicate: " + (e.message || e), "error");
+          return;
+        }
+      }
+      // else "add": proceed with updating this card normally
+    }
+
+    try{
+      saveBtn.disabled = true;
+      await fetch(`/api/user_cards/${card.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ term: newTerm, meaning: newMeaning, pron: newPron, group: newGroup, deckId: editDeckModalDeck?.id })
+      });
+      showEditDecksStatus(`Updated "${newTerm}"`, "success");
+      await loadEditDeckCards(true);
+      await loadEditedHistory();
+    }catch(e){
+      showEditDecksStatus("Failed to update card: " + (e.message || e), "error");
+      saveBtn.disabled = false;
+    }
+  });
+}
+
+function findDuplicateCardInCache(term, excludeId){
+  const t = (term || "").trim().toLowerCase();
+  if(!t) return null;
+  for(const c of editDeckCardsCache){
+    if(excludeId && c.id === excludeId) continue;
+    if((c.term || "").trim().toLowerCase() === t && c.status !== "deleted"){
+      return c;
+    }
+  }
+  return null;
+}
+
+// Bulk: State-only definition transformation
+function computeStateOnlyDefinition(def){
+  const s = String(def || "").trim();
+  if(!s) return s;
+  // Look for "capital of X" pattern (handles "The Capital of Texas")
+  const m = s.match(/(?:^|\\b)(?:the\\s+)?capital\\s+of\\s+([A-Za-z][A-Za-z .'-]+)/i);
+  if(m && m[1]){
+    return m[1].trim().replace(/\\.+$/, "").trim();
+  }
+  // If definition starts with "Capital of X"
+  const m2 = s.match(/^\\s*(?:the\\s+)?capital\\s+of\\s+(.+)$/i);
+  if(m2 && m2[1]) return m2[1].trim();
+  return s;
+}
+
+async function openAiTemplateModal(){
+  const ids = [...editDeckSelectedIds];
+  if(ids.length === 0){
+    showEditCardsNotice("Select at least one card first", "error");
+    return;
+  }
+  const modal = $("aiTemplateModal");
+  if(!modal){
+    showEditCardsNotice("AI template window is missing (page HTML error). Please refresh.", "error");
+    return;
+  }
+
+  // Reset form each time it opens
+  aiTemplateResetForm(ids.length);
+
+  // Show/hide formatting helpers based on deck setting
+  try {
+    const s = await jget(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`);
+    $("aiTemplateFormatHelpers")?.classList.toggle("hidden", !s.aiShowFormatHelpers);
+  } catch(e){
+    $("aiTemplateFormatHelpers")?.classList.add("hidden");
+  }
+  aiTemplateBindFormatHelpers();
+
+  modal.classList.remove("hidden");
+
+  // Kick an initial example update (will show placeholder until instruction exists)
+  aiTemplateScheduleAutoExample();
+}
+
+function aiTemplateGetSelectedFields(){
+  const menu = $("aiTemplateFieldsMenu");
+  // Backward compat (older HTML)
+  const legacy = $("aiTemplateField");
+  if(!menu && legacy){
+    const f = (legacy.value || "meaning").trim();
+    return [f || "meaning"];
+  }
+  if(!menu) return ["meaning"];
+
+  const checks = [...menu.querySelectorAll('input[type="checkbox"]')];
+  let fields = checks.filter(ch => ch.checked).map(ch => (ch.value || "").trim()).filter(Boolean);
+  if(!fields.length){
+    const def = menu.querySelector('input[value="meaning"]') || checks[0];
+    if(def) def.checked = true;
+    fields = ["meaning"];
+  }
+  // de-dupe
+  const seen = new Set();
+  fields = fields.filter(f => (seen.has(f) ? false : (seen.add(f), true)));
+  return fields;
+}
+
+function aiTemplateUpdateFieldsBtn(){
+  const btn = $("aiTemplateFieldsBtn");
+  if(!btn) return aiTemplateGetSelectedFields();
+  const fields = aiTemplateGetSelectedFields();
+  const labelMap = { meaning:"Definition", term:"Term", pron:"Pronunciation", group:"Group" };
+  const labels = fields.map(f => labelMap[f] || f);
+  btn.textContent = (labels.length === 1) ? labels[0] : `${labels[0]} (+${labels.length-1})`;
+  return fields;
+}
+
+function aiTemplateResetForm(selectedCount){
+  // Reset instruction
+  const instr = $("aiTemplateInstruction");
+  if(instr) instr.value = "";
+
+  // Reset field selection to Definition only
+  const menu = $("aiTemplateFieldsMenu");
+  if(menu){
+    [...menu.querySelectorAll('input[type="checkbox"]')].forEach(ch => {
+      ch.checked = (ch.value === "meaning");
+    });
+    menu.classList.add("hidden");
+  }else if($("aiTemplateField")){
+    $("aiTemplateField").value = "meaning";
+  }
+  aiTemplateUpdateFieldsBtn();
+
+  // Clear example box
+  const box = $("aiTemplateExampleBox");
+  if(box) box.innerHTML = "";
+
+  const hint = $("aiTemplatePreviewHint");
+  if(hint){
+    const n = (typeof selectedCount === "number") ? selectedCount : ([...editDeckSelectedIds].length);
+    hint.textContent = `Selected ${n} card(s). Type an instruction to see an example. Click Preview All to see the full list.`;
+  }
+
+  _aiTemplateLastPreview = null;
+}
+
+function closeAiTemplateModal(){
+  const modal = $("aiTemplateModal");
+  if(modal) modal.classList.add("hidden");
+  // Clear inputs whenever the modal is closed (X, Cancel, outside click)
+  aiTemplateResetForm([...editDeckSelectedIds].length);
+}
+
+let _aiTemplateLastPreview = null;
+let _aiTemplateAutoTimer = null;
+
+
+let __aiTemplateFormatBound = false;
+function aiTemplateBindFormatHelpers(){
+  if(__aiTemplateFormatBound) return;
+  const btn = $("aiTemplateInsertFormatBtn");
+  const menu = $("aiTemplateInsertFormatMenu");
+  if(!btn || !menu) return;
+
+  __aiTemplateFormatBound = true;
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    menu.classList.toggle("hidden");
+  });
+
+  menu.querySelectorAll("button[data-kind]").forEach(b => {
+    b.addEventListener("click", () => {
+      const kind = b.dataset.kind || "both";
+      const ta = $("aiTemplateInstruction");
+      if(!ta) return;
+      const block = (kind === "term") ? "FORMAT EXAMPLE (TERM):\nTerm: <your term here>\n\n" :
+                   (kind === "definition") ? "FORMAT EXAMPLE (DEFINITION):\nDefinition: <your definition here>\n\n" :
+                   "FORMAT EXAMPLE (TERM + DEFINITION):\nTerm: <your term here>\nDefinition: <your definition here>\n\n";
+      ta.value = (ta.value || "") + (ta.value && !ta.value.endsWith("\n") ? "\n" : "") + block;
+      menu.classList.add("hidden");
+      aiTemplateScheduleAutoExample();
+      ta.focus();
+    });
+  });
+
+  document.addEventListener("click", (ev) => {
+    if(!menu.classList.contains("hidden")){
+      const t = ev.target;
+      if(!menu.contains(t) && t !== btn){
+        menu.classList.add("hidden");
+      }
+    }
+  });
+}
+
+function aiTemplateScheduleAutoExample(){
+  if(_aiTemplateAutoTimer) clearTimeout(_aiTemplateAutoTimer);
+  _aiTemplateAutoTimer = setTimeout(aiTemplateAutoExample, 500);
+}
+
+function _aiFieldLabel(field){
+  return (field === "meaning" ? "Definition" : (field === "term" ? "Term" : (field === "pron" ? "Pronunciation" : "Group")));
+}
+
+function _groupChangesByCard(res, ids){
+  const changes = (res?.changes || []);
+  const byId = new Map();
+  for(const ch of changes){
+    const cid = ch.id;
+    if(!byId.has(cid)) byId.set(cid, []);
+    byId.get(cid).push(ch);
+  }
+  // stable order: first selected ids, then remaining
+  const ordered = [];
+  for(const cid of ids){
+    if(byId.has(cid)) ordered.push([cid, byId.get(cid)]);
+  }
+  for(const [cid, arr] of byId.entries()){
+    if(!ids.includes(cid)) ordered.push([cid, arr]);
+  }
+  return ordered;
+}
+
+// Auto example shown inside the AI template window (1 example)
+async function aiTemplateAutoExample(){
+  const modal = $("aiTemplateModal");
+  if(!modal || modal.classList.contains("hidden")) return;
+
+  const ids = [...editDeckSelectedIds];
+  const hint = $("aiTemplatePreviewHint");
+  const box = $("aiTemplateExampleBox");
+
+  if(!ids.length){
+    if(hint) hint.textContent = "Select at least one card first.";
+    if(box) box.innerHTML = "";
+    return;
+  }
+
+  const instruction = ($("aiTemplateInstruction")?.value || "").trim();
+  const fields = aiTemplateUpdateFieldsBtn();
+
+  if(!instruction){
+    if(hint) hint.textContent = `Selected ${ids.length} card(s). Type an instruction to see an example. Click Preview All to see the full list.`;
+    if(box) box.innerHTML = "";
+    return;
+  }
+
+  try{
+    if(hint) hint.textContent = "Generating example...";
+    if(box) box.innerHTML = "";
+
+    const res = await jpost("/api/ai_template/preview", {
+      deckId: editDeckModalDeck?.id,
+      ids,
+      fields,
+      instruction
+    });
+
+    if(res?.error){
+      throw new Error(res.error);
+    }
+    _aiTemplateLastPreview = res;
+
+    const grouped = _groupChangesByCard(res, ids);
+    if(!grouped.length){
+      if(hint) hint.textContent = "No changes proposed yet (try refining your instruction).";
+      return;
+    }
+
+    const [cid, arr] = grouped[0];
+    const term = (arr[0]?.term || "");
+    const lines = arr
+      .filter(ch => fields.includes(ch.field))
+      .map(ch => {
+        const fl = _aiFieldLabel(ch.field);
+        return `<div class="beforeAfter">
+          <span class="label">${fl}:</span>
+          <span class="before">${escapeHtml(ch.before || "")}</span>
+          <span class="arrow"> &gt; </span>
+          <span class="after">${escapeHtml(ch.after || "")}</span>
+        </div>`;
+      }).join("");
+
+    const total = (res?.total || ids.length);
+    if(hint){
+      hint.textContent = `Example (1 card). Click Preview All to see all changes (${total} selected).`;
+    }
+    if(box){
+      box.innerHTML = `
+        <div class="previewItem">
+          <div class="top">
+            <div class="term">${escapeHtml(term)}</div>
+          </div>
+          ${lines || `<div class="mini muted">No changes for this example card.</div>`}
+        </div>
+      `;
+    }
+
+  }catch(e){
+    if(hint) hint.textContent = "Example failed.";
+    showEditCardsNotice("AI example failed: " + (e.message || e), "error");
+    if(box) box.innerHTML = "";
+  }
+}
+
+// Preview ALL (opens the preview modal showing proposed changes)
+async function aiTemplatePreviewAll(){
+  const ids = [...editDeckSelectedIds];
+  if(ids.length === 0){
+    showEditCardsNotice("Select at least one card first", "error");
+    return;
+  }
+  const instruction = ($("aiTemplateInstruction")?.value || "").trim();
+  const fields = aiTemplateUpdateFieldsBtn();
+  if(!instruction){
+    showEditCardsNotice("Type an instruction for the AI first", "error");
+    return;
+  }
+
+  try{
+    const res = await jpost("/api/ai_template/preview", {
+      deckId: editDeckModalDeck?.id,
+      ids,
+      fields,
+      instruction
+    });
+    if(res?.error) throw new Error(res.error);
+
+    _aiTemplateLastPreview = res;
+
+    const grouped = _groupChangesByCard(res, ids);
+    const items = [];
+
+    for(const [cid, arr] of grouped){
+      const term = (arr[0]?.term || "");
+      const lines = arr
+        .filter(ch => fields.includes(ch.field))
+        .map(ch => {
+          const fl = _aiFieldLabel(ch.field);
+          return `<div class="beforeAfter">
+            <span class="label">${fl}:</span>
+            <span class="before">${escapeHtml(ch.before || "")}</span>
+            <span class="arrow"> &gt; </span>
+            <span class="after">${escapeHtml(ch.after || "")}</span>
+          </div>`;
+        }).join("");
+
+      items.push(`
+        <div class="previewItem">
+          <div class="top">
+            <div class="term">${escapeHtml(term)}</div>
+          </div>
+          ${lines || `<div class="mini muted">No changes</div>`}
+        </div>
+      `);
+    }
+
+    await showPreviewModal(
+      "Preview: AI template",
+      `Showing proposed changes for ${Math.min(grouped.length, ids.length)} card(s).`,
+      items,
+      "Close"
+    );
+
+  }catch(e){
+    showEditCardsNotice("AI preview failed: " + (e.message || e), "error");
+  }
+}
+
+async function aiTemplateApply(){
+  const ids = [...editDeckSelectedIds];
+  if(ids.length === 0){
+    showEditCardsNotice("Select at least one card first", "error");
+    return;
+  }
+  const instruction = ($("aiTemplateInstruction")?.value || "").trim();
+  const fields = aiTemplateUpdateFieldsBtn();
+  if(!instruction){
+    showEditCardsNotice("Type an instruction for the AI first", "error");
+    return;
+  }
+
+  if(!confirm(`Apply AI template to ${ids.length} selected card(s)?`)) return;
+
+  try{
+    const res = await jpost("/api/ai_template/apply", {
+      deckId: editDeckModalDeck?.id,
+      ids,
+      fields,
+      instruction
+    });
+
+    if(res?.error){
+      throw new Error(res.error);
+    }
+
+    const updated = res.updated || 0;
+    const skipped = res.skipped || 0;
+    const conflicts = res.conflicts || [];
+
+    if(conflicts.length){
+      showEditDecksStatus(`Applied to ${updated}. Skipped ${skipped}. Conflicts: ${conflicts.length} (see console)`, "error");
+      console.warn("AI template conflicts:", conflicts);
+    }else{
+      showEditDecksStatus(`Applied AI template to ${updated} card(s)`, "success");
+    }
+
+    closeAiTemplateModal();
+    await loadEditDeckCards(true);
+    await loadEditedHistory();
+    refreshCounts();
+
+  }catch(e){
+    showEditCardsNotice("AI apply failed: " + (e.message || e), "error");
+  }
+}
+
+async function bulkDeleteSelected(){
+  const ids = [...editDeckSelectedIds];
+  if(ids.length === 0){
+    showEditCardsNotice("Select at least one card first", "error");
+    return;
+  }
+
+  const cardsById = new Map(editDeckCardsCache.map(c=>[c.id,c]));
+  const targets = ids.map(id => cardsById.get(id)).filter(c => c && c.status !== "deleted");
+  if(targets.length === 0){
+    showEditDecksStatus("No selectable (non-deleted) cards in selection", "error");
+    return;
+  }
+
+  const items = targets.slice(0, 250).map(c => `
+    <div class="previewItem">
+      <div class="top">
+        <div class="term">${escapeHtml(c.term || "")}</div>
+        <div class="note">will be moved to Deleted</div>
+      </div>
+      <div class="beforeAfter">
+        <div class="before">${escapeHtml(c.meaning || "")}</div>
+      </div>
+    </div>
+  `);
+
+  const ok = await showPreviewModal(
+    "Preview: Delete selected",
+    `This will mark ${targets.length} card(s) as Deleted (restorable).`,
+    items,
+    "Delete"
+  );
+  if(!ok) return;
+
+  try{
+    for(const c of targets){
+      await jpost("/api/set_status", { id: c.id, status: "deleted" });
+    }
+    showEditDecksStatus(`Deleted ${targets.length} card(s)`, "success");
+    await loadDeletedCards();
+    await loadEditDeckCards(true);
+    refreshCounts();
+  }catch(e){
+    showEditDecksStatus("Bulk delete failed: " + (e.message || e), "error");
+  }
+}
+
+// Edited history (shows under Edit Decks > Deleted tab)
+async function loadEditedHistory(){
+  try{
+    const data = await jget("/api/edit_history");
+    renderEditedHistory(Array.isArray(data) ? data : (data.items || []));
+  }catch(e){
+    // ignore if not available
+  }
+}
+
+function renderEditedHistory(items){
+  const list = $("editedCardsList");
+  const countEl = $("editedCount");
+  const searchEl = $("editedSearch");
+  if(!list) return;
+
+  const q = (searchEl?.value || "").trim().toLowerCase();
+  const filtered = q ? items.filter(it => {
+    const t = `${it.term_after||""} ${it.meaning_after||""} ${it.term_before||""} ${it.meaning_before||""}`.toLowerCase();
+    return t.includes(q);
+  }) : items;
+
+  if(countEl) countEl.textContent = `${filtered.length} edited`;
+
+  if(filtered.length === 0){
+    list.innerHTML = '<div class="emptyState"><div class="icon">✏️</div>No edited cards</div>';
+    return;
+  }
+
+  list.innerHTML = "";
+  for(const it of filtered){
+    const div = document.createElement("div");
+    div.className = "editedCardItem";
+    const dt = it.ts ? new Date(it.ts * 1000) : null;
+    const timeStr = dt ? dt.toLocaleString() : "";
+    div.innerHTML = `
+      <div class="editedTop">
+        <div class="editedTerm">${escapeHtml(it.term_after || it.term_before || "")}</div>
+        <div class="editedTopRight">
+          <div class="editedTime">${escapeHtml(timeStr)}</div>
+          <button class="appBtn secondary small restoreEditBtn" title="Restore this card back to the 'Before' values">Restore</button>
+        </div>
+      </div>
+      <div class="editedDetail">
+        <div class="before">Before: ${escapeHtml(it.meaning_before || "")}</div>
+        <div>After: ${escapeHtml(it.meaning_after || "")}</div>
+      </div>
+    `;
+    div.querySelector(".restoreEditBtn")?.addEventListener("click", async () => {
+      if(!confirm("Restore this card back to the 'Before' values?")) return;
+      try{
+        await jpost("/api/edit_history/restore", { ts: it.ts, card_id: it.card_id });
+        showEditDecksStatus(`Restored "${it.term_before || it.term_after || ""}"`, "success");
+        await loadEditedHistory();
+        await loadEditDeckCards(true);
+        refreshCounts();
+      }catch(e){
+        showEditDecksStatus("Failed to restore: " + (e.message || e), "error");
+      }
+    });
+    list.appendChild(div);
+  }
+}
+
+// Sub-tabs inside Deleted tab (Deleted / Edited)
+function initDeletedSubTabs(){
+  document.querySelectorAll("#editDecksDeletedTab .subTab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#editDecksDeletedTab .subTab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll("#editDecksDeletedTab .subTabBody").forEach(s => s.classList.remove("active"));
+      btn.classList.add("active");
+      document.querySelector(`#editDecksDeletedTab .subTabBody[data-subtab-body="${btn.dataset.subtab}"]`)?.classList.add("active");
+      if(btn.dataset.subtab === "edited"){
+        loadEditedHistory();
+      }else{
+        loadDeletedCards();
+      }
+    });
+  });
+
+  $("editedSearch")?.addEventListener("input", () => loadEditedHistory());
+  $("clearEditedHistoryBtn")?.addEventListener("click", async () => {
+    if(!confirm("Clear edited cards history?")) return;
+    try{
+      await jpost("/api/edit_history/clear", {});
+      showEditDecksStatus("Cleared edited history", "success");
+      loadEditedHistory();
+    }catch(e){
+      showEditDecksStatus("Failed to clear: " + (e.message || e), "error");
+    }
+  });
+
+
+  $("deletedSearch")?.addEventListener("input", () => loadDeletedCards());
+
+  $("clearDeletedAllBtn")?.addEventListener("click", async () => {
+    if(!confirm("Permanently clear all deleted cards? (This cannot be undone)")) return;
+    try{
+      await jpost("/api/deleted/clear_all", {});
+      showEditDecksStatus("Cleared deleted cards", "success");
+      loadDeletedCards();
+      refreshCounts();
+    }catch(e){
+      showEditDecksStatus("Failed to clear deleted: " + (e.message || e), "error");
+    }
+  });
+}
+
+// DOM bindings for Edit Deck Modal controls
+function initEditDeckModalBindings(){
+  // Tabs
+  document.querySelectorAll("#editDeckModal .modalTab").forEach(b => {
+    b.addEventListener("click", () => switchEditDeckModalTab(b.dataset.edittab));
+  });
+
+  // Close button in tab row (only visible in Edit Cards)
+  $("editCardsCloseTop")?.addEventListener("click", closeEditDeckModal);
+
+  // Edit Cards controls
+  $("refreshEditCardsBtn")?.addEventListener("click", () => loadEditDeckCards(true));
+  $("editCardsSearch")?.addEventListener("input", renderEditDeckCards);
+  $("editCardsSearch")?.addEventListener("input", updateEditCardsSearchClear);
+  $("editCardsSearchClear")?.addEventListener("click", () => {
+    const input = $("editCardsSearch");
+    if(input){ input.value = ""; }
+    updateEditCardsSearchClear();
+    renderEditDeckCards();
+  });
+  $("editCardsGroupFilter")?.addEventListener("change", renderEditDeckCards);
+  $("editCardsShowDeleted")?.addEventListener("change", renderEditDeckCards);
+
+  $("editCardsSelectAllBtn")?.addEventListener("click", () => {
+    const cards = getVisibleEditDeckCards();
+    cards.forEach(c => { if(c.status !== "deleted") editDeckSelectedIds.add(c.id); });
+    renderEditDeckCards();
+  });
+  $("editCardsClearSelBtn")?.addEventListener("click", () => {
+    editDeckSelectedIds = new Set();
+    renderEditDeckCards();
+  });
+
+  $("bulkAiTemplateBtn")?.addEventListener("click", openAiTemplateModal);
+  $("aiTemplateCancelBtn")?.addEventListener("click", closeAiTemplateModal);
+
+$("aiTemplateCloseX")?.addEventListener("click", closeAiTemplateModal);
+
+// Multi-field dropdown toggle + auto example triggers
+$("aiTemplateFieldsBtn")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  const menu = $("aiTemplateFieldsMenu");
+  if(!menu) return;
+  menu.classList.toggle("hidden");
+});
+$("aiTemplateFieldsMenu")?.addEventListener("change", () => {
+  aiTemplateUpdateFieldsBtn();
+  aiTemplateScheduleAutoExample();
+});
+$("aiTemplateInstruction")?.addEventListener("input", aiTemplateScheduleAutoExample);
+
+// Click outside the fields menu closes it
+document.addEventListener("click", (e) => {
+  const menu = $("aiTemplateFieldsMenu");
+  const btn = $("aiTemplateFieldsBtn");
+  if(!menu || menu.classList.contains("hidden")) return;
+  if(e.target === menu || menu.contains(e.target) || e.target === btn || btn.contains(e.target)) return;
+  menu.classList.add("hidden");
+});
+  $("aiTemplatePreviewBtn")?.addEventListener("click", aiTemplatePreviewAll);
+  $("aiTemplateApplyBtn")?.addEventListener("click", aiTemplateApply);
+  $("aiTemplateModal")?.addEventListener("click", (e) => { if(e.target === $("aiTemplateModal")) closeAiTemplateModal(); });
+  $("bulkDeleteBtn")?.addEventListener("click", bulkDeleteSelected);
+
+  // Close modals by clicking overlay background
+  $("choiceModal")?.addEventListener("click", (e) => {
+    if(e.target === $("choiceModal")) $("choiceModal").classList.add("hidden");
+  });
+  $("previewModal")?.addEventListener("click", (e) => {
+    if(e.target === $("previewModal")) $("previewModal").classList.add("hidden");
+  });
+
+  initDeletedSubTabs();
+}
 
 // Upload deck logo from Edit Deck modal
 async function uploadDeckLogo(){
@@ -3081,6 +4180,12 @@ async function clearDeckLogo(){
 function closeEditDeckModal(){
   const modal = $("editDeckModal");
   if(modal) modal.classList.add("hidden");
+  // Also close nested overlays
+  $("aiTemplateModal")?.classList.add("hidden");
+  $("choiceModal")?.classList.add("hidden");
+  $("previewModal")?.classList.add("hidden");
+  resetEditCardsState();
+  document.body.classList.remove("modalLock");
 }
 
 // Save deck edits
@@ -3476,6 +4581,9 @@ function renderDeletedCards(cards){
 
 // Event bindings for Edit Decks
 document.addEventListener("DOMContentLoaded", () => {
+  // Init Edit Deck Modal (tabs + edit cards + bulk tools)
+  initEditDeckModalBindings();
+
   // Open/Close Edit Decks
   $("openEditDecksBtn")?.addEventListener("click", openEditDecks);
   $("closeEditDecksBtn")?.addEventListener("click", closeEditDecks);
@@ -3541,6 +4649,42 @@ function initAiGenerator(){
   
   // Keywords search
   $("aiGenSearchBtn")?.addEventListener("click", aiGenFromKeywords);
+  // Live example preview (before generating)
+  $("aiGenKeywords")?.addEventListener("input", () => { applyAiGeneratorUiSettings(); });
+  $("aiGenInstructions")?.addEventListener("input", () => { applyAiGeneratorUiSettings(); });
+
+  // Format helper dropdown (optional)
+  const fmtBtn = $("aiGenInsertFormatBtn");
+  const fmtMenu = $("aiGenInsertFormatMenu");
+  if(fmtBtn && fmtMenu){
+    fmtBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      fmtMenu.classList.toggle("hidden");
+    });
+    fmtMenu.querySelectorAll("button[data-kind]").forEach(b => {
+      b.addEventListener("click", () => {
+        const kind = b.dataset.kind || "both";
+        const ta = $("aiGenInstructions");
+        if(!ta) return;
+        const block = (kind === "term") ? "FORMAT EXAMPLE (TERM):\nTerm: <your term here>\n\n" :
+                     (kind === "definition") ? "FORMAT EXAMPLE (DEFINITION):\nDefinition: <your definition here>\n\n" :
+                     "FORMAT EXAMPLE (TERM + DEFINITION):\nTerm: <your term here>\nDefinition: <your definition here>\n\n";
+        ta.value = (ta.value || "") + (ta.value && !ta.value.endsWith("\n") ? "\n" : "") + block;
+        fmtMenu.classList.add("hidden");
+        applyAiGeneratorUiSettings();
+        ta.focus();
+      });
+    });
+    // click outside to close
+    document.addEventListener("click", (ev) => {
+      if(!fmtMenu.classList.contains("hidden")){
+        const t = ev.target;
+        if(!fmtMenu.contains(t) && t !== fmtBtn){
+          fmtMenu.classList.add("hidden");
+        }
+      }
+    });
+  }
   
   // Photo upload
   const photoZone = $("photoUploadZone");
@@ -3684,14 +4828,21 @@ async function aiGenFromKeywords(){
     }
   }
   
-  // Check deck-level short answers setting
+  // Deck AI settings (short answers + user instructions override)
   let shortAnswers = false;
+  let instructions = ($("aiGenInstructions")?.value || "").trim();
+
   try {
     const ds = await jget(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`);
     shortAnswers = !!ds.shortAnswers;
   } catch(e){}
-  
-  await generateCards({ type: "keywords", keywords, maxCards, shortAnswers });
+
+  // If user typed instructions, they override short-answers mode
+  if(instructions){
+    shortAnswers = false;
+  }
+
+  await generateCards({ type: "keywords", keywords, maxCards, shortAnswers, instructions });
 }
 
 async function aiGenFromPhoto(){
@@ -3899,10 +5050,10 @@ let csAllCards = [];
 let csCustomSetCards = [];
 
 function openCustomSetModal(){
-  const modal = $("customSetModal");
-  if(!modal) return;
+  const view = $("customSetView");
+  if(!view) return;
   
-  // Load current settings into modal
+  // Load current settings into view
   const settings = window.__activeSettings || settingsAll || {};
   if($("csRandomOrder")) $("csRandomOrder").checked = !!settings.randomize_custom_set;
   if($("csReflectStatus")) $("csReflectStatus").checked = !!settings.reflect_status_in_main;
@@ -3912,22 +5063,28 @@ function openCustomSetModal(){
   
   // Reset to settings tab
   document.querySelectorAll(".csTab").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".csTabContent").forEach(c => c.classList.remove("active"));
+  document.querySelectorAll(".csTabContent").forEach(c => { c.classList.remove("active"); c.classList.add("hidden"); });
   document.querySelector(".csTab[data-cstab='settings']")?.classList.add("active");
-  $("csTab-settings")?.classList.add("active");
+  const settingsPane = $("csTab-settings");
+  if(settingsPane){ settingsPane.classList.remove("hidden"); settingsPane.classList.add("active"); }
   
   // Load saved sets
   loadSavedCustomSets();
   
-  modal.classList.remove("hidden");
+  // Hide all other views and show custom set view
+  document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+  view.classList.remove("hidden");
 }
 
 function closeCustomSetModal(){
-  const modal = $("customSetModal");
-  if(modal) modal.classList.add("hidden");
+  const view = $("customSetView");
+  if(view) view.classList.add("hidden");
   
   // Save settings when closing
   saveCustomSetSettings();
+  
+  // Return to study view
+  refresh();
 }
 
 function updateCurrentSetDisplay(){
@@ -3987,17 +5144,19 @@ async function loadManageCardsTab(){
     csAllCards = await jget("/api/cards?deck_id=" + encodeURIComponent(activeDeckId));
     
     // Get custom set cards
-    const customSet = await jget("/api/custom_set");
-    const customCardIds = new Set(customSet.cards || []);
-    const statusMap = customSet.statuses || {};
-    
+    const customSet = await jget(customSetApiUrl());
+    const customCards = customSet.cards || [];
+    const customCardIds = new Set(customCards.map(c => String(c.id)));
+    const customStatusMap = {};
+    customCards.forEach(c => { customStatusMap[String(c.id)] = c.custom_status || "active"; });
+
     // Split into in-set and available
-    csCustomSetCards = csAllCards.filter(c => customCardIds.has(c.id)).map(c => ({
+    csCustomSetCards = csAllCards.filter(c => customCardIds.has(String(c.id))).map(c => ({
       ...c,
-      customStatus: statusMap[c.id] || "active"
+      customStatus: customStatusMap[String(c.id)] || "active"
     }));
     
-    const availableCards = csAllCards.filter(c => !customCardIds.has(c.id));
+    const availableCards = csAllCards.filter(c => !customCardIds.has(String(c.id)));
     
     // Render lists
     renderInSetList(csCustomSetCards);
@@ -4006,6 +5165,9 @@ async function loadManageCardsTab(){
     // Update counts
     $("csInSetCount").textContent = csCustomSetCards.length;
     $("csAvailableCount").textContent = availableCards.length;
+
+    // Ensure accordion state is correct after rendering (desktop + mobile)
+    try{ updateCsAccordionMode(); }catch(_){ }
     
   } catch(e){
     console.error("Failed to load manage cards:", e);
@@ -4056,15 +5218,20 @@ function renderAvailableList(cards, filter = ""){
     return;
   }
   
-  list.innerHTML = filtered.map(c => `
+  list.innerHTML = filtered.map(c => {
+    const mainStatusClass = c.status === "learned" ? "learned" : (c.status === "unsure" ? "unsure" : "");
+    const mainStatusLabel = c.status === "learned" ? "L" : (c.status === "unsure" ? "U" : "");
+    return `
     <div class="csCardItem" onclick="toggleCardSelection(this)">
       <input type="checkbox" data-cardid="${c.id}" onclick="event.stopPropagation()" />
       <div class="cardInfo">
         <div class="cardTerm">${escapeHtml(c.term)}</div>
         <div class="cardMeaning">${escapeHtml(c.meaning)}</div>
       </div>
+      ${mainStatusLabel ? `<span class="cardStatus ${mainStatusClass}" title="Main status">${mainStatusLabel}</span>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function toggleCardSelection(item){
@@ -4113,7 +5280,7 @@ async function removeSelectedFromSet(){
   
   for(const id of selected){
     try {
-      await jpost("/api/custom_set/remove", { id });
+      await jpost("/api/custom_set/remove", customSetBody({ id }));
     } catch(e){}
   }
   
@@ -4133,7 +5300,7 @@ async function addSelectedToSet(){
   let added = 0;
   for(const id of selected){
     try {
-      await jpost("/api/custom_set/add", { id });
+      await jpost("/api/custom_set/add", customSetBody({ id }));
       added++;
     } catch(e){}
   }
@@ -4155,7 +5322,7 @@ async function bulkMarkLearned(){
   
   for(const id of selected){
     try {
-      await jpost("/api/custom_set/set_status", { id, status: "learned" });
+      await jpost("/api/custom_set/set_status", customSetBody({ id, status: "learned" }));
       if(reflectMain){
         await jpost("/api/set_status", { id, status: "learned" });
       }
@@ -4179,7 +5346,7 @@ async function bulkMarkUnsure(){
   
   for(const id of selected){
     try {
-      await jpost("/api/custom_set/set_status", { id, status: "unsure" });
+      await jpost("/api/custom_set/set_status", customSetBody({ id, status: "unsure" }));
       if(reflectMain){
         await jpost("/api/set_status", { id, status: "unsure" });
       }
@@ -4194,7 +5361,7 @@ async function clearCustomSet(){
   if(!confirm("Clear all cards from Custom Set? This cannot be undone.")) return;
   
   try {
-    await jpost("/api/custom_set/clear", {});
+    await jpost("/api/custom_set/clear", customSetBody({}));
     await loadManageCardsTab();
     await refreshCounts();
     await refresh();
@@ -4214,7 +5381,7 @@ async function pickRandomCardsToCustom(){
   
   try {
     const cards = await jget("/api/cards?deck_id=" + encodeURIComponent(activeDeckId));
-    const customSet = await jget("/api/custom_set");
+    const customSet = await jget(customSetApiUrl());
     const existingIds = new Set(customSet.cards || []);
     
     // Only pick from cards not already in set
@@ -4225,7 +5392,7 @@ async function pickRandomCardsToCustom(){
     let added = 0;
     for(const card of picked){
       try {
-        await jpost("/api/custom_set/add", { id: card.id });
+        await jpost("/api/custom_set/add", customSetBody({ id: card.id  }));
         added++;
       } catch(e){}
     }
@@ -4245,7 +5412,7 @@ function loadSavedCustomSets(){
   if(!list) return;
   
   try {
-    savedCustomSets = JSON.parse(localStorage.getItem("kenpo_saved_custom_sets") || "[]");
+    savedCustomSets = JSON.parse(localStorage.getItem(savedSetsKey()) || "[]");
   } catch(e){
     savedCustomSets = [];
   }
@@ -4287,9 +5454,9 @@ async function quickSaveCustomSet(){
   if(!name){ alert("Please enter a name"); return; }
   
   try {
-    const customSet = await jget("/api/custom_set");
-    const cardIds = customSet.cards || [];
-    const statuses = customSet.statuses || {};
+    const customSet = await jget(customSetApiUrl());
+    const cardIds = (customSet.cards || []).map(c => c.id);
+    const statuses = Object.fromEntries((customSet.cards || []).map(c => [String(c.id), c.custom_status || "active"]));
     
     // Check if set with same name exists - overwrite it
     const existIdx = savedCustomSets.findIndex(s => s.name.toLowerCase() === name.toLowerCase());
@@ -4305,7 +5472,7 @@ async function quickSaveCustomSet(){
     if(existIdx >= 0) savedCustomSets[existIdx] = newSet;
     else savedCustomSets.push(newSet);
     
-    localStorage.setItem("kenpo_saved_custom_sets", JSON.stringify(savedCustomSets));
+    localStorage.setItem(savedSetsKey(), JSON.stringify(savedCustomSets));
     nameInput.value = "";
     activeCustomSetId = newSet.id;
     updateCurrentSetDisplay();
@@ -4323,19 +5490,19 @@ async function createNewEmptySet(){
   
   try {
     // Auto-save current set if it has cards
-    const currentCustom = await jget("/api/custom_set");
+    const currentCustom = await jget(customSetApiUrl());
     if((currentCustom.cards||[]).length > 0 && activeCustomSetId !== "default"){
       const activeSet = savedCustomSets.find(s => s.id === activeCustomSetId);
       if(activeSet){
         activeSet.cardIds = currentCustom.cards || [];
         activeSet.statuses = currentCustom.statuses || {};
         activeSet.savedAt = Date.now();
-        localStorage.setItem("kenpo_saved_custom_sets", JSON.stringify(savedCustomSets));
+        localStorage.setItem(savedSetsKey(), JSON.stringify(savedCustomSets));
       }
     }
     
     // Clear current custom set
-    await jpost("/api/custom_set/clear", {});
+    await jpost("/api/custom_set/clear", customSetBody({}));
     
     // Create new saved entry
     const newSet = {
@@ -4347,7 +5514,7 @@ async function createNewEmptySet(){
       savedAt: Date.now()
     };
     savedCustomSets.push(newSet);
-    localStorage.setItem("kenpo_saved_custom_sets", JSON.stringify(savedCustomSets));
+    localStorage.setItem(savedSetsKey(), JSON.stringify(savedCustomSets));
     
     activeCustomSetId = newSet.id;
     nameInput.value = "";
@@ -4367,7 +5534,7 @@ function renameSavedSet(index){
   const newName = prompt("Rename custom deck:", set.name);
   if(!newName || !newName.trim()) return;
   set.name = newName.trim();
-  localStorage.setItem("kenpo_saved_custom_sets", JSON.stringify(savedCustomSets));
+  localStorage.setItem(savedSetsKey(), JSON.stringify(savedCustomSets));
   loadSavedCustomSets();
   updateCurrentSetDisplay();
 }
@@ -4382,9 +5549,9 @@ async function saveCurrentCustomSet(){
   }
   
   try {
-    const customSet = await jget("/api/custom_set");
-    const cardIds = customSet.cards || [];
-    const statuses = customSet.statuses || {};
+    const customSet = await jget(customSetApiUrl());
+    const cardIds = (customSet.cards || []).map(c => c.id);
+    const statuses = Object.fromEntries((customSet.cards || []).map(c => [String(c.id), c.custom_status || "active"]));
     
     const newSet = {
       id: "set_" + Date.now(),
@@ -4399,7 +5566,7 @@ async function saveCurrentCustomSet(){
     };
     
     savedCustomSets.push(newSet);
-    localStorage.setItem("kenpo_saved_custom_sets", JSON.stringify(savedCustomSets));
+    localStorage.setItem(savedSetsKey(), JSON.stringify(savedCustomSets));
     
     nameInput.value = "";
     activeCustomSetId = newSet.id;
@@ -4421,12 +5588,12 @@ async function switchToSavedSet(index){
   
   try {
     // Clear current custom set
-    await jpost("/api/custom_set/clear", {});
+    await jpost("/api/custom_set/clear", customSetBody({}));
     
     // Add saved cards
     for(const id of set.cardIds){
       try {
-        await jpost("/api/custom_set/add", { id });
+        await jpost("/api/custom_set/add", customSetBody({ id }));
       } catch(e){}
     }
     
@@ -4434,7 +5601,7 @@ async function switchToSavedSet(index){
     if(set.statuses){
       for(const [id, status] of Object.entries(set.statuses)){
         try {
-          await jpost("/api/custom_set/set_status", { id, status });
+          await jpost("/api/custom_set/set_status", customSetBody({ id, status }));
         } catch(e){}
       }
     }
@@ -4466,19 +5633,28 @@ function deleteSavedSet(index){
   }
   
   savedCustomSets.splice(index, 1);
-  localStorage.setItem("kenpo_saved_custom_sets", JSON.stringify(savedCustomSets));
+  localStorage.setItem(savedSetsKey(), JSON.stringify(savedCustomSets));
   loadSavedCustomSets();
 }
 
 // ========== DECK-SPECIFIC SETTINGS ==========
 
-async function loadDeckShortAnswersSetting(){
-  const cb = $("deckShortAnswers");
-  if(!cb) return;
+async function loadDeckAiSettings(){
+  const cbShort = $("deckShortAnswers");
+  const cbHelpers = $("deckAiShowFormatHelpers");
+  const cbExample = $("deckAiShowPreExample");
+  if(!cbShort) return;
   try {
     const s = await jget(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`);
-    cb.checked = !!s.shortAnswers;
-  } catch(e){ cb.checked = false; }
+    cbShort.checked = !!s.shortAnswers;
+    if(cbHelpers) cbHelpers.checked = !!s.aiShowFormatHelpers; // default off
+    if(cbExample) cbExample.checked = (typeof s.aiShowPreExample === "boolean") ? s.aiShowPreExample : true; // default on
+  } catch(e){
+    cbShort.checked = false;
+    if(cbHelpers) cbHelpers.checked = false;
+    if(cbExample) cbExample.checked = true;
+  }
+  applyAiGeneratorUiSettings();
 }
 
 async function toggleDeckShortAnswers(){
@@ -4492,6 +5668,79 @@ async function toggleDeckShortAnswers(){
   }
 }
 
+async function toggleDeckAiShowFormatHelpers(){
+  const cb = $("deckAiShowFormatHelpers");
+  if(!cb) return;
+  try {
+    await jpost(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`, { aiShowFormatHelpers: cb.checked });
+    applyAiGeneratorUiSettings();
+  } catch(e){
+    console.error("Failed to save deck AI helper setting:", e);
+  }
+}
+
+async function toggleDeckAiShowPreExample(){
+  const cb = $("deckAiShowPreExample");
+  if(!cb) return;
+  try {
+    await jpost(`/api/decks/${encodeURIComponent(activeDeckId)}/settings`, { aiShowPreExample: cb.checked });
+    applyAiGeneratorUiSettings();
+  } catch(e){
+    console.error("Failed to save deck AI example setting:", e);
+  }
+}
+
+function applyAiGeneratorUiSettings(){
+  const showHelpers = !!($("deckAiShowFormatHelpers") && $("deckAiShowFormatHelpers").checked);
+  const helpersWrap = $("aiGenFormatHelpers");
+  if(helpersWrap) helpersWrap.classList.toggle("hidden", !showHelpers);
+
+  const showExample = !!($("deckAiShowPreExample") && $("deckAiShowPreExample").checked);
+  const exWrap = $("aiGenPreExampleWrap");
+  if(exWrap){
+    const shouldShow = showExample && aiGenShouldShowPreExample();
+    exWrap.classList.toggle("hidden", !shouldShow);
+  }
+  aiGenUpdatePreExample();
+}
+
+function aiGenShouldShowPreExample(){
+  const kw = ($("aiGenKeywords")?.value || "").trim();
+  const instr = ($("aiGenInstructions")?.value || "").trim();
+  const deckName = (window.activeDeckName || "").trim();
+  const deckDesc = (window.activeDeckDescription || "").trim();
+  return !!(kw || instr || deckName || deckDesc);
+}
+
+function aiGenUpdatePreExample(){
+  const box = $("aiGenPreExampleBox");
+  const wrap = $("aiGenPreExampleWrap");
+  if(!box || !wrap || wrap.classList.contains("hidden")) return;
+
+  const kwRaw = ($("aiGenKeywords")?.value || "").trim();
+  const instr = ($("aiGenInstructions")?.value || "").trim();
+  let term = "";
+  if(kwRaw){
+    term = kwRaw.split(",")[0].split(";")[0].trim();
+  }
+  if(!term) term = (window.activeDeckName || "Example Term");
+  term = term.replace(/^\s+|\s+$/g,"");
+  const cbShort = $("deckShortAnswers");
+  const shortOn = !!(cbShort && cbShort.checked);
+  const def = instr
+    ? "Follows your instruction (example output)."
+    : (shortOn ? "Short definition" : `Definition about ${term}`);
+
+  box.innerHTML = `
+    <div class="previewItem">
+      <div class="top">
+        <div class="term">${escapeHtml(term || "Example Term")}</div>
+      </div>
+      <div class="mini muted">Definition: ${escapeHtml(def)}</div>
+    </div>
+  `;
+}
+
 // Bind custom set settings button
 document.addEventListener("DOMContentLoaded", () => {
   const btn = $("customSetSettingsBtn");
@@ -4499,4 +5748,160 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", openCustomSetModal);
   }
   window.addEventListener("resize", () => { if(typeof resizeCard === "function") resizeCard(); });
+})
+function customSetApiUrl(){
+  const did = (typeof activeDeckId !== "undefined" && activeDeckId) ? activeDeckId : "kenpo";
+  return `/api/custom_set?deck_id=${encodeURIComponent(did)}`;
+}
+function customSetBody(extra){
+  const did = (typeof activeDeckId !== "undefined" && activeDeckId) ? activeDeckId : "kenpo";
+  return Object.assign({ deck_id: did }, extra || {});
+}
+
+
+function savedSetsKey(){
+  const u = (currentUser && (currentUser.id || currentUser.username)) ? (currentUser.id || currentUser.username) : "anon";
+  const did = (typeof activeDeckId !== "undefined" && activeDeckId) ? activeDeckId : "kenpo";
+  return `af_saved_custom_sets_${u}_${did}`;
+}
+
+;
+
+// ===== Custom Set Manage Cards: Accordion support (ALL viewports) =====
+let csAccordionEnabled = false;
+
+function updateCsAccordionMode(){
+  const view = $("customSetView");
+  if(!view || view.classList.contains("hidden")) return;
+
+  // Enable accordion whenever the Manage Cards layout is stacked (column).
+  // This keeps behavior consistent on desktop + mobile.
+  const split = document.querySelector("#csTab-manage .csManageSplit");
+  if(!split) return;
+
+  const flexDir = (window.getComputedStyle(split).flexDirection || "").toLowerCase();
+  const enabled = (flexDir === "column");
+  const panes = Array.from(document.querySelectorAll("#csTab-manage .csManagePane"));
+
+  if(enabled && !csAccordionEnabled){
+    // Start collapsed (user opens what they want)
+    panes.forEach(p => p.classList.add("collapsed"));
+    csAccordionEnabled = true;
+  }else if(!enabled && csAccordionEnabled){
+    panes.forEach(p => p.classList.remove("collapsed"));
+    csAccordionEnabled = false;
+  }
+}
+
+function toggleCsPane(which){
+  updateCsAccordionMode();
+  if(!csAccordionEnabled) return;
+  const panes = Array.from(document.querySelectorAll(".csManagePane"));
+  panes.forEach(p => {
+    const name = p.getAttribute("data-pane");
+    if(name === which){
+      p.classList.toggle("collapsed");
+    }else{
+      p.classList.add("collapsed");
+    }
+  });
+}
+
+window.addEventListener("resize", () => {
+  try{ updateCsAccordionMode(); }catch(_){}
 });
+
+// Hook accordion update when opening the modal
+const _origOpenCustomSetModal = openCustomSetModal;
+openCustomSetModal = function(){
+  _origOpenCustomSetModal();
+  try{ updateCsAccordionMode(); }catch(_){}
+};
+
+
+// ===== UI Error Log (optional) =====
+let uiLogEnabled = false;
+let uiLogInstalled = false;
+
+function toggleUiLog(show){
+  const panel = $("uiLogPanel");
+  if(!panel) return;
+  if(show){
+    panel.classList.remove("hidden");
+  }else{
+    panel.classList.add("hidden");
+  }
+}
+
+function clearUiLog(){
+  const body = $("uiLogBody");
+  if(body) body.innerHTML = "";
+}
+
+function _appendUiLogLine(tag, msg){
+  const body = $("uiLogBody");
+  if(!body) return;
+  const line = document.createElement("div");
+  line.className = "uiLogLine";
+  const ts = new Date().toLocaleTimeString();
+  line.textContent = `[${ts}] ${tag}: ${msg}`;
+  body.appendChild(line);
+  // keep scrolled to bottom
+  body.scrollTop = body.scrollHeight;
+}
+
+function logUiError(tag, message){
+  if(!uiLogEnabled) return;
+  _appendUiLogLine(tag, String(message || ""));
+  toggleUiLog(true);
+}
+
+function installUiErrorLog(enabled){
+  uiLogEnabled = !!enabled;
+  if(!uiLogEnabled){
+    toggleUiLog(false);
+    return;
+  }
+  if(uiLogInstalled) return;
+  uiLogInstalled = true;
+
+  window.addEventListener("error", (e) => {
+    try{
+      const msg = e && (e.message || e.error?.message) ? (e.message || e.error.message) : "Unknown error";
+      logUiError("error", msg);
+    }catch(_){}
+  });
+
+  window.addEventListener("unhandledrejection", (e) => {
+    try{
+      const msg = e && e.reason ? (e.reason.message || String(e.reason)) : "Unhandled rejection";
+      logUiError("promise", msg);
+    }catch(_){}
+  });
+
+  // Optional: capture console.error
+  try{
+    const _ce = console.error.bind(console);
+    console.error = function(...args){
+      try{ logUiError("console", args.map(a => (typeof a === "string" ? a : JSON.stringify(a))).join(" ")); }catch(_){}
+      _ce(...args);
+    };
+  }catch(_){}
+}
+
+// Enable/disable based on settings after login and after settings changes
+const _origLoadSettingsUI = loadSettingsUI;
+loadSettingsUI = function(settings){
+  _origLoadSettingsUI(settings);
+  try{ installUiErrorLog(!!(settings && settings.show_ui_error_log)); }catch(_){}
+};
+
+const _origSaveSettings = saveSettings;
+saveSettings = async function(){
+  const r = await _origSaveSettings();
+  try{
+    const s = await jget("/api/settings");
+    installUiErrorLog(!!(s && s.show_ui_error_log));
+  }catch(_){}
+  return r;
+};

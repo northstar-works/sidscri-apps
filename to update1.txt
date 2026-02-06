@@ -1,43 +1,32 @@
 
 
+I want to be able to bulk add cards to existing decks using ai generator. in ai generator i want the option from dropdown to select a deck to.
+
+
+
+
+
 ip##
-I wanted the added close button on same line of Edit deck and Edit Cards button, but on right side of only showing on edit card page, keeping its current smaller size.  
+Edit Deck>AI Generator>AI Deck Generator>Keywords> Generate button needs to be moved to where it is not touching the box above and reduced in size by only a 1/4.  
+Add a "Preview All" button on the same line, right side of page with a "Cancel" button to go back to "Switch" page. Location of button will be same as in photo 2. keeping "Generate" button on the left side of page. 
+Text put in "Instructions for the AI (optional)" is persistent, needs to be cleared out on exit, or according to "Inserted Example format" chosen.  
+Text in "Instructions for the AI (optional)" has too many extra lines when "Inserted Example format" option is chosen. 
+Want a "Clear" button on far right of "Inserted Example format" button on that page to clear out any typed or "Inserted Example format" text
+## 
 
 (**Verify works** 2.) notifying of adding duplicates with action prompt (add duplicate. replace duplicate , cancel).**
 
-1. Nothing in "All" list shows.
-
-2. Any status changed to Custom deck while studying does not immediatly show in Unlearned: 11 | Unsure: 1 | Learned: 1 unless I refresh page.  
-
-3. Custom Deck doesnt load after more than available random cards were selected to be added, not even the minimum available was added at all.png
-
-
-1.) I want when users types specific instructions on how he want their terms/definitions to specifically be resulted, it will follow those instruction, this over rides any "short definition only" setting if on. 
-
-2.) I want a setting in ai page, when on, it will show small button(s) with a drop down that has term and or Definition field so you have the option to show ai specifically the way you want the cards to look on that specific study deck, or card when editing cards. off as default
-
-3.) Another setting when on; When using ai and keywords and or name/description are/is filled I want there to be an example showing before performing search. On as default
 
 ip##
 .##
 
 ###Exe build###
 
-*In exe build, need to verify this fix carried over*
-This admin system app information section works on webserver project version. but does not here. On an exe installed version built from packaged I want in also want in the "version" field its Web Server Version 8.5.1 (build 54) its code coming from webserver project and the local EXE version from webserver packaged that is currently showing 6.0.0 (build 18). need to see how we can add Web Server Version in the build to be shown here and to fix the Released not showing up on this exe local version either.  Same needs to be applied to the version area of User:**** drop down.
-App Version: 6.0.0 (build 18)
-WebAppServer: 8.5.1 (build 54)
 
-*Look at previous fix attempt*
-Why are there always two processes running of the same name.
-
-Might need to relocate read and write files that might be in program files to programdata or localuserapp.
 
 ###Universal###
 
-Need to do a package/android app anaylisis to check android app live pull from/push to location. 
 
-I need to make sure kenpo.json is being mapped from the correct place.  what is the connection with kenpo_words.json for android app, WebServer, packaging.  I need to figure out if its a single source of truth or co-synced source of truth for that file.  What happens to the files data down the process.
 
 ###Android App#
 
@@ -49,8 +38,6 @@ I need to make sure kenpo.json is being mapped from the correct place.  what is 
 
 ##tool##
 
-*Look at previous fix attempt*
-Need tools to be relocated and mapped to Repo-root\Tools\SyncTool-WebServerToPackaged. logs to Repo-root\logs\Sync\WebServerToPackaged logs\WebServerToPackaged_vx.x.x_bx_YYYYMMDD_HHMMSS.log. zipped output to Repo-root\SyncTool-WebServerToPackaged vx.x.x_bx.zip
 
 Wish the new updated KenpoFlashcardsWebServer_Packaged changelog and readme more closely resembled the add, fix, changes, simular to whats in the KenpoFlashcardsWebServer changelogs add, fix, changes.
 
@@ -181,6 +168,10 @@ Add a setting button>"Show these errors in ui log(what ever these log types are)
 
 Only in mobile device>portrait> In "Custom set settings">Manage Cards>"custom set" and "Available Cards" I want those sections to expand when clicked(unexpanded by default). One can be expanded at a time.  In windows browser and mobile device> landscape>Available Cards list is very bad needs to be fixed to show Checkbox name, cards term, in custom status.  Only on mobile devices>both orientations has the "custom set setting" page to big (Seems zoomed in look) not fitting well on the screen. 
 
+Need to do a package/android app anaylisis to check android app live pull from/push to location. 
+I need to make sure kenpo.json is being mapped from the correct place.  what is the connection with kenpo_words.json for android app, WebServer, packaging.  I need to figure out if its a single source of truth or co-synced source of truth for that file.  What happens to the files data down the process.
+
+
 The custom available cards list is showing all cards from across study decks, which also has USA state capitals custom deck showing basic spanish... custom cards as well.  It needs to go back to where each study deck has its own custom decks.  Only cards from active study deck should be available in "manage cards">"Available Cards".  No "manage cards">"In Custom Set" cards are listed in this list, even though there are 10 or so state cards in custom and wrongfully spanish words as well.
 When I click on the custom deck study(star) page icon next to "All" button, it appears to be marking and un marking shown cards in the study deck. That icons action should only goes to the custom study deck page.
 On all devices, when "custom set setting" page opens setting is blank when I go to another section, then back to settings everthing appears that needs to be addressed.
@@ -220,5 +211,26 @@ Clear search results with an x and cards checked when edit cards windows is clos
 Clear text inputs once "x" is selected or when window is exited view I want this to be a universal request for all fields in the project. Make sure all alerts show on the correct active page, and to stop persisting I want this to be a universal request for all fields in the project.
 
 When clicking AI Template without selecting a card the alert notification text is on the main edit decks page, which is under the edit card page activily open. Move that alert to the proper page within edit cards page. The text needs to eventually disapear instead of persisting.
+
+I wanted the added close button on same line of Edit deck and Edit Cards button, but on right side of only showing on edit card page, keeping its current smaller size. 
+
+This admin system app information section works on webserver project version. but does not here. On an exe installed version built from packaged I want in also want in the "version" field its Web Server Version 8.5.1 (build 54) its code coming from webserver project and the local EXE version from webserver packaged that is currently showing 6.0.0 (build 18). need to see how we can add Web Server Version in the build to be shown here and to fix the Released not showing up on this exe local version either.  Same needs to be applied to the version area of User:**** drop down.
+App Version: 6.0.0 (build 18)
+WebAppServer: 8.5.1 (build 54)
+
+1.) I want when users types specific instructions on how he want their terms/definitions to specifically be resulted, it will follow those instruction, this over rides any "short definition only" setting if on. 
+2.) I want a setting in ai page, when on, it will show small button(s) with a drop down that has term and or Definition field so you have the option to show ai specifically the way you want the cards to look on that specific study deck, or card when editing cards. off as default
+3.) Another setting when on; When using ai and keywords and or name/description are/is filled I want there to be an example showing before performing search. On as default
+
+
+2. Any status changed to Custom deck while studying does not immediatly show in Unlearned: 11 | Unsure: 1 | Learned: 1 unless I refresh page.  
+3. Custom Deck doesnt load after more than available random cards were selected to be added, not even the minimum available was added at all.png
+
+Edit Deck>AI Generator>AI Deck Generator>Keywords> example preview does not show any example output. Use Edit Cards>AI Template> as an example of how I want it to work, does a really good job at it. Fix the AI generator.
+
+Edit Cards>AI Template>Fields to change: Drop down needs to be formatted more like Edit Decks>Add Cards>Target Deck: But with These options Definition(default), Terms, Definition + Term, Pronunciation, Group.  I want the width of the dropdown to be reduced by half its size. 
+
+
+
 
 

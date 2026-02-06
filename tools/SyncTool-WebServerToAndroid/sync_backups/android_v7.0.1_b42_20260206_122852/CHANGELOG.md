@@ -1,0 +1,959 @@
+# Changelog — AdvancedFlashcardsProject (Android)
+
+## 5.6.0 (build 39) — 2026-01-31
+
+### Fixed — Admin Access + AI Definitions + Server Verification
+
+- **Admin access bug fixed**: Admin screen now uses BOTH server-sourced `isAdmin` AND local `AdminUsers.isAdmin()` fallback. Previously, if the server restarted (clearing in-memory tokens), the admin would be locked out even though they're in the admin list. `refreshAdminStatus()` now gracefully falls back to the local admin list when the server is unreachable or tokens are expired.
+
+- **Keywords no longer required for deck creation**: When AI Search is selected, keywords field is now optional. If left blank, the deck name and/or description are used as the AI search terms instead. Label changed from "Search Keywords *" to "Search Keywords (optional)".
+
+- **Description auto-fills with deck name**: When creating a new deck with an empty description, it now auto-fills with the deck name instead of "Created from AI search".
+
+- **AI description generation in Edit Deck dialog**: Added "AI Generate Description" button that uses AI to create a brief deck description from the deck name. Only shown when AI access is configured.
+
+- **Concise definitions by default**: AI-generated definitions are now SHORT and LITERAL by default (e.g., "Goodbye" not "A way to say goodbye"; "Texas" not "Capital city of Texas"). The prompt explicitly instructs the AI to produce 1-5 word definitions.
+
+- **Per-deck "Descriptive Definitions" toggle**: New toggle in Edit Deck dialog under "Deck Settings". When enabled, AI generates longer explanatory definitions (1-2 sentences) for that specific deck. Default is OFF (concise mode). Stored per-deck in `descriptiveDefinitions` field.
+
+- **Server verification on sync/login**: Before logging in, the app now calls `/api/version` on the target server and verifies the `app_name` matches a known Advanced Flashcards server. Prevents connecting to random services.
+
+- **Verify Server button**: Admin users see a "Verify Server" button next to the server URL field that tests the connection and shows the server name, version, and install type.
+
+### Changed
+- `AiGenerationHelper.searchAndGenerateTerms()` now accepts `descriptive: Boolean` parameter
+- `AiGenerationHelper.generateDefinitions()` now accepts `descriptive: Boolean` parameter
+- New `AiGenerationHelper.generateDescription()` function for AI deck descriptions
+- `StudyDeck` model now includes `descriptiveDefinitions: Boolean` field
+- `Store.updateDeck()` and `Repository.updateDeck()` accept optional `descriptiveDefinitions` parameter
+- `WebAppSync.verifyServer()` new function for server identity verification
+- `WebAppSync.login()` now verifies server before attempting login
+- Login screen server URL section redesigned with side-by-side Verify/Save buttons
+
+---
+
+## 7.0.0 (build 41) — 2026-02-05
+
+
+### Synced — WebServer features through v8.7.0 (build 60)
+
+
+#### From WebServer 8.7.0: 2026-02-05
+- **TODO**: [Added]
+- **TODO**: AI generator **Instructions** box that overrides “Short answers only” when provided.
+- **TODO**: Deck AI setting (default OFF): show compact formatting helper buttons/dropdown for Term/Definition templates.
+- **TODO**: Deck AI setting (default ON): show a live “Example output” preview before generating when inputs are provided.
+- **TODO**: [Changed]
+- **TODO**: Treat AI instructions as an explicit formatting/behavior override (client + server).
+- **TODO**: [Fixed]
+- **TODO**: Learned/All **List** tabs could render blank due to a JS runtime error.
+
+#### From WebServer 8.6.2: 2026-02-04
+- **TODO**: [Added]
+- **TODO**: **Edit Deck modal tabs:** the deck edit button now opens a tabbed view: **Edit Deck** (existing) + **Edit Cards** (new).
+- **TODO**: **Edit Cards management:** search / group filter / select cards for the active deck, with **Select all**, **Clear selection**, and **# Selected** counter.
+- **TODO**: **Per‑card actions:** inline **Edit** (term / definition / pron / group) and **Remove** (soft delete → `deleted`).
+- **TODO**: **Restore flows:** restore deleted cards from **Edit Decks → Deleted**, and also via **Restore** on cards shown when **Show deleted** is enabled in the Edit Cards list.
+- **TODO**: **Duplicate handling prompt:** when an edit would duplicate another card term, prompt with **Add duplicate**, **Replace duplicate**, or **Cancel**.
+- **TODO**: **Edited history:** edited cards are tracked under Deleted → **Edited**, with a **Clear edited history** action.
+- **TODO**: **AI template bulk editor (with preview):** replaced the non-working “State‑only” tool with an **AI template** flow:
+
+#### From WebServer 8.6.1: 2026-02-03
+- **TODO**: [Added]
+- **TODO**: **Packaged support metadata:** add `webappserver_version.json` (web server core version file).
+- **TODO**: **Version API upgrade:** `/api/version` returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
+- **TODO**: **Packaged support version metadata:** add `webappserver_version.json` (web server core version file).
+- **TODO**: **Version API upgrade:** `/api/version` now returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
+- **TODO**: **Admin/System version display:** App Information shows a single **Web Server** version line for stand-alone and dual **App + Web** versions when `is_packaged: true`.
+- **TODO**: **User dropdown version display:** mirrors stand-alone vs packaged behavior (single vs dual version lines).
+- **TODO**: [Changed]
+
+### Technical Notes
+- Synced metadata from WebServer v8.7.0 (build 60)
+- Version bumped by sync_webserver_to_android.py v1.0.0
+
+---
+
+## 6.0.0 (build 40) — 2026-02-03
+
+
+### Synced — WebServer features through v8.6.0.2 (build 57)
+
+
+#### From WebServer 8.6.0: 2026-02-02
+- **TODO**: [Added]
+- **TODO**: Settings → Display: **Show UI error log** toggle (default OFF). When enabled, JS/UI errors appear in an on-screen log panel.
+- **TODO**: **Custom Set Settings full-page view:** Custom Set Settings converted from a modal overlay to a scrollable full-page view (same pattern as Edit Decks), eliminating mobile overflow/clipping issues.
+- **TODO**: **Manage Cards collapsible panes:** In Custom Set → Manage Cards, both "In Custom Set" and "Available Cards" panes are collapsible (collapsed by default) on mobile in portrait **and** landscape. Accordion detection uses dual media queries to correctly detect landscape phones (where screen width exceeds 720px but height is under 500px).
+- **TODO**: [Changed]
+- **TODO**: Faster initial load after login: settings + decks now load in parallel; counts + cards load in parallel during refresh (reduced sequential network calls from 6 to 4).
+- **TODO**: **Portrait Study action row stabilized:** Prev / Speak / Custom / Next are forced onto a single edge-to-edge row in portrait, with Next staying aligned to the right of Custom (no wrapping).
+- **TODO**: **Breakdown button relocated (portrait):** breakdown action moved to the header next to the search icon to reduce control crowding on mobile.
+
+#### From WebServer 8.5.3: 2026-02-01
+- **TODO**: [Changed]
+- **TODO**: **Admin User Deck Access simplified:** removed Disable/Enable Built-In for User buttons and built-in status badge. The Allow/Deny buttons now handle all access control. Status line shows clear "Access: Granted" or "Access: Not granted" for all deck types including built-in decks.
+- **TODO**: **Allow/Deny preserves dropdowns:** clicking Allow or Deny no longer triggers a full config reload that resets the user and deck dropdowns, enabling bulk access changes without reselecting.
+- **TODO**: **Non-admin built-in editing off by default:** `allowNonAdminDeckEdits` now defaults to `false` in both backend config and admin UI checkbox. Label text changed from "Allow non-admins to edit built-in/unlocked decks" to "Allow non-admins to edit built-in decks".
+- **TODO**: **Deck Ownership blank state:** "Current owner" line is now hidden when no deck is selected, and shows "No owner assigned" when a deck has no owner ID instead of displaying raw IDs.
+- **TODO**: **Portrait card layout overhaul:** card height increased from 260px to 320px (280px on ≤400px screens). Card text enlarged to 26px (22px small screens). Card face now scrollable for long breakdown content that overflows.
+- **TODO**: **Status line inline with Card counter:** "All (flat) • Studying: X" text now appears on the same line as "Card 1 / 10" in portrait and landscape, replacing the separate header status line on mobile.
+- **TODO**: **Landscape controls compact:** group dropdown, All Cards, and search icon reduced to 11px font with 4px padding for minimal space usage.
+
+#### From WebServer 8.5.2: 2026-02-01
+- **TODO**: [Added]
+- **TODO**: **File-based logging system:** server.log, error.log, and user_activity.log now write to disk in the logs directory, persisting across server restarts.
+- **TODO**: **Log rotation on startup:** server.log and error.log are automatically rotated on each server start (previous saved as .prev); user_activity.log is continuous unless manually cleared (saved to .prev before clearing).
+- **TODO**: **Log download endpoint:** `/api/admin/logs/download` serves log files for download; returns 204 if file is empty (download button disabled for empty logs).
+- **TODO**: **Expandable admin stat tiles:** clicking any stat card (Users, Cards, Decks, Breakdowns, Learned, Unsure, Unlearned) expands a detail panel showing per-user and per-item breakdowns. Collapse by clicking again.
+- **TODO**: **Deck Short Answers mode:** new per-deck toggle (`⚙️ Deck AI Settings` section in AI Generator tab) that forces AI-generated definitions to 1-4 words. Ideal for capitals, translations, simple vocabulary. Setting persists via `/api/decks/<id>/settings`.
+- **TODO**: **Deck settings API:** `GET/POST /api/decks/<deck_id>/settings` for per-deck configuration (currently: shortAnswers).
+- **TODO**: [Changed]
+
+#### From WebServer 8.5.1: 2026-01-31
+- **TODO**: [Changed]
+- **TODO**: **Controls row rearranged:** group dropdown + All Cards on the left, search icon on the right (was reversed). Search overlay now expands from the right edge.
+- **TODO**: **Settings icon moved to title row:** ⚙️ button now sits directly right of User:**** display in the header title row.
+- **TODO**: **Study/Group label hidden:** "Study / Group" label text removed on mobile (≤600px) and landscape to save vertical space.
+- **TODO**: **Landscape group sizing:** "Select group..." dropdown matches "All Cards" button sizing (both 6px 10px padding, 12px font).
+- **TODO**: **Desktop search icon:** search bar replaced with 🔍 icon on all screen sizes; expands as overlay on click.
+- **TODO**: **Portrait controls layout:** group dropdown auto-width on left, All Cards + 🔍 pushed right via space-between.
+- **TODO**: **Landscape controls right-aligned:** controls row pushed to right side of screen.
+
+#### From WebServer 8.5.0: 2026-01-31
+- **TODO**: [Changed]
+- **TODO**: **Portrait responsive controls:** study controls (group dropdown, All Cards, search, settings) display in a compact single row on portrait screens (≤600px).
+- **TODO**: **Landscape responsive controls:** all controls fit in one row without wrapping on landscape screens (≤500px height).
+- **TODO**: **Settings toggle behavior:** settings button toggles open/close. Close button (✕) added to settings header.
+- **TODO**: **Search bar → icon toggle:** search is now a 🔍 icon that expands an overlay input when tapped; auto-collapses when tapping outside.
+- **TODO**: **Saved Breakdowns moved to More:** 🧩 Saved Breakdowns relocated from main controls into Settings/More page.
+- **TODO**: **Got it button shortened:** "Got it ✓ (mark learned)" → "Got it ✓".
+- **TODO**: **Breakdown card button compact:** stays small and fixed next to Next in portrait.
+
+#### From WebServer 8.4.0: 2026-01-30
+- **TODO**: [Added]
+- **TODO**: **Remember me functionality**: Sessions now persist for 30 days and refresh on each request. Users stay logged in across browser restarts without needing to re-authenticate.
+- **TODO**: **Mobile responsive design**: Comprehensive CSS media queries for tablet (≤900px), mobile (≤600px), and small mobile (≤400px) viewports.
+- **TODO**: **Admin edit built-in decks**: Administrators can now edit built-in decks (like Kenpo Vocabulary) and upload logos for them.
+- **TODO**: [Changed]
+- **TODO**: **Deck logo**: Reduced size by ~15% (98px → 83px) and removed transform that caused jumping. Logo now stays in a fixed position.
+- **TODO**: **Deck title**: Now truncates with ellipsis (...) when too long, preventing layout overflow on mobile.
+- **TODO**: **Edit User modal**: Increased width from 500px to 700px for better visibility of deck access controls. Added responsive breakpoints for smaller screens.
+
+#### From WebServer 8.3.0: 2026-01-30
+- **TODO**: [Added]
+- **TODO**: **Runtime paths module** (`runtime/app_paths.py`) to centrally control writable locations for **data** and **logs** in both dev and packaged (frozen) runs.
+- **TODO**: **Environment overrides** for advanced/portable setups:
+- **TODO**: `KENPO_APPDATA_BASE_DIR` (override base AppData folder)
+- **TODO**: `KENPO_DATA_DIR` / `KENPO_LOG_DIR` (explicit overrides)
+- **TODO**: **First-run data seeding** for packaged installs: if the user’s AppData `data\` is missing required defaults, they are copied from the bundled read-only defaults (non-destructive; does not overwrite existing user data).
+- **TODO**: **Runtime import-path resiliency for frozen builds (tray/service) to reduce install-specific startup failures.
+- **TODO**: [Changed]
+
+#### From WebServer 8.2.0: 2026-01-29
+- **TODO**: [Added]
+- **TODO**: Packaged install marker: include `data/install_type.txt` (set to `packaged`) so the UI can show **Web Server Version** only in packaged installs.
+- **TODO**: Admin > Decks: add built-in decks back via dropdown + **Add Built-In** action.
+- **TODO**: Admin > User Deck Access: show access status for the selected user + deck and enable only valid actions (Unlock/Lock, Enable/Disable Built-In).
+- **TODO**: Login UI: show version/build on the login panel; add password-reset fields for users required to change password.
+- **TODO**: Create Deck: choose an add-cards method (Keyword/Photo/Document) directly under Description and auto-jump after create.
+- **TODO**: Startup runner: print a clear `[READY]` line indicating the local + LAN URLs once the app is running.
+- **TODO**: Logging: write persistent logs to `logs/server.log` and `logs/error.log` under the app root.
+
+#### From WebServer 8.1.1: 2026-01-29
+- **TODO**: Fix: Admin deck dropdowns now populate correctly (stats includes full deck list + user ids).
+- **TODO**: Fix: Deck ownership/access logic (owned vs shared) and Edit/Delete button visibility.
+- **TODO**: Fix: Forced password reset now blocks access until changed; Web UI prompts immediately after login.
+- **TODO**: Add: Create Deck flow can jump directly into adding cards (Keywords auto-generate up to 25, Photo/Document opens upload).
+- **TODO**: Fix: AI generator resets keywords + max cards (25) after adding cards.
+- **TODO**: Improve: Admin Overview tiles are clickable with detail modals; System page server-info fields are more robust.
+- **TODO**: Improve: Server/App/User logging feeds Admin > Logs more reliably.
+- **TODO**: (Add changes here as you work. Move them into a release when you publish.)
+
+#### From WebServer 8.1.0: 2026-01-28
+- **TODO**: [Added]
+- **TODO**: **Added GEN8 Token Admin Namespace for Android
+- **TODO**: **Token admin endpoints** for deck access management under `/api/sync/admin/...` (admin token required).
+- **TODO**: **Invite code redemption** endpoint for Android: `POST /api/sync/redeem-invite-code` (user token required).
+- **TODO**: **Docs updates**: README now explicitly documents the token admin namespace and invite flow for Android parity.
+- **TODO**: **Admin per-user sharing controls**: in **Admin → Users → Edit User**, admins can now grant/revoke access to *their own* decks for that specific user (shows “Their decks” and “Your decks”).
+- **TODO**: [Fixes]
+- **TODO**: **Fixed Sync → Pull returning 500 Internal Server Error when user progress data contained non-numeric updated_at values (e.g., "None", empty strings, timestamps). Pull now safely parses/normalizes updated_at and will not crash.
+
+#### From WebServer 8.0.2: 2026-01-28
+- **TODO**: [Changed]
+- **TODO**: **Deck ownership is enforced**: user-created study decks are now unique to the creating user and are no longer visible/editable by other users unless explicitly shared by an admin.
+- **TODO**: [Fixed]
+- **TODO**: **Admin “Reset Password” now works**: reset uses a login-compatible password hash, so the forced default `123456789` login is accepted.
+- **TODO**: **Deck card storage for shared decks**: cards for user-created decks are stored per-deck (not per-user) so shared decks show consistent content for everyone with access.
+- **TODO**: **Safety + permissions**: only the deck owner/admin can edit/delete a user-created deck or modify cards in that deck.
+- **TODO**: [Notes]
+- **TODO**: This release carries forward the **v8.0.2 (build 47)** deck ownership enforcement + admin sharing fixes.
+
+#### From WebServer 8.0.1: 2026-01-27
+- **TODO**: [Added]
+- **TODO**: **Deck icons in “Switch Study Subject”**: each deck now displays a small logo icon (deck-specific or the default logo).
+- **TODO**: [Changed]
+- **TODO**: **Study page header logo** is ~25% larger and spacing/placement was adjusted to better align with the header text.
+- **TODO**: [Fixed]
+- **TODO**: **Default deck honored on refresh**: fixed `/api/settings` GET route registration so saved `activeDeckId` loads correctly; if missing/invalid, server falls back to the deck marked ★ default and persists it.
+- **TODO**: **Deck header logos** now render correctly on the Study page (missing header `<img>` elements prevented any logo from showing).
+- **TODO**: **Per-deck logo isolation**: changing a deck’s logo (uploading an image or choosing the default) no longer changes other decks’ logos (Kenpo remains Kenpo only).
+
+#### From WebServer 8.0.0: 2026-01-27
+- **TODO**: [Added]
+- **TODO**: **Major rebrand**: internal project name is now **Advanced Flashcards WebAppServer**; browser UI branding is **Advanced Flashcards WebApp** (no user-visible “Server”).
+- **TODO**: **WebApp icons**: new dedicated path `static/res/webappicons/` with updated favicon / browser tab icon using the Advanced Flashcards logo.
+- **TODO**: **Deck logos (optional)**: support for per-deck logos with default fallback to the Advanced Flashcards logo; Kenpo deck uses its own logo.
+- **TODO**: [Changed]
+- **TODO**: Updated user-facing text from “Kenpo Flashcards” → “Advanced Flashcards WebApp” across the Web UI (while keeping the main Study page header line `Study Flashcards • {Deck} • Cards loaded: {#}` unchanged).
+
+#### From WebServer 7.3.0: 2026-01-25
+- **TODO**: [Added]
+- **TODO**: **Deck Access Management System**:
+- **TODO**: Built-in decks can be disabled/enabled per user
+- **TODO**: Invite codes to unlock specific decks for users
+- **TODO**: Admin can manually unlock/lock decks for specific users
+- **TODO**: New users can be set to start with blank app (no decks)
+- **TODO**: Settings to control whether non-admins can edit built-in/unlocked decks
+- **TODO**: **Admin Dashboard - Decks Tab**:
+
+#### From WebServer 7.2.1: 2026-01-25
+- **TODO**: [Changed]
+- **TODO**: **Custom Set Modal Redesign**:
+- **TODO**: Fixed modal size (700px width, 500px min-height) - no more resizing between tabs
+- **TODO**: Split-pane Manage Cards tab: "In Custom Set" on left, "Available Cards" on right
+- **TODO**: Search filtering for both card lists
+- **TODO**: Click cards to toggle selection, or use checkboxes
+- **TODO**: Add/Remove buttons between panes for easy bulk management
+- **TODO**: Saved Sets now show "Active" status with switch functionality
+
+#### From WebServer 7.2.0: 2026-01-25
+- **TODO**: [Added]
+- **TODO**: **Custom Set Management Modal**: New ⚙️ button in Custom Set toggle opens modal with:
+- **TODO**: **Settings Tab**: Random order toggle, pick random N cards to add
+- **TODO**: **Manage Tab**: Bulk select/edit cards, mark selected learned/unsure, remove selected
+- **TODO**: **Saved Sets Tab**: Save current Custom Set with name, load/delete saved sets
+- **TODO**: **Server Activity Logs**: Admin dashboard Logs tab now shows real activity:
+- **TODO**: Login/logout events tracked
+- **TODO**: Filterable by type (Server, Error, User Activity)
+
+#### From WebServer 7.1.0: 2026-01-24
+- **TODO**: [Added]
+- **TODO**: **Web Sync Endpoints**: `/api/web/sync/push` and `/api/web/sync/pull` for session-based auth (fixes "login_required" error)
+- **TODO**: **Breakdown Indicator**: Puzzle icon (🧩) turns blue when card has breakdown data
+- **TODO**: **Breakdown IDs API**: `GET /api/breakdowns/ids` - lightweight endpoint returning only IDs of cards with breakdown content
+- **TODO**: **Enhanced User Stats**: Admin stats now include per-user progress %, current deck, last sync time
+- **TODO**: **Deck Stats**: Admin dashboard shows total decks and user-created count
+- **TODO**: [Changed]
+- **TODO**: **Admin Dashboard Redesigned**:
+
+#### From WebServer 7.0.7: 2026-01-24
+- **TODO**: [Added — Android Sync API]
+- **TODO**: **`GET /api/vocabulary`**: Returns kenpo_words.json (canonical source for built-in vocabulary)
+- **TODO**: **`GET /api/sync/decks`**: Pull all decks for Android sync (requires auth)
+- **TODO**: **`POST /api/sync/decks`**: Push deck changes from Android (requires auth)
+- **TODO**: **`GET /api/sync/user_cards`**: Pull user-created cards (requires auth, optional deck_id filter)
+- **TODO**: **`POST /api/sync/user_cards`**: Push user cards from Android (requires auth)
+- **TODO**: **`DELETE /api/sync/user_cards/<card_id>`**: Delete a user card (requires auth)
+- **TODO**: [Changed]
+
+#### From WebServer 7.0.6: 2026-01-24
+- **TODO**: [Added]
+- **TODO**: **Rebranded to "Study Flashcards"**: Generic app name that works for any subject
+- **TODO**: **Header shows active deck**: App title now shows "Study Flashcards • [Deck Name]"
+- **TODO**: **Set Default Deck**: ★ button to set a deck as the default startup deck
+- **TODO**: **API endpoint**: `POST /api/decks/:id/set_default` - Sets a deck as default
+- **TODO**: [Changed]
+- **TODO**: **Groups filter respects active deck**: Group dropdown now shows groups from the active deck, not just Kenpo
+- **TODO**: **Page title**: Changed from "Kenpo Flashcards (Web)" to "Study Flashcards"
+
+#### From WebServer 7.0.5: 2026-01-24
+- **TODO**: [Added]
+- **TODO**: **🤖 AI Deck Generator**: New tab in Edit Decks to generate flashcards using AI
+- **TODO**: **Keywords**: Enter topic/keywords to generate cards (e.g., "Basic Spanish Words 3rd grade level")
+- **TODO**: **Photo**: Upload image of study material, AI extracts vocabulary
+- **TODO**: **Document**: Upload PDF/TXT/MD files, AI creates flashcards from content
+- **TODO**: Selection UI: Review generated cards, select which to add
+- **TODO**: Max cards configurable 1-200
+- **TODO**: Default keywords: Uses deck name + description if no keywords entered
+
+#### From WebServer 7.0.4: 2026-01-24
+- **TODO**: [Added]
+- **TODO**: **AI Deck Generator** (initial implementation): Generate flashcards from keywords, photos, or documents
+- **TODO**: **User cards in study deck**: User-created cards now merge with built-in cards
+- **TODO**: [Fixed]
+- **TODO**: **PDF download**: Replaced with "Print User Guide" button (avoids reportlab compatibility issues)
+
+#### From WebServer 7.0.3: 2026-01-24
+- **TODO**: [Fixed]
+- **TODO**: **Health check**: Now correctly reports Kenpo JSON file status (was always showing Missing)
+- **TODO**: **AI card generation**: API keys now loaded from encrypted storage at startup (was only reading from environment variables)
+- **TODO**: **Custom Set random toggle**: Now properly persists when toggled (was not saving to settings)
+- **TODO**: **Reshuffle button**: Always visible and properly sized (smaller, inline with toggle)
+- **TODO**: [Changed]
+- **TODO**: Reshuffle button now works anytime (not just when random is enabled)
+
+#### From WebServer 7.0.2: 2026-01-23
+- **TODO**: [Added]
+- **TODO**: **🎲 Pick Random N**: Click dice button in Custom Set to study random subset of starred cards
+- **TODO**: **User Management Modal**: Click "Total Users" in admin to view/edit all users
+- **TODO**: **Admin User Editing**: Grant/revoke admin status, reset passwords
+- **TODO**: **Password Reset**: Admins can reset user passwords to default (123456789) with required change on next login
+- **TODO**: **System Status Feed**: Activity-style status display in admin dashboard
+- **TODO**: [Fixed]
+- **TODO**: **Edit Decks Page**: Now opens correctly (added missing hideAllViews function)
+
+#### From WebServer 7.0.1: 2026-01-23
+- **TODO**: [Added]
+- **TODO**: **Reshuffle button visible**: ⟳ button now always visible on study cards (works even without random mode)
+- **TODO**: **Search clear X button**: Clear search with one click
+- **TODO**: **Randomize Custom Set setting**: Control random order separately for Custom Set
+- **TODO**: **Speak pronunciation only toggle**: Option to speak only pronunciation instead of term
+- **TODO**: [Changed]
+- **TODO**: Reshuffle works regardless of random toggle state (instant shuffle on demand)
+
+#### From WebServer 7.0.0: 2026-01-23
+- **TODO**: [Added]
+- **TODO**: **Edit Decks page**: New page accessible from Settings with three tabs:
+- **TODO**: **Switch tab**: View and switch between study decks, create new decks
+- **TODO**: **Add Cards tab**: Manually add cards with term, definition, pronunciation, group
+- **TODO**: **Deleted tab**: View and restore deleted cards
+- **TODO**: **Deck management**: Create and delete custom study decks
+- **TODO**: **User cards CRUD**: Add, edit, and delete user-created cards
+- **TODO**: **AI generation buttons**:
+
+#### From WebServer 6.1.0: 2026-01-23
+- **TODO**: [Added]
+- **TODO**: **Sync Progress page**: New settings section matching Android app with Push/Pull buttons, login status banner, auto-sync info, and breakdown sync
+- **TODO**: **Settings tabbed navigation**: Quick nav tabs for Study, Display, Voice, Sync, and AI sections with highlighted active tab
+- **TODO**: **Star button on study cards**: Toggle Custom Set membership directly from study view
+- **TODO**: **Sort by status dropdown**: All list can now be sorted by Unlearned, Unsure, Learned, or Alphabetical
+- **TODO**: **Logout in user menu**: Moved logout option to user dropdown menu with icon
+- **TODO**: [Changed]
+- **TODO**: Settings page completely redesigned with app-like card layout and modern buttons
+
+#### From WebServer 6.0.0: 2026-01-22
+- **TODO**: [Added]
+- **TODO**: **Custom Set (Starred Cards)**: New ⭐ tab for studying a personalized set of starred cards
+- **TODO**: ☆/★ toggle buttons in All list to add/remove cards
+- **TODO**: Internal status tracking (Active/Unsure/Learned) within custom set
+- **TODO**: Filter views: All, Unsure, Learned within custom set
+- **TODO**: API endpoints: `/api/custom_set`, `/api/custom_set/add`, `/api/custom_set/remove`, `/api/custom_set/toggle`, `/api/custom_set/set_status`, `/api/custom_set/clear`
+- **TODO**: **Show breakdown on definition toggle**: New setting to show/hide breakdown on card back
+- **TODO**: **Auto-speak on card change**: Automatically speaks term when navigating prev/next
+
+#### From WebServer 5.5.3: 2026-01-18
+- **TODO**: Sync: progress entries now include per-card `updated_at` timestamps
+- **TODO**: Sync: push/pull merge uses `updated_at` (newer wins); supports offline pending queue on Android
+- **TODO**: API: /api/sync/push and /api/sync/pull accept/return object-form progress entries
+
+#### From WebServer 5.5.2: 2026-01-14
+- **TODO**: [Added]
+- **TODO**: **Version/docs sync with Android App 4.4.2 (v22)
+- **TODO**: [Changed]
+- **TODO**: No functional server code changes in this patch release.
+- **TODO**: [Added]
+- **TODO**: **GET /api/sync/apikeys**: New endpoint for all authenticated users to pull API keys
+- **TODO**: Any logged-in user can retrieve API keys (read-only)
+- **TODO**: Allows non-admin users to use AI breakdown features
+
+### Technical Notes
+- Synced metadata from WebServer v8.6.0.2 (build 57)
+- Version bumped by sync_webserver_to_android.py v1.0.0
+
+---
+
+## 5.5.0 (build 38) — 2026-01-31
+
+### Added — Feature Parity with WebServer v8.4.0
+
+- **Deck Editing**: Edit deck name and description directly on Android
+  - New Edit button (pencil icon) on each user-created deck
+  - Edit Deck dialog with name/description fields
+  - Changes sync automatically to server when logged in
+  - `WebAppSync.updateDeck()` calls `POST /api/decks/{id}`
+
+- **Set Default Deck**: Set/clear default deck on Android
+  - Star button toggles default status for user-created decks
+  - Yellow star indicates current default deck
+  - `WebAppSync.setDefaultDeck()` calls `POST /api/decks/{id}/set_default`
+  - `WebAppSync.clearDefaultDeck()` calls `POST /api/decks/{id}/clear_default`
+
+- **User Card Deletion Sync**: Deleting user cards now syncs to server
+  - `WebAppSync.deleteUserCard()` calls `DELETE /api/sync/user_cards/{id}`
+  - Local deletion happens first, server sync follows
+
+### Changed
+- Repository methods now handle server sync automatically when logged in
+- Deck management methods return success/failure status for error handling
+- Store.kt now has `updateDeck()`, `setDefaultDeck()`, and `clearDefaultDeck()` methods
+
+### Technical Notes
+- Feature sync analysis tool created: `sync_android_to_webserver.py`
+- Comprehensive feature comparison document generated
+- All deck management API endpoints now implemented in WebAppSync.kt
+
+---
+
+## 5.4.0 (build 37) — 2026-01-28
+
+### Added — GEN8 Deck Access + Invite Codes
+- **Invite code redemption**: Users can unlock decks by entering an invite code in **Edit Decks → Switch** (calls `POST /api/sync/redeem-invite-code`).
+- **Per-deck logos support**: Android deck model now supports `logoPath` so deck icons/logos match the WebApp “Switch Study Subject” experience.
+- **Admin Deck Access controls (Option 1+)**: Admin screen now includes a **Deck Admin (Server)** section to:
+  - View/update deck access config (calls `GET/POST /api/sync/admin/deck-config`).
+  - Generate/delete invite codes (calls `POST /api/sync/admin/deck-invite-code`, `DELETE /api/sync/admin/deck-invite-code/<code>`).
+  - Quick link to open Web Admin dashboard (`/admin`).
+- **Deck Admin (Server)** section (admin-only):
+  - View/edit/save server deck config (built-in decks + related toggles).
+  - Generate deck invite codes.
+  - Button to open the full Web Admin page in a browser.
+- **Server-sourced admin state** stored in app settings (`isAdmin`) via `/api/admin/status`.
+- Deck model supports optional `logoPath` from the server.
+
+### Changed
+- After redeeming a code, the app performs an **authoritative deck pull** and updates available deck list.
+- Admin visibility is based on the server’s admin truth (token-based), not local assumptions.
+- Version bump to align with WebServer GEN8 deck-access generation.
+
+### Fixed — Branding + Build Stability
+- **Rebranding sweep**: Updated user-facing text and theme naming to **Advanced Flashcards** throughout the app **except** for the built-in **Kenpo Vocabulary** deck name/content.
+- **Release compile reliability**: Fixed invalid multiline `Text("...")` strings that could break `:app:compileReleaseKotlin` during CI/local builds.
+- **Admin UI stability**: Fixed missing `context` reference in Admin UI by using `LocalContext.current` where needed.
+
+
+---
+
+## 5.3.1 (build 36) — 2026-01-26
+
+### Changed
+- Changed icons and logos to Advanced Flashcards branding
+
+---
+
+## 5.3.0 (build 35) — 2026-01-24
+
+### Added — Web Server Sync Integration
+- **Deck Sync**: Pull and push custom decks to/from web server
+  - `WebAppSync.pullDecks()` - Download decks from server
+  - `WebAppSync.pushDecks()` - Upload decks to server
+- **User Cards Sync**: Pull and push user-created flashcards
+  - `WebAppSync.pullUserCards()` - Download user cards from server
+  - `WebAppSync.pushUserCards()` - Upload user cards to server
+- **Vocabulary Sync**: Pull canonical kenpo_words.json from server
+  - `WebAppSync.pullVocabulary()` - Download built-in vocabulary
+- **Full Sync Methods**: Sync everything at once
+  - `Repository.syncPullAll()` - Pull decks, cards, and progress
+  - `Repository.syncPushAll()` - Push decks, cards, and progress
+
+### Changed
+- Web server is now the canonical source for kenpo_words.json
+- Decks created on web can be synced to Android and vice versa
+- User cards are now sharable between web and Android
+
+### Technical
+- Added `DeckSyncResult`, `UserCardsSyncResult`, `VocabularySyncResult` data classes
+- Repository now has deck and user card sync integration
+- Server URL for vocabulary: `/api/vocabulary`
+- Server URL for deck sync: `/api/sync/decks`
+- Server URL for user cards sync: `/api/sync/user_cards`
+
+---
+
+## 5.2.0 (build 34) — 2026-01-22
+
+### Changed
+- Updated server data path references in WebAppSync.kt to reflect Windows installer location:
+  `C:/Program Files/Advanced Flashcards/_internal/data/`
+
+---
+
+## 5.1.1 (build 33) — 2026-01-20
+
+### Fixed
+- **Deck switching now works**: Added `activeCardsFlow()` in Repository that filters cards by active deck ID. Study screens now show only cards from the selected deck.
+- **User-added cards appear in deck**: Fixed `allCardsFlow()` to include userCards alongside default and custom cards
+- **File upload feedback**: Image and document upload now shows selected filename, checkmark confirmation, and action buttons
+
+### Added
+- **AI Features section in Settings**: When API keys are available, users can toggle "Use ChatGPT" and "Use Gemini" on/off without needing Admin access
+- **AI auto-enabled on login**: When API keys are pulled from server during login, ChatGPT/Gemini are automatically enabled if keys are present
+
+### Changed
+- Study screens (To Study, Unsure, Learned, All, Custom, Deleted) now use `activeCardsFlow()` for deck filtering
+- ManageDecksScreen uses `allCardsFlow()` for group suggestions across all decks
+
+---
+
+## 5.1.0 (build 32) — 2026-01-19
+
+### Added — AI Generation for Card Creation
+- **Generate Definition button**: Click to get 3 AI-generated definition options in dropdown
+- **Generate Pronunciation button**: Click to get AI-generated phonetic pronunciation  
+- **Generate Group button**: Click to get 3 AI group suggestions (considers existing groups)
+- **AiGenerationHelper**: New helper class supporting both ChatGPT and Gemini APIs
+- All AI buttons show loading spinner while generating
+
+### Added — User Cards Management
+- **View User Cards**: Expandable section showing all user-added cards
+- **Edit User Cards**: Click edit icon to modify term, definition, pronunciation, group
+- **Delete User Cards**: Click delete icon to remove user cards
+- **Edit Card Dialog**: Full editing dialog with all fields
+
+### Improved — Create Deck AI Search
+- AI search now calls real API (ChatGPT/Gemini) to generate flashcard terms
+- Loading spinner during search
+- Better error handling and status messages
+
+### Improved — File Upload Feedback
+- Image picker now shows selected filename
+- Document picker now shows selected filename
+- Clear status messages about AI configuration required
+
+### New File
+- `AiGenerationHelper.kt` - Centralized AI API calls for flashcard generation
+
+---
+
+## 5.0.2 (build 31) — 2026-01-19
+
+### Fixed
+- **Breakdown icon**: Changed from "!" (Info) back to puzzle piece (Extension) on To Study and Unsure screens
+- **Definition speak**: Custom Set and Learned > Study now properly speak definitions when flipped (matching To Study/Unsure behavior)
+
+### Added
+- **Randomize Custom Set**: Toggle in Settings > Randomization section, syncs with Custom Set's internal random setting
+
+### Changed
+- **View Deleted Cards**: Moved from Settings root to Edit Decks > Switch tab (at bottom)
+
+---
+
+## 5.0.1 (build 30) — 2026-01-19
+
+### Added — Shuffle Button
+- **Shuffle icon** on all study screens (To Study, Unsure, Learned Study)
+- Works even when random setting is off - tap to reshuffle deck instantly
+- Blue shuffle icon in header bar (both portrait and landscape)
+
+### Added — Voice Settings
+- **Auto-speak term on card change**: Automatically speaks the term when navigating to a new card
+- **Speak definition when flipped**: Speaks the definition when card is flipped to back side
+- New toggles in Settings > Voice section
+
+### Changed
+- Moved "Edit Decks" button above "View Deleted Cards" in Settings
+
+### Known Issues / Planned for Next Release
+- AI Generate buttons in Edit Decks need full implementation
+- View/Edit/Delete user-added cards interface needed
+- Image and Document upload processing for deck creation
+- Custom Set shuffle/random toggle in Settings
+
+---
+
+## 5.0.0 (build 29) — 2026-01-18
+
+### Added — Edit Decks Feature (Major)
+New "Edit Decks" screen accessible from Settings with three tabs:
+
+**Switch Tab:**
+- View all available study decks (built-in and user-created)
+- Switch between different study subjects
+- See active deck with card count
+- Delete user-created decks (built-in decks cannot be deleted)
+- Default deck indicator (Kenpo Vocabulary)
+
+**Add Cards Tab:**
+- Manually add terms and definitions to any deck
+- Select target deck from dropdown
+- Optional AI-generated definitions (requires AI API)
+- Optional AI-generated pronunciations
+- Optional AI-generated group assignment with max groups limit
+- Form validation for required fields
+
+**Create Deck Tab:**
+- Create new study decks from various sources
+- Three creation methods:
+  - **AI Search**: Search for terms using keywords, select from AI-generated results
+  - **Upload Image**: Scan photos of study materials (AI extracts terms)
+  - **Upload Document**: Process PDF, Word, Text, CSV, Excel files
+- AI generates: terms, definitions, pronunciations, and groups
+- Select/deselect individual terms from AI results
+- Set deck name and description
+
+### Changed
+- "Manage Decks (Coming Soon)" button now active as "Edit Decks"
+- Repository now includes full deck management methods
+
+---
+
+## 4.5.2 (build 28) — 2026-01-18
+
+### Added
+- **Auto-Sync explanation card**: Sync Progress screen now includes a clear description of auto-sync features:
+  - First login always syncs automatically
+  - Auto-pull on login option
+  - Auto-push on change option
+  - Offline changes queued and synced when online
+- **Manual Sync description**: Explains Push (sends to server) and Pull (downloads from server)
+
+### Changed
+- Improved Sync Progress screen layout with better organization of auto vs manual sync info
+
+---
+
+## 4.5.1 (build 27) — 2026-01-18
+
+### Fixed
+- Web App Sync now uses per-card `updated_at` timestamps for conflict-free merging across devices.
+- Offline progress changes are queued and pushed when online (auto-push best-effort).
+
+### Changed
+- Server and app sync payloads now use `{status, updated_at}` entries (legacy string payloads still supported).
+
+All notable changes to this project will be documented in this file.
+
+The format is simple and practical:
+- **Added**: new user-facing features
+- **Changed**: behavior changes, refactors
+- **Fixed**: bug fixes
+- **Security**: auth/permissions/security changes
+
+---
+
+## Unreleased
+- (Add changes here as you work. Move them into a release when you publish.)
+
+---
+
+## 4.5.0 (v26) — 2026-01-16
+### Added
+- **Deck Management groundwork**: Data models and storage for future multi-deck support
+  - `StudyDeck` model with id, name, description, isDefault, isBuiltIn flags
+  - `DeckSettings` for tracking active deck selection
+  - Storage methods for decks and user-created cards
+  - "Manage Decks (Coming Soon)" placeholder button in Settings
+
+### Removed
+- **Import CSV button**: Replaced with future Deck Management feature
+- **"Show Custom Set Button" setting**: Unnecessary setting removed
+
+### Fixed
+- **Custom Set settings dialog**: "Reflect status in Main Decks" toggle wraps properly
+- **Custom Set "ALL" filter**: Shows all cards (was incorrectly filtering)
+- **Custom Set status counts**: Increased height/font to prevent text cutoff
+- **Custom Set Learned view**: Shows "Relearn" button instead of "Got it"
+
+### Changed
+- **API keys auto-pull on login**: Progress and API keys sync automatically
+- **Push/Pull buttons restored**: Manual sync available in Sync Progress screen
+
+---
+
+## 4.4.4 (v24) — 2026-01-15
+### Changed
+- **Removed redundant top bar headers**: Learned, All Cards, and Custom screens no longer have separate TopAppBar title - header is now inline with controls (matching Unsure pattern)
+- **Learned screen**: List/Study chips moved inline with "Learned List" or "Learned Study" title, search icon and group filter on right
+- **All Cards screen**: Title + search icon + group filter all in single header row
+- **Custom screen**: Title + Card count + search/settings/delete icons in single header row
+- **Consistent UI pattern**: All screens now follow same header layout as Unsure page
+
+---
+
+## 4.4.3 (v23) — 2026-01-15
+### Added
+- **Custom Set isolated status tracking**: Custom set now has its own status (Active/Unsure/Learned) separate from main decks
+- **Custom Set status filter**: Tap "Custom: ##", "Unsure: ##", "Learned: ##" to filter cards within custom set
+- **"Reflect status changes in Main Decks" toggle**: Optional setting in Custom Set settings to sync status changes to main decks
+- **Custom Set settings dialog**: Accessible via settings icon in Custom Set screen
+- **Search X clear button**: All search fields now have an X icon to clear search text
+- **Remove card confirmation**: Trash icon in Custom Set now removes only current card with confirmation dialog
+
+### Changed
+- **Custom Set "Remove" button changed to "Unsure"**: Secondary action now marks card as Unsure within custom set instead of removing
+- **Landscape card height increased**: Cards fill more vertical space in landscape mode (180dp → 220dp)
+- **Search text size reduced in landscape**: Prevents "Search" placeholder text from being cut off
+- **Learned screen**: Removed redundant "Learned: ##" count below status row, uses search icon toggle like other screens
+- **All Cards screen**: Now uses search icon toggle in portrait mode (matching To Study/Unsure pattern)
+- **Custom Set portrait layout**: Shows Custom/Unsure/Learned counts in compact row, Card position inline with title
+
+### Fixed
+- **Custom Set status isolation**: Status changes in Custom Set no longer affect main deck status (unless "Reflect" setting is ON)
+- **Search tap-outside behavior**: Tapping outside search field closes it but keeps filtered results
+
+---
+
+## 4.4.2 (v22) — 2026-01-14
+### Added
+- **Settings toggle to show/hide the Custom Set (⭐) button (default ON).
+
+### Changed
+- **Unsure/To Study portrait layout uses a compact header row (title + search + group filter) and removes the redundant top app bar.
+- Portrait search is now icon-based (expand/collapse) like landscape; tap outside collapses search while keeping filtered results.
+- Sync screen now labels admin sessions with “(Admin)” in the login status line.hat changed:
+- Added a setting to show/hide the Custom Set (⭐) button (default ON).
+- Unsure/To Study portrait layout: compact header row with search icon; removed redundant top bar.
+- Portrait search collapses when tapping outside; search text stays so results remain filtered.
+- Sync status: “(Admin)” label appears for admin logins.
+- Admin badge:** if the logged-in user is an admin, the UI shows **(Admin)** after the username.
+- Search UX (portrait):**
+  - Portrait uses a **search icon** toggle (matches landscape).
+  - Tapping outside of search **closes the search UI but keeps filtered results**.
+  - Added an **X** icon to clear search and reset the deck position.
+- **Random study controls:**
+  - Added **Random** checkbox beside **Card #/##**.
+  - Added **⟳ Reshuffle** icon to re-randomize the current deck on demand.
+  - Applies to: **To Study**, **Unsure**, **Custom**, **Learned → Study**.
+- **Custom Set:**
+  - Custom Set now uses **Custom Set Settings** for sort/random (instead of global study settings).
+  - Added Settings action to **pick a number of random Unlearned cards** for the Custom Set (with 🎲 helper).
+
+---
+
+## v4.4.1 (versionCode 21) — 2026-01-13
+### Added
+- `syncPullApiKeysForUser()` method in Repository for user-level API key retrieval
+- `pullApiKeysForUser()` method in WebAppSync calling `/api/sync/apikeys`
+
+### Changed
+- **API keys pulled for ALL users**: All authenticated users now receive API keys on login (not just admins)
+- Uses new `/api/sync/apikeys` endpoint available to all authenticated users
+- Non-admin users can now use AI breakdown features without admin access
+
+---
+
+## v4.4.0 (versionCode 20) — 2026-01-13
+### Fixed
+- **Admin Screen Loading**: Fixed admin screen immediately redirecting by waiting for settings to load
+- Admin screen now shows loading spinner while settings load
+
+### Added
+- **(Admin) label**: Shows after username in Login, Sync Progress screens when user is admin
+- **Key validation indicators**: "Key Accepted" / "Key Invalid" shown for ChatGPT and Gemini API keys
+- **First login auto-sync**: Always syncs progress and breakdowns on first device login
+- **Admin auto-pulls API keys**: When admin logs in, API keys are automatically pulled from server
+
+### Changed
+- Improved AI picker dropdown in Sync Progress screen with checkmark for current selection
+- "Pending sync" message now says "Push to sync" to clarify action needed
+- Login screen clarifies that first login always syncs automatically
+- Auto-pull setting renamed to "Auto-pull progress on future logins"
+
+---
+
+## v4.3.0 (versionCode 19) — 2026-01-13
+### Added
+- **Model Selection**: Choose AI model for ChatGPT (gpt-4o default) and Gemini (gemini-1.5-flash default)
+- Model settings sync with server alongside API keys
+- **Admin Users SoT**: Fetches admin usernames from server on login (`/api/admin/users`)
+
+### Fixed
+- **Admin Button**: Fixed isAdmin() check not recognizing logged-in admin user
+- Simplified admin username comparison logic with server-side Source of Truth
+
+### Changed
+- Admin screen renamed to "AI Access Settings"
+- Push/Pull buttons now sync models along with API keys
+- ChatGPT default model changed from gpt-3.5-turbo to gpt-4o
+- AdminUsers object now caches admin list from server
+
+---
+
+## v4.2.0 (versionCode 18) — 2026-01-12
+### Added
+- **About Screen**: New About page in More with app info, creator contact (Sidney Shelton, Sidscri@yahoo.com), and feature overview
+- **User Guide Screen**: Comprehensive printable/downloadable user guide accessible from About page
+- **Login Screen**: Dedicated login page moved from Admin Settings (all users can access)
+- **Sync Progress Screen**: New screen for Push/Pull progress sync and Breakdown sync
+- **Gemini AI Integration**: Added Google Gemini API support for breakdown autofill
+- **Breakdown AI Selector**: Users can choose between Auto Select (best result), ChatGPT, or Gemini for AI breakdowns
+- **Auto-sync settings**: Option to auto-pull progress on login and auto-push changes when made
+- **Pending sync indicator**: Visual indicator when offline changes need syncing
+- **API key sync**: Admin can push/pull encrypted API keys to/from server
+- **Version display**: Current app version shown in Settings screen
+
+### Changed
+- **Navigation restructure**: 
+  - Login moved from Admin to its own Login screen in More
+  - Sync functions moved to dedicated Sync Progress screen
+  - Admin Settings only visible to admin users (Sidscri)
+- Admin screen now only contains API key management (ChatGPT + Gemini)
+- Improved login flow with auto-sync on successful login
+
+### Security
+- Admin Settings screen restricted to admin users only
+- API keys can be encrypted and stored on server for cross-device access
+
+---
+
+## v4.1.0 (versionCode 17) — 2026-01-12
+### Added
+- Shared ID mapping for cross-device sync compatibility
+- Helper mapping integration matching web server IDs
+
+### Fixed
+- Sync fully working with web server v5.2+
+
+---
+
+## v4.0.7.1 (versionCode 15/16) — 2026-01-11
+### Added
+- Shared card ID approach — both Android and Web resolve identical IDs for breakdowns/progress
+
+### Fixed
+- Cross-device sync alignment with web server
+
+---
+
+## v4.0.7 (versionCode 14) — 2026-01-10
+### Fixed
+- **Critical:** Changed login endpoint from `/api/login` to `/api/sync/login`
+- Root cause: Server had duplicate `/api/login` routes; Flask used web session endpoint instead of token endpoint
+- Auth tokens now correctly received and saved
+
+---
+
+## v4.0.5 (versionCode 12) — 2026-01-10
+### Added
+- Debug instrumentation for login response
+- `debugInfo` field in `LoginResult` capturing token length and raw response preview
+- This debug output revealed the root cause (server returning `{ok, user}` with no token)
+
+---
+
+## v4.0.4 (versionCode 11) — 2026-01-09
+### Changed
+- Rewrote login save logic to create fresh `AdminSettings` object instead of using `.copy()` on stale state
+- Added token preview display showing first 8 characters
+
+### Fixed
+- Attempted fix for token not persisting (root cause was server-side)
+
+---
+
+## v4.0.3 (versionCode 10) — 2026-01-09
+### Added
+- `syncPushProgressWithToken()` and `syncPullProgressWithToken()` methods
+- `CustomCardStatus` enum and `CustomSetSettings` for future Custom Set isolation
+
+### Fixed
+- Attempted fix for "No auth token" error (root cause was server-side)
+
+---
+
+## v4.0.2 (versionCode 9) — 2026-01-09
+### Fixed
+- Changed breakdowns endpoint from `/api/breakdowns` to `/api/sync/breakdowns`
+- Resolved 401 errors on Sync Breakdowns
+
+---
+
+## v4.0.1 (versionCode 8) — 2026-01-09
+### Fixed
+- Button layout issues in All Cards screen
+- Improved landscape mode for Custom/Learned screens
+- Renamed status labels
+
+### Added
+- Reset to Default Settings option
+
+---
+
+## v4.0.0 (versionCode 7) — 2026-01-09
+### Added
+- Landscape mode support
+- Group filtering for study screens
+- Web app login/sync system (Admin screen)
+- ChatGPT API integration for breakdown auto-fill
+- Admin settings screen
+
+---
+
+## v3.0.1 — 2026-01-08
+### Changed
+- Speaker button: removed text, icon-only
+- Renamed "Unlearned" to "To Study"
+
+### Added
+- Custom set star icon on study screens (To Study, Unsure, Learned>Study)
+
+---
+
+## v2.2.0 — 2026-01-08
+### Added
+- Custom study sets with star-based selection
+- Group filtering dropdown
+- Sort mode settings (JSON order / alphabetical / group-based)
+- Admin section placeholder
+- Return-to-top navigation
+
+### Fixed
+- Text visibility issues in Learned/All screens
+- Breakdown button visibility across all views
+
+---
+
+## v2.1.0 — 2026-01-08
+### Fixed
+- Text visibility issues (purple text on dark background)
+
+### Changed
+- Updated versioning strategy for F-Droid updates
+
+### Added
+- QR code landing page
+
+---
+
+## v2.0.0 — 2026-01-07
+### Added
+- 3-state progress tracking (Active / Unsure / Learned)
+- Term breakdowns with AI auto-fill capability
+- Voice customization
+- Dark theme styling
+- Bottom navigation
+- Custom study sets
+
+---
+
+# How to Update This Changelog
+
+## Manual Updates
+1. When you make changes, add them under `## Unreleased`
+2. When releasing:
+   - Update `versionCode` and `versionName` in `app/build.gradle`
+   - Rename `## Unreleased` to `## vX.Y.Z (versionCode N) — YYYY-MM-DD`
+   - Create a new empty `## Unreleased` section
+
+## Version Numbering
+- `versionName`: User-visible version (e.g., "4.1.0")
+- `versionCode`: Integer that must increment for each release (e.g., 17)
+
+## Build & Release
+```bash
+# Update build.gradle:
+versionCode 17
+versionName "4.1.0"
+
+# Build release APK:
+./gradlew assembleRelease
+
+# Output: app/build/outputs/apk/release/app-release.apk
+```
+
+## v4.4.2 (v22) – Implemented fixes (verified in code)
+
+- **Admin badge:** if the logged-in user is an admin, the UI shows **(Admin)** after the username.
+- **Search UX (portrait):**
+  - Portrait uses a **search icon** toggle (matches landscape).
+  - Tapping outside of search **closes the search UI but keeps filtered results**.
+  - Added an **X** icon to clear search and reset the deck position.
+- **Random study controls:**
+  - Added **Random** checkbox beside **Card #/##**.
+  - Added **⟳ Reshuffle** icon to re-randomize the current deck on demand.
+  - Applies to: **To Study**, **Unsure**, **Custom**, **Learned → Study**.
+- **Custom Set:**
+  - Custom Set now uses **Custom Set Settings** for sort/random (instead of global study settings).
+  - Added Settings action to **pick a number of random Unlearned cards** for the Custom Set (with 🎲 helper).

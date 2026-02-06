@@ -2553,6 +2553,14 @@ body.modalLock{ overflow:hidden; }
   gap: 10px;
   align-items: baseline;
 }
+
+.editedCardItem .editedTopRight{
+  display:flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .editedCardItem .editedTerm{
   font-weight: 800;
 }
@@ -2636,3 +2644,27 @@ body.modalLock{ overflow:hidden; }
   border-radius:12px;
   height:28px;
 }
+
+
+/* AI Generator formatting helper dropdown */
+.aiFormatHelpers{ position:relative; display:inline-block; margin-top:6px; }
+.aiFormatMenu{
+  position:absolute;
+  left:0;
+  top:calc(100% + 6px);
+  min-width:220px;
+  background:rgba(18,18,18,0.98);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:12px;
+  padding:10px;
+  z-index:10050;
+  box-shadow:0 14px 30px rgba(0,0,0,0.45);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.aiFormatMenu button{ width:100%; text-align:left; }
+
+
+/* AI Template field select (compact like Target Deck) */
+.compactSelect{max-width:240px;width:50%;min-width:180px}

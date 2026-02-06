@@ -1,0 +1,30 @@
+START Fri 02/06/2026 11:59:27.92
+BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
+SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid
+VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\version.json
+SEVENZIP=C:\Program Files\7-Zip\7z.exe
+RAW_VER=2.1.0
+RAW_BUILD=5
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToAndroid-v2.1.0 v5.zip
+STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage
+
+ROBOCOPY_EXIT_CODE=1
+Could Not Find C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage\tools\SyncTool-WebServerToAndroid\*.pyc
+Running 7z (from stage)...
+
+7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
+
+Scanning the drive:
+4 folders, 16 files, 115948 bytes (114 KiB)
+
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToAndroid-v2.1.0 v5.zip
+
+Add new data to archive: 4 folders, 16 files, 115948 bytes (114 KiB)
+
+
+Files read from disk: 16
+Archive size: 42831 bytes (42 KiB)
+Everything is Ok
+7Z_EXIT_CODE=0
+Verified: no .venv paths detected
+SUCCESS

@@ -1,0 +1,7 @@
+{
+  "name": "SyncTool-WebServerToAndroid",
+  "version": "2.1.0",
+  "build": 5,
+  "released": "2026-02-06",
+  "description": "One-way sync from KenpoFlashcardsWebServer into kenpoflashcardsproject-v2. Default output is repo-root\\kenpoflashcardsproject-v2_synced and logs go to repo-root\\logs\\Sync\\WebServerToAndroid. Designed to run from sidscri-apps\\tools\\SyncTool-WebServerToAndroid."
+}
