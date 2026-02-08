@@ -1,6 +1,6 @@
 # SyncTool-WebServerToAndroid
 
-Version: **v2.0.0 (build 2)**
+Version: **v2.1.1 (build 6)**
 
 This tool syncs selected WebAppServer (KenpoFlashcardsWebServer) assets/features into the Android client project (KenpoFlashcardsProject-v2).
 

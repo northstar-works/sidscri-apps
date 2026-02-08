@@ -1,11 +1,11 @@
-START Fri 02/06/2026 11:03:36.62
+START Sat 02/07/2026 18:32:55.15
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToPackaged
 VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToPackaged\version.json
 SEVENZIP=C:\Program Files\7-Zip\7z.exe
-RAW_VER=3.0.5
-RAW_BUILD=15
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToPackaged-v3.0.5 v15.zip
+RAW_VER=3.0.7
+RAW_BUILD=17
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToPackaged-v3.0.7 v17.zip
 STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage
 
 ROBOCOPY_EXIT_CODE=1
@@ -15,15 +15,15 @@ Running 7z (from stage)...
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-162 folders, 474 files, 15670209 bytes (15 MiB)
+1 folder, 6 files, 76739 bytes (75 KiB)
 
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToPackaged-v3.0.5 v15.zip
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToPackaged-v3.0.7 v17.zip
 
-Add new data to archive: 162 folders, 474 files, 15670209 bytes (15 MiB)
+Add new data to archive: 1 folder, 6 files, 76739 bytes (75 KiB)
 
 
-Files read from disk: 474
-Archive size: 12072615 bytes (12 MiB)
+Files read from disk: 6
+Archive size: 22655 bytes (23 KiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 Verified: no .venv paths detected

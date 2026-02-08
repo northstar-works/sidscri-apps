@@ -3263,6 +3263,9 @@ function showEditDeckModal(deck){
     }
   }catch(e){}
 
+  // Clear Add Card (AI) inputs from any prior open
+  try{ editBulkClearInputs(); }catch(e){}
+
   // Default to Edit Deck tab every time
   switchEditDeckModalTab("deck");
 
@@ -3275,7 +3278,12 @@ function showEditDeckModal(deck){
 
 // Switch Edit Deck Modal tabs
 function switchEditDeckModalTab(tab){
+  const prevTab = editDeckModalTab;
   editDeckModalTab = tab;
+  // Leaving Add Card tab? Clear Bulk Add (AI) inputs like Create Deck generator does.
+  if(prevTab === "addcard" && tab !== "addcard"){
+    try{ editBulkClearInputs(); }catch(e){}
+  }
   document.querySelectorAll("#editDeckModal .modalTab").forEach(b => b.classList.remove("active"));
   document.querySelectorAll("#editDeckModal .modalTabBody").forEach(s => s.classList.remove("active"));
 
@@ -4298,6 +4306,9 @@ function closeEditDeckModal(){
   $("aiTemplateModal")?.classList.add("hidden");
   $("choiceModal")?.classList.add("hidden");
   $("previewModal")?.classList.add("hidden");
+
+  // Clear Add Card (AI) inputs on exit
+  try{ editBulkClearInputs(); }catch(e){}
   resetEditCardsState();
   document.body.classList.remove("modalLock");
 }
@@ -5222,22 +5233,134 @@ function editBulkShouldShowPreExample(){
 
 function editBulkSchedulePreExample(){
   try{ clearTimeout(_editBulkAiPreExampleTimer); }catch(e){}
-  _editBulkAiPreExampleTimer = setTimeout(editBulkUpdatePreExample, 250);
+  // Match Create Deck AI generator pacing (reduces API spam while typing)
+  _editBulkAiPreExampleTimer = setTimeout(editBulkUpdatePreExample, 650);
 }
 
 async function editBulkUpdatePreExample(){
-  if(!($("deckAiShowPreExample") && $("deckAiShowPreExample").checked)) return;
-  if(!editBulkShouldShowPreExample()) return;
+  const box  = $("editBulkAiPreExampleBox");
+  const wrap = $("editBulkAiPreExampleWrap");
+  const hint = $("editBulkAiPreExampleHint");
+  if(!box || !wrap) return;
 
-  const kw = ($("editBulkAiKeywords")?.value || "").trim();
-  const instr = ($("editBulkAiInstructions")?.value || "").trim();
-  const sig = `${kw}||${instr}`;
-  if(sig === _editBulkAiPreExampleLastSig) return;
+  // If hidden, clear and stop.
+  if(wrap.classList.contains("hidden")){
+    box.innerHTML = "";
+    if(hint) hint.textContent = "Example output (updates as you type):";
+    return;
+  }
+
+  const kw   = ($("editBulkAiKeywords")?.value || "").trim();
+  const instr= ($("editBulkAiInstructions")?.value || "").trim();
+  const deckName = (editDeckModalDeck?.name || "").trim();
+  const deckDesc = (editDeckModalDeck?.description || "").trim();
+
+  // Only show preview when there is something to base it on.
+  if(!(kw || instr || deckName || deckDesc)){
+    box.innerHTML = "";
+    if(hint) hint.textContent = "Example output (updates as you type):";
+    return;
+  }
+
+  const cbShort = $("deckShortAnswers");
+  const shortOn = !!(cbShort && cbShort.checked);
+  const sig = JSON.stringify({ kw, instr, deckName, deckDesc, shortOn });
+
+  // Avoid re-requesting the same preview repeatedly.
+  if(sig === _editBulkAiPreExampleLastSig && box.innerHTML.trim()){
+    return;
+  }
   _editBulkAiPreExampleLastSig = sig;
 
-  const box = $("editBulkAiPreExampleBox");
-  if(!box) return;
-  box.innerHTML = `<div class="mini muted">Term — Definition</div><div>${escapeHtml(kw || "Example Term")} — ${escapeHtml(instr ? "Definition (per your instructions)" : "Example Definition")}</div>`;
+  if(hint) hint.textContent = "Generating example...";
+  box.innerHTML = "";
+
+  // Use the same preview endpoint + rendering style as Create Deck AI Generator.
+  try{
+    const res = await jpost("/api/ai/generate_deck_preview", {
+      type: "keywords",
+      keywords: kw || deckName || "Example",
+      instructions: instr,
+      shortAnswers: shortOn,
+      deckName,
+      deckDescription: deckDesc
+    });
+
+    if(res?.error){
+      throw new Error(res.error);
+    }
+
+    const c = res?.card || {};
+    const term = (c.term || kw.split(",")[0] || deckName || "Example Term").trim();
+    const def  = (c.definition || "").trim() || "Example definition";
+    const pron = (c.pronunciation || "").trim();
+    const grp  = (c.group || "").trim();
+
+    const extraBits = [
+      pron ? `<div class="mini muted">Pronunciation: ${escapeHtml(pron)}</div>` : "",
+      grp  ? `<div class="mini muted">Group: ${escapeHtml(grp)}</div>` : ""
+    ].join("");
+
+    if(hint) hint.textContent = "Example output (updates as you type):";
+    box.innerHTML = `
+      <div class="previewItem">
+        <div class="top">
+          <div class="term">${escapeHtml(term)}</div>
+        </div>
+        <div class="mini muted">Definition: ${escapeHtml(def)}</div>
+        ${extraBits}
+      </div>
+    `;
+    return;
+
+  }catch(e){
+    // Graceful fallback (no AI / error)
+    try{ console.warn("Edit Deck Bulk Add preview failed:", e); }catch(_){}
+    if(hint) hint.textContent = "Example output (updates as you type):";
+    box.innerHTML = `<div class="mini muted">Term — Definition</div><div>${escapeHtml(kw || "Example Term")} — ${escapeHtml(instr ? "Definition (per your instructions)" : "Example Definition")}</div>`;
+  }
+}
+
+// Clear Edit Deck modal Bulk Add (AI) inputs + preview + results
+function editBulkClearInputs(){
+  try{
+    const kw = $("editBulkAiKeywords");
+    if(kw) kw.value = "";
+    const max = $("editBulkAiMaxCards");
+    if(max){
+      // Reset to default shown in UI
+      max.value = 50;
+    }
+    const ta = $("editBulkAiInstructions");
+    if(ta){
+      ta.value = "";
+      autoGrowTextarea(ta);
+    }
+
+    // Clear uploads
+    editBulkAiPhotoData = null;
+    editBulkAiDocData = null;
+    const p = $("editBulkPhotoFileInput");
+    if(p) p.value = "";
+    const d = $("editBulkDocFileInput");
+    if(d) d.value = "";
+
+    // Close helper menu
+    $("editBulkAiInsertFormatMenu")?.classList.add("hidden");
+
+    // Clear preview box + hide wrap
+    _editBulkAiPreExampleLastSig = "";
+    const wrap = $("editBulkAiPreExampleWrap");
+    if(wrap) wrap.classList.add("hidden");
+    const box = $("editBulkAiPreExampleBox");
+    if(box) box.innerHTML = "";
+    const hint = $("editBulkAiPreExampleHint");
+    if(hint) hint.textContent = "Example output (updates as you type):";
+
+    // Clear results
+    try{ editBulkClearResults(); }catch(e){}
+    try{ editBulkApplyUiSettings(); }catch(e){}
+  }catch(e){}
 }
 
 function editBulkInsertExampleFormat(which){

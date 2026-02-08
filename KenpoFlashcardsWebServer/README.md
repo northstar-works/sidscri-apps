@@ -10,13 +10,17 @@ Flask-based web application providing sync API and web UI for Advanced Flashcard
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 
-
 ## ✅ Recent FAC (v8.8.0 build 61)
+
+### Fixed
+- Decks: Add Cards / Create Deck / Deleted panes could appear blank due to HTML nesting; corrected tab section structure.
 
 ### Added
 - **Decks UI improvements**
   - Settings menu: **Edit Decks** renamed to **Decks**
-  - On Decks > Switch: **Create New Deck** and **Redeem Invite Code** are collapsed by default and expand/collapse on tap
+  - On Decks > Switch: **Create New Deck** and **Redeem Invite 
+  - Edit Decks → Add Cards AI live example preview:** “Example output” now renders and updates as you type (same behavior as Create Deck AI).
+Code** are collapsed by default and expand/collapse on tap
 - **Decks > Add Cards**
   - New sub-tabs: **Add a New Card** and **Bulk Add with AI**
   - Bulk Add uses the same AI generation methods (Keywords / Photo / Document) to add multiple cards to an existing deck
@@ -27,10 +31,12 @@ Flask-based web application providing sync API and web UI for Advanced Flashcard
 - **AI Generator** tab renamed to **Create Deck w/ AiGen**
 - When exiting the Decks page, it resets back to the **Switch** tab by default (next open starts on Switch)
 - After adding cards via AI Generator, the Decks window closes and returns you to Study
+-  AI generator clears on exit:** Keywords/Instructions/preview/results reset when you close Edit Decks or leave the Add Cards AI generator.
 
 ### Fixed
-- N/A
-
+- Decks: Add Cards / Create Deck / Deleted panes could appear blank because the tab sections were nested inside the Switch section; corrected the HTML structure so each tab renders independently.
+- Fixed Edit Decks → Add Cards AI “Example output” staying blank due to missing preview refresh path.
+- Fixed stale AI generator state carrying over between modal opens (inputs + preview now reset consistently).
 
 ---
 
@@ -527,6 +533,7 @@ Interactive page with tabbed sections:
 
 | Version | Build | Key Changes |
 |---------|-------|-------------|
+| **8.8.0** | 61 | Decks UI improvements, Decks > Add Cards, Edit Deck modal,AI Generator** tab renamed to **Create Deck w/ AiGen |
 | **8.7.0** | 60 | AI: instructions override Short answers; optional format-helper dropdown; example preview; fixed Learned/All list blank + startup JS error; Edit Decks Back button sizing |
 | **8.6.2** | 59 | Edit Decks: added **Edit Cards** tab (search/select, per-card edit/remove + duplicate prompt), bulk tools with preview, Deleted + Edited history; removed non-action deck list dot |
 | **8.6.1** | 58 | Packaged support versioning (webappserver_version.json), enhanced `/api/version` (is_packaged + app/web fields), Admin/System + user dropdown single vs dual version display; plus 8.6.0 feature set |

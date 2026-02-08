@@ -23,5 +23,18 @@
     "updatedAt": 1769270478,
     "ownerId": "1cc70e61cd9e",
     "createdBy": "1cc70e61cd9e"
+  },
+  {
+    "id": "deck_e4d5d7de",
+    "name": "U.S. States and their Capital Cities",
+    "description": "U.S. States and their Capital Cities (Just City Names)",
+    "isDefault": false,
+    "isBuiltIn": false,
+    "sourceFile": null,
+    "cardCount": 0,
+    "ownerId": "1cc70e61cd9e",
+    "createdBy": "1cc70e61cd9e",
+    "createdAt": 1770421193,
+    "updatedAt": 1770421193
   }
 ]

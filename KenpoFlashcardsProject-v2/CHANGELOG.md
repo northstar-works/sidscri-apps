@@ -1,5 +1,148 @@
 # Changelog — AdvancedFlashcardsProject (Android)
 
+## v7.0.0 (build 41) — 2026-02-06
+
+- **Synced WebServer parity to v8.7.0 (build 60)** (from v8.6.1 build 58), including:
+
+### Added
+- **Packaged support metadata:** add `webappserver_version.json` (web server core version file).
+- **Version API upgrade:** `/api/version` returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
+- **Packaged support version metadata:** add `webappserver_version.json` (web server core version file).
+- **Version API upgrade:** `/api/version` now returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
+- **Admin/System version display:** App Information shows a single **Web Server** version line for stand-alone and dual **App + Web** versions when `is_packaged: true`.
+- **User dropdown version display:** mirrors stand-alone vs packaged behavior (single vs dual version lines).
+- **Edit Deck modal tabs:** the deck edit button now opens a tabbed view: **Edit Deck** (existing) + **Edit Cards** (new).
+- **Edit Cards management:** search / group filter / select cards for the active deck, with **Select all**, **Clear selection**, and **# Selected** counter.
+- **Per‑card actions:** inline **Edit** (term / definition / pron / group) and **Remove** (soft delete → `deleted`).
+- **Restore flows:** restore deleted cards from **Edit Decks → Deleted**, and also via **Restore** on cards shown when **Show deleted** is enabled in the Edit Cards list.
+- **Duplicate handling prompt:** when an edit would duplicate another card term, prompt with **Add duplicate**, **Replace duplicate**, or **Cancel**.
+- **Edited history:** edited cards are tracked under Deleted → **Edited**, with a **Clear edited history** action.
+- **AI template bulk editor (with preview):** replaced the non-working “State‑only” tool with an **AI template** flow:
+  - choose one or more fields to change (Term / Definition / Pron / Group),
+  - type an instruction (example: “Make definitions state only; ‘Capital of Texas’ → ‘Texas’”),
+  - see an **auto one‑example preview** immediately on the form,
+  - use **Preview All** to view the full change list, then **Apply**.
+- **AI generator **Instructions** box that overrides “Short answers only” when provided.
+- Deck AI setting (default OFF): show example format template buttons/dropdown for Term/Definition templates.
+- Deck AI setting (default ON): show a live “Example output” preview before generating when inputs are provided.
+
+### Changed
+- **Stand-alone version display:** when `is_packaged` is missing/false, Admin/System “App Information” hides the Application line and shows only Web Server version.
+- **Version file lookup:** prefer `webappserver_version.json` and fall back to legacy version files when present.
+- Stand-alone mode hides the **Application** line entirely when `version.json` is missing `is_packaged` or it is `false`.
+- Version file lookup prefers `webappserver_version.json` and falls back to legacy filenames where present.
+- Removed the non-action “dot” indicator on the deck list (active highlighting and Active text remain).
+- Bulk/AI edits override any “short terms only” style toggles for the targeted field(s) during apply.
+- AI Template “Field(s) to change” redesigned as a compact dropdown (Definition, Terms, Definition + Term, Pronunciation, Group).
+- AI Deck Generator controls refined: Generate button spacing/size, plus Preview All + Cancel actions.
+- Treat AI instructions as an explicit formatting/behavior override (client + server).
+
+### Fixed
+- **Edit Cards inline editor layout:** reformatted to match the “In Custom Set” list style (no accordion feel), with checkbox top-left, fields aligned, and Save/Cancel contained properly across mobile/desktop orientations.
+- **Modal scrolling:** Edit Deck overlay now captures scroll correctly and locks background scrolling.
+- **State cleanup:** search text + selections clear when the Edit Deck modal is closed/exited; search also has an **X** clear control.
+- **AI Template UI:** modal now opens reliably above the Edit Deck overlay (z-index), with alerts rendered inside the Edit Cards view and auto-hiding.
+- **Runtime stability:** fixed JS `await` usage inside non-async functions and corrected server-start errors introduced by endpoint indentation.
+- AI Deck Generator live “Example output” preview now shows real preview output (matches the AI Template behavior).
+- AI Generator instructions box no longer stays populated after leaving the AI Generator; Clear button is always visible and sits next to the Instructions field.
+- Inserted example format blocks no longer add excessive blank lines.
+- Instructions textarea auto-expands to fit multi-line template text.
+- Leaving the AI Generator now clears Keywords and resets Max Cards to 25.
+- Learned/All **List** tabs could render blank due to a JS runtime error.
+- App could fail to load from a malformed `async function` declaration.
+- Edit Decks Back button sizing now matches Custom Set Settings.
+
+---
+
+## v6.0.0 (build 40) — 2026-02-03
+
+- **Synced WebServer parity to v8.6.0 (build 57)** (from v8.5.1 build 54), including:
+
+### Changed
+
+- **Controls row rearranged:** group dropdown + All Cards on the left, search icon on the right (was reversed). Search overlay now expands from the right edge.
+- **Settings icon moved to title row:** ⚙️ button now sits directly right of User:**** display in the header title row.
+- **Study/Group label hidden:** "Study / Group" label text removed on mobile (≤600px) and landscape to save vertical space.
+- **Landscape group sizing:** "Select group..." dropdown matches "All Cards" button sizing (both 6px 10px padding, 12px font).
+- **Desktop search icon:** search bar replaced with 🔍 icon on all screen sizes; expands as overlay on click.
+- **Portrait controls layout:** group dropdown auto-width on left, All Cards + 🔍 pushed right via space-between.
+- **Landscape controls right-aligned:** controls row pushed to right side of screen.
+- **Mobile logo inline:** deck logo displays inline between Cards loaded and User line instead of overlapping.
+- **CSS selector fix:** corrected `.selectBtn` → `.select` to match actual HTML class on group dropdown button.
+- **Removed stale `.rightControls`:** cleaned up all references to the removed rightControls div from CSS.
+- **AI generation context-aware:** AI no longer assumes foreign language vocabulary when generating cards. Determines subject from keywords literally — "fast food chains types of food" produces menu items, not Spanish food words. Complex topics (science, etc.) get full definitions; simple ones get concise answers.
+- **Add Card pre-selects active deck:** Target Deck dropdown in "Add Cards" tab now defaults to the deck you're currently studying instead of always defaulting to Kenpo Vocabulary.
+- **Custom Set counts reflect custom status:** when studying a Custom Set, the Unlearned/Unsure/Learned counts line now shows the custom set's own card statuses instead of main deck statuses.
+- **Random card input narrower:** "Pick random cards to add" number field reduced to prevent overlapping the label text and Add Random button; max value increased to 9999.
+- **Admin User Deck Access simplified:** removed Disable/Enable Built-In for User buttons and built-in status badge. The Allow/Deny buttons now handle all access control. Status line shows clear "Access: Granted" or "Access: Not granted" for all deck types including built-in decks.
+- **Allow/Deny preserves dropdowns:** clicking Allow or Deny no longer triggers a full config reload that resets the user and deck dropdowns, enabling bulk access changes without reselecting.
+- **Non-admin built-in editing off by default:** `allowNonAdminDeckEdits` now defaults to `false` in both backend config and admin UI checkbox. Label text changed from "Allow non-admins to edit built-in/unlocked decks" to "Allow non-admins to edit built-in decks".
+- **Deck Ownership blank state:** "Current owner" line is now hidden when no deck is selected, and shows "No owner assigned" when a deck has no owner ID instead of displaying raw IDs.
+- **Portrait card layout overhaul:** card height increased from 260px to 320px (280px on ≤400px screens). Card text enlarged to 26px (22px small screens). Card face now scrollable for long breakdown content that overflows.
+- **Status line inline with Card counter:** "All (flat) • Studying: X" text now appears on the same line as "Card 1 / 10" in portrait and landscape, replacing the separate header status line on mobile.
+- **Landscape controls compact:** group dropdown, All Cards, and search icon reduced to 11px font with 4px padding for minimal space usage.
+- **Faster initial load after login: settings + decks now load in parallel; counts + cards load in parallel during refresh (reduced sequential network calls from 6 to 4).
+- **Portrait Study action row stabilized:** Prev / Speak / Custom / Next are forced onto a single edge-to-edge row in portrait, with Next staying aligned to the right of Custom (no wrapping).
+- **Breakdown button relocated (portrait):** breakdown action moved to the header next to the search icon to reduce control crowding on mobile.
+- **Portrait alignment tweaks:** reduced card-area side padding to the left edge in portrait and aligned the status hint line to the left edge. Replaced the "Only Admin (...)" hint line with a compact **"Custom > Status"** hint in portrait.
+- **Confirmation visuals standardized:** **✓** for success, **✖** for error. Admin confirmations auto-clear after a few seconds.
+- **Custom Set study label shows filter mode:** status bar now shows "Studying: Unlearned/Unsure/Learned" instead of "Studying: Custom Set" when studying a Custom Set.
+
+### Fixed (Admin Dashboard)
+
+- **Edit User deck access API:** fixed URL mismatch (`/api/admin/user/deck_access?user_id=` → `/api/admin/user/<id>/deck-access`). Edit User modal now loads deck access correctly.
+- **Edit User field name mismatch:** JS used `userDecks`/`grantedAdminDeckIds` but backend returns `ownedDecks`/`grantedAdminDecks`.
+- **Owned decks show 0 cards:** backend now includes `cardCount` in deck-access endpoint response.
+- **Edit User modal wider:** max-width increased from 700px to 900px; deck columns min-width 300px.
+- **Edit User deck access read-only:** removed checkboxes; shows Granted/Not granted text synced with Admin > Decks status. Manage link directs to Admin > Decks > User Deck Access.
+- **renderBuiltInDecks syntax:** fixed nested function causing potential JS errors.
+- **Custom Set Manage Cards / Saved Sets tabs blank:** tabs appeared empty because the `.hidden` class (with `!important`) was never removed during tab switching, overriding `.csTabContent.active`. Now properly toggles both classes.
+- **Admin logs empty on fresh start:** logs were purely in-memory and lost on restart. Now backed by files that persist.
+- **Breakdown text overflow in portrait:** card faces now have `overflow-y: auto`, so long term breakdowns scroll instead of clipping or overlapping control buttons.
+- **Built-in status showing incorrectly:** previously showed "✓ Built-in active" even when the deck wasn't built-in or was disabled for the user. Removed entirely in favor of the simplified access status.
+- **Custom Sets and Saved Sets are now **deck-scoped** (no cross-deck leakage when switching decks).
+- Custom Set Study view uses only the active deck's Custom Set (star tab no longer affects other deck lists).
+- **Custom-marked cards now appear in Custom Set:** starred/custom cards are correctly aggregated and shown inside Custom Set, including across decks the user can access.
+- **Custom Set random count input overlap fixed:** `.csRandomInput` now overrides the global `input{min-width:280px}` rule using `min-width: auto !important;` so it stays at 52px.
+- **Manage Cards lists taller:** increased `.csCardList` height to show more cards (desktop and portrait).
+- **Manage Cards action buttons relocated:** "Select All", "Set Learned", "Set Unsure", "Clear All", and "Remove" now live inside each expanded accordion pane (instead of a global bottom action bar).
+- **Buttons compact + responsive:** removed the "Mark In-" prefix, reduced button sizing/text to match the tab typography, and made the layout adapt per screen size (portrait uses a 2-row wrap; landscape keeps actions on one row with Remove pinned right).
+- **Checkbox position standardized:** selection checkboxes are placed to the **left of the term** across all orientations/devices; status badges (e.g., **U**) remain on the far right.
+- **Safe text wrapping:** long terms/definitions wrap before controls and rows expand in height as needed (no overlap with checkbox/badge).
+- **Landscape list viewport increased:** expanded list height so ~5 cards are visible at a time while scrolling.
+- **Landscape pane width refined:** accordion pane width reduced (approx. 85% of available width) for a cleaner, less edge-to-edge look.
+- **Custom Set Settings Back button resized:** reduced to ~50% size on mobile to better match the page scale.
+- **Breakdown save closes modal:** saving a breakdown now closes the breakdown window/modal instead of leaving it open.
+- **Custom Set → Manage Cards responsive layout:** prevented overflow/misalignment on smaller screens by overriding global input min-width and stacking the two panes on narrow widths.
+- **Admin confirmations auto-clear:** "Access granted/denied" and "Deck transferred" messages now disappear after a few seconds and do not persist when changing the selected user/deck.
+- **Correct icons for errors:** "Access denied" (and other error confirmations) now use **✖** instead of **✓**.
+- **Custom Set counts showing 0/0/0:** backend API now returns `counts` object with `active/unsure/learned/total` breakdown so the counts line displays real numbers.
+- **Settings tab empty on first open:** Custom Set Settings tab was blank when opening because `hidden` class was not removed (only `active` was added). Now properly removes both.
+- **Custom Set modal overflow on mobile:** converted from modal overlay (which used `display:grid; place-items:center` causing clipping) to a full-page scrollable view inside `<main>`, eliminating horizontal/vertical overflow.
+- **Landscape accordion not triggering:** `max-width: 720px` media query missed landscape phones (where width is the long edge, ~800px+). Now uses `(max-width: 720px) OR (orientation: landscape AND max-height: 500px)`. Added matching CSS landscape rules for pane stacking and card list height capping.
+
+---
+
+### Added (Admin Dashboard)
+
+- **Allow/Deny buttons:** replaced Unlock/Lock buttons with Allow/Deny + static "Access" label in User Deck Access section.
+- **Live access status indicators:** selecting user + deck shows current access state (Granted/Not granted, Built-in Active/Disabled, Owned).
+- **Built-in status badge:** shows ⛔ or ✓ next to Disable/Enable Built-In buttons.
+- **Deck Ownership section:** new Admin > Decks > Deck Ownership panel to transfer deck ownership between users with confirmation.
+- **`/api/admin/deck-ownership` endpoint:** transfers deck cards and metadata to new owner.
+- **`/api/admin/user-deck-status` endpoint:** returns access status for user+deck combination.
+- **File-based logging system:** server.log, error.log, and user_activity.log now write to disk in the logs directory, persisting across server restarts.
+- **Log rotation on startup:** server.log and error.log are automatically rotated on each server start (previous saved as .prev); user_activity.log is continuous unless manually cleared (saved to .prev before clearing).
+- **Log download endpoint:** `/api/admin/logs/download` serves log files for download; returns 204 if file is empty (download button disabled for empty logs).
+- **Expandable admin stat tiles:** clicking any stat card (Users, Cards, Decks, Breakdowns, Learned, Unsure, Unlearned) expands a detail panel showing per-user and per-item breakdowns. Collapse by clicking again.
+- **Deck Short Answers mode:** new per-deck toggle (`⚙️ Deck AI Settings` section in AI Generator tab) that forces AI-generated definitions to 1-4 words. Ideal for capitals, translations, simple vocabulary. Setting persists via `/api/decks/<id>/settings`.
+- **Deck settings API:** `GET/POST /api/decks/<deck_id>/settings` for per-deck configuration (currently: shortAnswers).
+- **Settings → Display: **Show UI error log** toggle (default OFF). When enabled, JS/UI errors appear in an on-screen log panel.
+- **Custom Set Settings full-page view:** Custom Set Settings converted from a modal overlay to a scrollable full-page view (same pattern as Edit Decks), eliminating mobile overflow/clipping issues.
+- **Manage Cards collapsible panes:** In Custom Set → Manage Cards, both "In Custom Set" and "Available Cards" panes are collapsible (collapsed by default) on mobile in portrait **and** landscape. Accordion detection uses dual media queries to correctly detect landscape phones (where screen width exceeds 720px but height is under 500px).
+
+---
+
 ## 5.6.0 (build 39) — 2026-01-31
 
 ### Fixed — Admin Access + AI Definitions + Server Verification
@@ -29,366 +172,6 @@
 - `WebAppSync.verifyServer()` new function for server identity verification
 - `WebAppSync.login()` now verifies server before attempting login
 - Login screen server URL section redesigned with side-by-side Verify/Save buttons
-
----
-
-## 7.0.2 (build 43) — 2026-02-06
-
-
-### Changes
-
-- (Add changes here)
-
-
-### Technical Notes
-- Synced metadata from WebServer v8.7.0 (build 60)
-- Version bumped by sync_webserver_to_android.py v1.0.0
-
----
-
-## 7.0.1 (build 42) — 2026-02-06
-
-
-### Changes
-
-- (Add changes here)
-
-
-### Technical Notes
-- Synced metadata from WebServer v8.7.0 (build 60)
-- Version bumped by sync_webserver_to_android.py v1.0.0
-
----
-
-## 7.0.0 (build 41) — 2026-02-05
-
-
-### Synced — WebServer features through v8.7.0 (build 60)
-
-
-#### From WebServer 8.7.0: 2026-02-05
-- **TODO**: [Added]
-- **TODO**: AI generator **Instructions** box that overrides “Short answers only” when provided.
-- **TODO**: Deck AI setting (default OFF): show compact formatting helper buttons/dropdown for Term/Definition templates.
-- **TODO**: Deck AI setting (default ON): show a live “Example output” preview before generating when inputs are provided.
-- **TODO**: [Changed]
-- **TODO**: Treat AI instructions as an explicit formatting/behavior override (client + server).
-- **TODO**: [Fixed]
-- **TODO**: Learned/All **List** tabs could render blank due to a JS runtime error.
-
-#### From WebServer 8.6.2: 2026-02-04
-- **TODO**: [Added]
-- **TODO**: **Edit Deck modal tabs:** the deck edit button now opens a tabbed view: **Edit Deck** (existing) + **Edit Cards** (new).
-- **TODO**: **Edit Cards management:** search / group filter / select cards for the active deck, with **Select all**, **Clear selection**, and **# Selected** counter.
-- **TODO**: **Per‑card actions:** inline **Edit** (term / definition / pron / group) and **Remove** (soft delete → `deleted`).
-- **TODO**: **Restore flows:** restore deleted cards from **Edit Decks → Deleted**, and also via **Restore** on cards shown when **Show deleted** is enabled in the Edit Cards list.
-- **TODO**: **Duplicate handling prompt:** when an edit would duplicate another card term, prompt with **Add duplicate**, **Replace duplicate**, or **Cancel**.
-- **TODO**: **Edited history:** edited cards are tracked under Deleted → **Edited**, with a **Clear edited history** action.
-- **TODO**: **AI template bulk editor (with preview):** replaced the non-working “State‑only” tool with an **AI template** flow:
-
-#### From WebServer 8.6.1: 2026-02-03
-- **TODO**: [Added]
-- **TODO**: **Packaged support metadata:** add `webappserver_version.json` (web server core version file).
-- **TODO**: **Version API upgrade:** `/api/version` returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
-- **TODO**: **Packaged support version metadata:** add `webappserver_version.json` (web server core version file).
-- **TODO**: **Version API upgrade:** `/api/version` now returns `is_packaged` plus `app_*` and `web_*` fields (packaged shows both; stand-alone shows web only).
-- **TODO**: **Admin/System version display:** App Information shows a single **Web Server** version line for stand-alone and dual **App + Web** versions when `is_packaged: true`.
-- **TODO**: **User dropdown version display:** mirrors stand-alone vs packaged behavior (single vs dual version lines).
-- **TODO**: [Changed]
-
-### Technical Notes
-- Synced metadata from WebServer v8.7.0 (build 60)
-- Version bumped by sync_webserver_to_android.py v1.0.0
-
----
-
-## 6.0.0 (build 40) — 2026-02-03
-
-
-### Synced — WebServer features through v8.6.0.2 (build 57)
-
-
-#### From WebServer 8.6.0: 2026-02-02
-- **TODO**: [Added]
-- **TODO**: Settings → Display: **Show UI error log** toggle (default OFF). When enabled, JS/UI errors appear in an on-screen log panel.
-- **TODO**: **Custom Set Settings full-page view:** Custom Set Settings converted from a modal overlay to a scrollable full-page view (same pattern as Edit Decks), eliminating mobile overflow/clipping issues.
-- **TODO**: **Manage Cards collapsible panes:** In Custom Set → Manage Cards, both "In Custom Set" and "Available Cards" panes are collapsible (collapsed by default) on mobile in portrait **and** landscape. Accordion detection uses dual media queries to correctly detect landscape phones (where screen width exceeds 720px but height is under 500px).
-- **TODO**: [Changed]
-- **TODO**: Faster initial load after login: settings + decks now load in parallel; counts + cards load in parallel during refresh (reduced sequential network calls from 6 to 4).
-- **TODO**: **Portrait Study action row stabilized:** Prev / Speak / Custom / Next are forced onto a single edge-to-edge row in portrait, with Next staying aligned to the right of Custom (no wrapping).
-- **TODO**: **Breakdown button relocated (portrait):** breakdown action moved to the header next to the search icon to reduce control crowding on mobile.
-
-#### From WebServer 8.5.3: 2026-02-01
-- **TODO**: [Changed]
-- **TODO**: **Admin User Deck Access simplified:** removed Disable/Enable Built-In for User buttons and built-in status badge. The Allow/Deny buttons now handle all access control. Status line shows clear "Access: Granted" or "Access: Not granted" for all deck types including built-in decks.
-- **TODO**: **Allow/Deny preserves dropdowns:** clicking Allow or Deny no longer triggers a full config reload that resets the user and deck dropdowns, enabling bulk access changes without reselecting.
-- **TODO**: **Non-admin built-in editing off by default:** `allowNonAdminDeckEdits` now defaults to `false` in both backend config and admin UI checkbox. Label text changed from "Allow non-admins to edit built-in/unlocked decks" to "Allow non-admins to edit built-in decks".
-- **TODO**: **Deck Ownership blank state:** "Current owner" line is now hidden when no deck is selected, and shows "No owner assigned" when a deck has no owner ID instead of displaying raw IDs.
-- **TODO**: **Portrait card layout overhaul:** card height increased from 260px to 320px (280px on ≤400px screens). Card text enlarged to 26px (22px small screens). Card face now scrollable for long breakdown content that overflows.
-- **TODO**: **Status line inline with Card counter:** "All (flat) • Studying: X" text now appears on the same line as "Card 1 / 10" in portrait and landscape, replacing the separate header status line on mobile.
-- **TODO**: **Landscape controls compact:** group dropdown, All Cards, and search icon reduced to 11px font with 4px padding for minimal space usage.
-
-#### From WebServer 8.5.2: 2026-02-01
-- **TODO**: [Added]
-- **TODO**: **File-based logging system:** server.log, error.log, and user_activity.log now write to disk in the logs directory, persisting across server restarts.
-- **TODO**: **Log rotation on startup:** server.log and error.log are automatically rotated on each server start (previous saved as .prev); user_activity.log is continuous unless manually cleared (saved to .prev before clearing).
-- **TODO**: **Log download endpoint:** `/api/admin/logs/download` serves log files for download; returns 204 if file is empty (download button disabled for empty logs).
-- **TODO**: **Expandable admin stat tiles:** clicking any stat card (Users, Cards, Decks, Breakdowns, Learned, Unsure, Unlearned) expands a detail panel showing per-user and per-item breakdowns. Collapse by clicking again.
-- **TODO**: **Deck Short Answers mode:** new per-deck toggle (`⚙️ Deck AI Settings` section in AI Generator tab) that forces AI-generated definitions to 1-4 words. Ideal for capitals, translations, simple vocabulary. Setting persists via `/api/decks/<id>/settings`.
-- **TODO**: **Deck settings API:** `GET/POST /api/decks/<deck_id>/settings` for per-deck configuration (currently: shortAnswers).
-- **TODO**: [Changed]
-
-#### From WebServer 8.5.1: 2026-01-31
-- **TODO**: [Changed]
-- **TODO**: **Controls row rearranged:** group dropdown + All Cards on the left, search icon on the right (was reversed). Search overlay now expands from the right edge.
-- **TODO**: **Settings icon moved to title row:** ⚙️ button now sits directly right of User:**** display in the header title row.
-- **TODO**: **Study/Group label hidden:** "Study / Group" label text removed on mobile (≤600px) and landscape to save vertical space.
-- **TODO**: **Landscape group sizing:** "Select group..." dropdown matches "All Cards" button sizing (both 6px 10px padding, 12px font).
-- **TODO**: **Desktop search icon:** search bar replaced with 🔍 icon on all screen sizes; expands as overlay on click.
-- **TODO**: **Portrait controls layout:** group dropdown auto-width on left, All Cards + 🔍 pushed right via space-between.
-- **TODO**: **Landscape controls right-aligned:** controls row pushed to right side of screen.
-
-#### From WebServer 8.5.0: 2026-01-31
-- **TODO**: [Changed]
-- **TODO**: **Portrait responsive controls:** study controls (group dropdown, All Cards, search, settings) display in a compact single row on portrait screens (≤600px).
-- **TODO**: **Landscape responsive controls:** all controls fit in one row without wrapping on landscape screens (≤500px height).
-- **TODO**: **Settings toggle behavior:** settings button toggles open/close. Close button (✕) added to settings header.
-- **TODO**: **Search bar → icon toggle:** search is now a 🔍 icon that expands an overlay input when tapped; auto-collapses when tapping outside.
-- **TODO**: **Saved Breakdowns moved to More:** 🧩 Saved Breakdowns relocated from main controls into Settings/More page.
-- **TODO**: **Got it button shortened:** "Got it ✓ (mark learned)" → "Got it ✓".
-- **TODO**: **Breakdown card button compact:** stays small and fixed next to Next in portrait.
-
-#### From WebServer 8.4.0: 2026-01-30
-- **TODO**: [Added]
-- **TODO**: **Remember me functionality**: Sessions now persist for 30 days and refresh on each request. Users stay logged in across browser restarts without needing to re-authenticate.
-- **TODO**: **Mobile responsive design**: Comprehensive CSS media queries for tablet (≤900px), mobile (≤600px), and small mobile (≤400px) viewports.
-- **TODO**: **Admin edit built-in decks**: Administrators can now edit built-in decks (like Kenpo Vocabulary) and upload logos for them.
-- **TODO**: [Changed]
-- **TODO**: **Deck logo**: Reduced size by ~15% (98px → 83px) and removed transform that caused jumping. Logo now stays in a fixed position.
-- **TODO**: **Deck title**: Now truncates with ellipsis (...) when too long, preventing layout overflow on mobile.
-- **TODO**: **Edit User modal**: Increased width from 500px to 700px for better visibility of deck access controls. Added responsive breakpoints for smaller screens.
-
-#### From WebServer 8.3.0: 2026-01-30
-- **TODO**: [Added]
-- **TODO**: **Runtime paths module** (`runtime/app_paths.py`) to centrally control writable locations for **data** and **logs** in both dev and packaged (frozen) runs.
-- **TODO**: **Environment overrides** for advanced/portable setups:
-- **TODO**: `KENPO_APPDATA_BASE_DIR` (override base AppData folder)
-- **TODO**: `KENPO_DATA_DIR` / `KENPO_LOG_DIR` (explicit overrides)
-- **TODO**: **First-run data seeding** for packaged installs: if the user’s AppData `data\` is missing required defaults, they are copied from the bundled read-only defaults (non-destructive; does not overwrite existing user data).
-- **TODO**: **Runtime import-path resiliency for frozen builds (tray/service) to reduce install-specific startup failures.
-- **TODO**: [Changed]
-
-#### From WebServer 8.2.0: 2026-01-29
-- **TODO**: [Added]
-- **TODO**: Packaged install marker: include `data/install_type.txt` (set to `packaged`) so the UI can show **Web Server Version** only in packaged installs.
-- **TODO**: Admin > Decks: add built-in decks back via dropdown + **Add Built-In** action.
-- **TODO**: Admin > User Deck Access: show access status for the selected user + deck and enable only valid actions (Unlock/Lock, Enable/Disable Built-In).
-- **TODO**: Login UI: show version/build on the login panel; add password-reset fields for users required to change password.
-- **TODO**: Create Deck: choose an add-cards method (Keyword/Photo/Document) directly under Description and auto-jump after create.
-- **TODO**: Startup runner: print a clear `[READY]` line indicating the local + LAN URLs once the app is running.
-- **TODO**: Logging: write persistent logs to `logs/server.log` and `logs/error.log` under the app root.
-
-#### From WebServer 8.1.1: 2026-01-29
-- **TODO**: Fix: Admin deck dropdowns now populate correctly (stats includes full deck list + user ids).
-- **TODO**: Fix: Deck ownership/access logic (owned vs shared) and Edit/Delete button visibility.
-- **TODO**: Fix: Forced password reset now blocks access until changed; Web UI prompts immediately after login.
-- **TODO**: Add: Create Deck flow can jump directly into adding cards (Keywords auto-generate up to 25, Photo/Document opens upload).
-- **TODO**: Fix: AI generator resets keywords + max cards (25) after adding cards.
-- **TODO**: Improve: Admin Overview tiles are clickable with detail modals; System page server-info fields are more robust.
-- **TODO**: Improve: Server/App/User logging feeds Admin > Logs more reliably.
-- **TODO**: (Add changes here as you work. Move them into a release when you publish.)
-
-#### From WebServer 8.1.0: 2026-01-28
-- **TODO**: [Added]
-- **TODO**: **Added GEN8 Token Admin Namespace for Android
-- **TODO**: **Token admin endpoints** for deck access management under `/api/sync/admin/...` (admin token required).
-- **TODO**: **Invite code redemption** endpoint for Android: `POST /api/sync/redeem-invite-code` (user token required).
-- **TODO**: **Docs updates**: README now explicitly documents the token admin namespace and invite flow for Android parity.
-- **TODO**: **Admin per-user sharing controls**: in **Admin → Users → Edit User**, admins can now grant/revoke access to *their own* decks for that specific user (shows “Their decks” and “Your decks”).
-- **TODO**: [Fixes]
-- **TODO**: **Fixed Sync → Pull returning 500 Internal Server Error when user progress data contained non-numeric updated_at values (e.g., "None", empty strings, timestamps). Pull now safely parses/normalizes updated_at and will not crash.
-
-#### From WebServer 8.0.2: 2026-01-28
-- **TODO**: [Changed]
-- **TODO**: **Deck ownership is enforced**: user-created study decks are now unique to the creating user and are no longer visible/editable by other users unless explicitly shared by an admin.
-- **TODO**: [Fixed]
-- **TODO**: **Admin “Reset Password” now works**: reset uses a login-compatible password hash, so the forced default `123456789` login is accepted.
-- **TODO**: **Deck card storage for shared decks**: cards for user-created decks are stored per-deck (not per-user) so shared decks show consistent content for everyone with access.
-- **TODO**: **Safety + permissions**: only the deck owner/admin can edit/delete a user-created deck or modify cards in that deck.
-- **TODO**: [Notes]
-- **TODO**: This release carries forward the **v8.0.2 (build 47)** deck ownership enforcement + admin sharing fixes.
-
-#### From WebServer 8.0.1: 2026-01-27
-- **TODO**: [Added]
-- **TODO**: **Deck icons in “Switch Study Subject”**: each deck now displays a small logo icon (deck-specific or the default logo).
-- **TODO**: [Changed]
-- **TODO**: **Study page header logo** is ~25% larger and spacing/placement was adjusted to better align with the header text.
-- **TODO**: [Fixed]
-- **TODO**: **Default deck honored on refresh**: fixed `/api/settings` GET route registration so saved `activeDeckId` loads correctly; if missing/invalid, server falls back to the deck marked ★ default and persists it.
-- **TODO**: **Deck header logos** now render correctly on the Study page (missing header `<img>` elements prevented any logo from showing).
-- **TODO**: **Per-deck logo isolation**: changing a deck’s logo (uploading an image or choosing the default) no longer changes other decks’ logos (Kenpo remains Kenpo only).
-
-#### From WebServer 8.0.0: 2026-01-27
-- **TODO**: [Added]
-- **TODO**: **Major rebrand**: internal project name is now **Advanced Flashcards WebAppServer**; browser UI branding is **Advanced Flashcards WebApp** (no user-visible “Server”).
-- **TODO**: **WebApp icons**: new dedicated path `static/res/webappicons/` with updated favicon / browser tab icon using the Advanced Flashcards logo.
-- **TODO**: **Deck logos (optional)**: support for per-deck logos with default fallback to the Advanced Flashcards logo; Kenpo deck uses its own logo.
-- **TODO**: [Changed]
-- **TODO**: Updated user-facing text from “Kenpo Flashcards” → “Advanced Flashcards WebApp” across the Web UI (while keeping the main Study page header line `Study Flashcards • {Deck} • Cards loaded: {#}` unchanged).
-
-#### From WebServer 7.3.0: 2026-01-25
-- **TODO**: [Added]
-- **TODO**: **Deck Access Management System**:
-- **TODO**: Built-in decks can be disabled/enabled per user
-- **TODO**: Invite codes to unlock specific decks for users
-- **TODO**: Admin can manually unlock/lock decks for specific users
-- **TODO**: New users can be set to start with blank app (no decks)
-- **TODO**: Settings to control whether non-admins can edit built-in/unlocked decks
-- **TODO**: **Admin Dashboard - Decks Tab**:
-
-#### From WebServer 7.2.1: 2026-01-25
-- **TODO**: [Changed]
-- **TODO**: **Custom Set Modal Redesign**:
-- **TODO**: Fixed modal size (700px width, 500px min-height) - no more resizing between tabs
-- **TODO**: Split-pane Manage Cards tab: "In Custom Set" on left, "Available Cards" on right
-- **TODO**: Search filtering for both card lists
-- **TODO**: Click cards to toggle selection, or use checkboxes
-- **TODO**: Add/Remove buttons between panes for easy bulk management
-- **TODO**: Saved Sets now show "Active" status with switch functionality
-
-#### From WebServer 7.2.0: 2026-01-25
-- **TODO**: [Added]
-- **TODO**: **Custom Set Management Modal**: New ⚙️ button in Custom Set toggle opens modal with:
-- **TODO**: **Settings Tab**: Random order toggle, pick random N cards to add
-- **TODO**: **Manage Tab**: Bulk select/edit cards, mark selected learned/unsure, remove selected
-- **TODO**: **Saved Sets Tab**: Save current Custom Set with name, load/delete saved sets
-- **TODO**: **Server Activity Logs**: Admin dashboard Logs tab now shows real activity:
-- **TODO**: Login/logout events tracked
-- **TODO**: Filterable by type (Server, Error, User Activity)
-
-#### From WebServer 7.1.0: 2026-01-24
-- **TODO**: [Added]
-- **TODO**: **Web Sync Endpoints**: `/api/web/sync/push` and `/api/web/sync/pull` for session-based auth (fixes "login_required" error)
-- **TODO**: **Breakdown Indicator**: Puzzle icon (🧩) turns blue when card has breakdown data
-- **TODO**: **Breakdown IDs API**: `GET /api/breakdowns/ids` - lightweight endpoint returning only IDs of cards with breakdown content
-- **TODO**: **Enhanced User Stats**: Admin stats now include per-user progress %, current deck, last sync time
-- **TODO**: **Deck Stats**: Admin dashboard shows total decks and user-created count
-- **TODO**: [Changed]
-- **TODO**: **Admin Dashboard Redesigned**:
-
-#### From WebServer 7.0.7: 2026-01-24
-- **TODO**: [Added — Android Sync API]
-- **TODO**: **`GET /api/vocabulary`**: Returns kenpo_words.json (canonical source for built-in vocabulary)
-- **TODO**: **`GET /api/sync/decks`**: Pull all decks for Android sync (requires auth)
-- **TODO**: **`POST /api/sync/decks`**: Push deck changes from Android (requires auth)
-- **TODO**: **`GET /api/sync/user_cards`**: Pull user-created cards (requires auth, optional deck_id filter)
-- **TODO**: **`POST /api/sync/user_cards`**: Push user cards from Android (requires auth)
-- **TODO**: **`DELETE /api/sync/user_cards/<card_id>`**: Delete a user card (requires auth)
-- **TODO**: [Changed]
-
-#### From WebServer 7.0.6: 2026-01-24
-- **TODO**: [Added]
-- **TODO**: **Rebranded to "Study Flashcards"**: Generic app name that works for any subject
-- **TODO**: **Header shows active deck**: App title now shows "Study Flashcards • [Deck Name]"
-- **TODO**: **Set Default Deck**: ★ button to set a deck as the default startup deck
-- **TODO**: **API endpoint**: `POST /api/decks/:id/set_default` - Sets a deck as default
-- **TODO**: [Changed]
-- **TODO**: **Groups filter respects active deck**: Group dropdown now shows groups from the active deck, not just Kenpo
-- **TODO**: **Page title**: Changed from "Kenpo Flashcards (Web)" to "Study Flashcards"
-
-#### From WebServer 7.0.5: 2026-01-24
-- **TODO**: [Added]
-- **TODO**: **🤖 AI Deck Generator**: New tab in Edit Decks to generate flashcards using AI
-- **TODO**: **Keywords**: Enter topic/keywords to generate cards (e.g., "Basic Spanish Words 3rd grade level")
-- **TODO**: **Photo**: Upload image of study material, AI extracts vocabulary
-- **TODO**: **Document**: Upload PDF/TXT/MD files, AI creates flashcards from content
-- **TODO**: Selection UI: Review generated cards, select which to add
-- **TODO**: Max cards configurable 1-200
-- **TODO**: Default keywords: Uses deck name + description if no keywords entered
-
-#### From WebServer 7.0.4: 2026-01-24
-- **TODO**: [Added]
-- **TODO**: **AI Deck Generator** (initial implementation): Generate flashcards from keywords, photos, or documents
-- **TODO**: **User cards in study deck**: User-created cards now merge with built-in cards
-- **TODO**: [Fixed]
-- **TODO**: **PDF download**: Replaced with "Print User Guide" button (avoids reportlab compatibility issues)
-
-#### From WebServer 7.0.3: 2026-01-24
-- **TODO**: [Fixed]
-- **TODO**: **Health check**: Now correctly reports Kenpo JSON file status (was always showing Missing)
-- **TODO**: **AI card generation**: API keys now loaded from encrypted storage at startup (was only reading from environment variables)
-- **TODO**: **Custom Set random toggle**: Now properly persists when toggled (was not saving to settings)
-- **TODO**: **Reshuffle button**: Always visible and properly sized (smaller, inline with toggle)
-- **TODO**: [Changed]
-- **TODO**: Reshuffle button now works anytime (not just when random is enabled)
-
-#### From WebServer 7.0.2: 2026-01-23
-- **TODO**: [Added]
-- **TODO**: **🎲 Pick Random N**: Click dice button in Custom Set to study random subset of starred cards
-- **TODO**: **User Management Modal**: Click "Total Users" in admin to view/edit all users
-- **TODO**: **Admin User Editing**: Grant/revoke admin status, reset passwords
-- **TODO**: **Password Reset**: Admins can reset user passwords to default (123456789) with required change on next login
-- **TODO**: **System Status Feed**: Activity-style status display in admin dashboard
-- **TODO**: [Fixed]
-- **TODO**: **Edit Decks Page**: Now opens correctly (added missing hideAllViews function)
-
-#### From WebServer 7.0.1: 2026-01-23
-- **TODO**: [Added]
-- **TODO**: **Reshuffle button visible**: ⟳ button now always visible on study cards (works even without random mode)
-- **TODO**: **Search clear X button**: Clear search with one click
-- **TODO**: **Randomize Custom Set setting**: Control random order separately for Custom Set
-- **TODO**: **Speak pronunciation only toggle**: Option to speak only pronunciation instead of term
-- **TODO**: [Changed]
-- **TODO**: Reshuffle works regardless of random toggle state (instant shuffle on demand)
-
-#### From WebServer 7.0.0: 2026-01-23
-- **TODO**: [Added]
-- **TODO**: **Edit Decks page**: New page accessible from Settings with three tabs:
-- **TODO**: **Switch tab**: View and switch between study decks, create new decks
-- **TODO**: **Add Cards tab**: Manually add cards with term, definition, pronunciation, group
-- **TODO**: **Deleted tab**: View and restore deleted cards
-- **TODO**: **Deck management**: Create and delete custom study decks
-- **TODO**: **User cards CRUD**: Add, edit, and delete user-created cards
-- **TODO**: **AI generation buttons**:
-
-#### From WebServer 6.1.0: 2026-01-23
-- **TODO**: [Added]
-- **TODO**: **Sync Progress page**: New settings section matching Android app with Push/Pull buttons, login status banner, auto-sync info, and breakdown sync
-- **TODO**: **Settings tabbed navigation**: Quick nav tabs for Study, Display, Voice, Sync, and AI sections with highlighted active tab
-- **TODO**: **Star button on study cards**: Toggle Custom Set membership directly from study view
-- **TODO**: **Sort by status dropdown**: All list can now be sorted by Unlearned, Unsure, Learned, or Alphabetical
-- **TODO**: **Logout in user menu**: Moved logout option to user dropdown menu with icon
-- **TODO**: [Changed]
-- **TODO**: Settings page completely redesigned with app-like card layout and modern buttons
-
-#### From WebServer 6.0.0: 2026-01-22
-- **TODO**: [Added]
-- **TODO**: **Custom Set (Starred Cards)**: New ⭐ tab for studying a personalized set of starred cards
-- **TODO**: ☆/★ toggle buttons in All list to add/remove cards
-- **TODO**: Internal status tracking (Active/Unsure/Learned) within custom set
-- **TODO**: Filter views: All, Unsure, Learned within custom set
-- **TODO**: API endpoints: `/api/custom_set`, `/api/custom_set/add`, `/api/custom_set/remove`, `/api/custom_set/toggle`, `/api/custom_set/set_status`, `/api/custom_set/clear`
-- **TODO**: **Show breakdown on definition toggle**: New setting to show/hide breakdown on card back
-- **TODO**: **Auto-speak on card change**: Automatically speaks term when navigating prev/next
-
-#### From WebServer 5.5.3: 2026-01-18
-- **TODO**: Sync: progress entries now include per-card `updated_at` timestamps
-- **TODO**: Sync: push/pull merge uses `updated_at` (newer wins); supports offline pending queue on Android
-- **TODO**: API: /api/sync/push and /api/sync/pull accept/return object-form progress entries
-
-#### From WebServer 5.5.2: 2026-01-14
-- **TODO**: [Added]
-- **TODO**: **Version/docs sync with Android App 4.4.2 (v22)
-- **TODO**: [Changed]
-- **TODO**: No functional server code changes in this patch release.
-- **TODO**: [Added]
-- **TODO**: **GET /api/sync/apikeys**: New endpoint for all authenticated users to pull API keys
-- **TODO**: Any logged-in user can retrieve API keys (read-only)
-- **TODO**: Allows non-admin users to use AI breakdown features
-
-### Technical Notes
-- Synced metadata from WebServer v8.6.0.2 (build 57)
-- Version bumped by sync_webserver_to_android.py v1.0.0
 
 ---
 

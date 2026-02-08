@@ -37,7 +37,7 @@ from typing import Optional, Tuple, List, Dict
 
 # ── Constants ──────────────────────────────────────────────────
 
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 
 # ── Utilities ──────────────────────────────────────────────────
 
@@ -136,42 +136,44 @@ def is_newer(v1: str, v2: str) -> bool:
 
 # ── Changelog Parser ──────────────────────────────────────────
 
-def extract_ws_changes_since(changelog_text: str, since_version: str) -> List[Dict]:
-    """Extract version entries from WebServer CHANGELOG newer than since_version."""
+def extract_ws_changes_since(changelog_text: str, since_version: str, since_build: int = 0) -> List[Dict]:
+    """Extract WebServer CHANGELOG entries newer than (since_version, since_build).
+
+    Notes:
+      - Includes entries where version is greater than since_version.
+      - Also includes entries where version equals since_version but build > since_build.
+    """
     pattern = re.compile(
         r"^##\s+([\d.]+)\s*\(build\s+(\d+)\)\s*[-—]\s*(.*)$",
         re.MULTILINE
     )
-    entries = []
     matches = list(pattern.finditer(changelog_text))
+    entries: List[Dict] = []
+
+    def newer(ver: str, build: int) -> bool:
+        if is_newer(ver, since_version):
+            return True
+        if ver == since_version and build > since_build:
+            return True
+        return False
 
     for i, m in enumerate(matches):
         ver = m.group(1)
         build = int(m.group(2))
         title = m.group(3).strip()
 
-        if not is_newer(ver, since_version):
+        if not newer(ver, build):
             continue
 
-        # Extract content until next heading or end
+        # Extract body until next version heading (or end)
         start = m.end()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(changelog_text)
         body = changelog_text[start:end].strip()
-
-        # Pull out bullet points
-        bullets = []
-        for line in body.split("\n"):
-            line = line.strip()
-            if line.startswith("- ") or line.startswith("* "):
-                bullets.append(line[2:].strip())
-            elif line.startswith("### "):
-                bullets.append(f"[{line[4:].strip()}]")
 
         entries.append({
             "version": ver,
             "build": build,
             "title": title,
-            "bullets": bullets,
             "raw": body,
         })
 
@@ -249,27 +251,110 @@ def write_android_version_json(path: Path, data: Dict, dry_run: bool = False):
 
 def generate_changelog_entry(new_version: str, new_build: int,
                               ws_version: str, ws_build: int,
-                              ws_changes: List[Dict]) -> str:
-    """Generate a new CHANGELOG.md entry for the Android app."""
+                              ws_changes: List[Dict],
+                              last_parity: str = "0.0.0",
+                              last_parity_build: int = 0) -> str:
+    """Generate a new Android CHANGELOG.md entry that fully reconstructs the
+    WebServer changelog items included in this sync.
+
+    All WebServer changes since the last recorded parity are merged into a single
+    Android release entry under Added / Changed / Fixed.
+    """
     today = date.today().strftime("%Y-%m-%d")
-    lines = [f"\n## {new_version} (build {new_build}) — {today}\n"]
+    lines: List[str] = [f"\n## {new_version} (build {new_build}) — {today}\n"]
 
-    if ws_changes:
-        lines.append(f"\n### Synced — WebServer features through v{ws_version} (build {ws_build})\n")
-        for ch in ws_changes:
-            lines.append(f"\n#### From WebServer {ch['version']}: {ch['title']}")
-            for b in ch["bullets"][:8]:
-                # Mark as TODO so developer knows to implement
-                lines.append(f"- **TODO**: {b}")
+    # Collect and merge WebServer items
+    merged: Dict[str, List[str]] = {"added": [], "changed": [], "fixed": [], "other": []}
+    seen = set()
+
+    def push(bucket: str, item: str):
+        key = (bucket, re.sub(r"\s+", " ", item.strip()).lower())
+        if not item.strip():
+            return
+        if key in seen:
+            return
+        seen.add(key)
+        merged[bucket].append(item.strip())
+
+    def bucket_from_heading(h: Optional[str]) -> str:
+        if not h:
+            return "changed"
+        h2 = h.strip().lower()
+        if h2.startswith("added"):
+            return "added"
+        if h2.startswith("changed"):
+            return "changed"
+        if h2.startswith("fixed"):
+            return "fixed"
+        return "other"
+
+    for entry in ws_changes:
+        raw = entry.get("raw", "") or ""
+        current_heading: Optional[str] = None
+
+        for line in raw.splitlines():
+            s = line.strip()
+
+            # Skip empty lines
+            if not s:
+                continue
+
+            # Track section headings
+            m_h = re.match(r"^###\s+(.*)$", s)
+            if m_h:
+                heading = m_h.group(1).strip()
+                # Ignore purely technical sections
+                if heading.lower().startswith("technical"):
+                    current_heading = "__ignore__"
+                else:
+                    current_heading = heading
+                continue
+
+            # Ignore deeper headings to avoid noisy "From WebServer ..." context
+            if s.startswith("#### ") or s.startswith("## ") or s.startswith("# "):
+                continue
+
+            if current_heading == "__ignore__":
+                continue
+
+            # Collect bullets
+            if s.startswith("- ") or s.startswith("* "):
+                b = s[2:].strip()
+                push(bucket_from_heading(current_heading), b)
+
+    # If WebServer changelog doesn't have structured sections, fall back to raw bullets
+    if not any(merged[k] for k in merged):
+        for entry in ws_changes:
+            raw = entry.get("raw", "") or ""
+            for line in raw.splitlines():
+                s = line.strip()
+                if s.startswith("- ") or s.startswith("* "):
+                    push("changed", s[2:].strip())
+
+    if any(merged[k] for k in merged):
+        if merged["added"]:
+            lines.append("\n### Added\n")
+            lines.extend([f"- {x}" for x in merged["added"]])
+        if merged["changed"]:
+            lines.append("\n\n### Changed\n")
+            lines.extend([f"- {x}" for x in merged["changed"]])
+        if merged["fixed"]:
+            lines.append("\n\n### Fixed\n")
+            lines.extend([f"- {x}" for x in merged["fixed"]])
+        if merged["other"]:
+            lines.append("\n\n### Other\n")
+            lines.extend([f"- {x}" for x in merged["other"]])
+        lines.append("")
     else:
-        lines.append("\n### Changes\n")
-        lines.append("- (Add changes here)\n")
+        # No detected changes
+        lines.append("\n### Changed\n")
+        lines.append("- (No WebServer changelog items detected during this sync.)\n")
 
-    lines.append(f"\n### Technical Notes")
-    lines.append(f"- Synced metadata from WebServer v{ws_version} (build {ws_build})")
-    lines.append(f"- Version bumped by sync_webserver_to_android.py v{TOOL_VERSION}")
+    lines.append("\n### Technical Notes")
+    lines.append(f"- WebServer parity: v{ws_version} (build {ws_build})")
+    lines.append(f"- Included WebServer changelog items since v{last_parity} (build {last_parity_build})")
+    lines.append(f"- Generated by sync_webserver_to_android.py v{TOOL_VERSION}")
     lines.append("")
-
     return "\n".join(lines)
 
 
@@ -580,10 +665,14 @@ class AndroidSyncer:
         # Read existing version.json if present
         android_ver_json = read_android_version_json(self.android_dir / "version.json")
         last_parity = "0.0.0"
+        last_parity_build = 0
         if android_ver_json:
             last_parity = android_ver_json.get("webserver_feature_parity", "0.0.0")
-            self.log(f"Last WS parity: v{last_parity}")
+            last_parity_build = int(android_ver_json.get("webserver_feature_parity_build", 0) or 0)
+            self.log(f"Last WS parity: v{last_parity} (build {last_parity_build})")
         else:
+            last_parity = "0.0.0"
+            last_parity_build = 0
             self.log("No Android version.json found (will create)", "WARN")
 
         print()
@@ -593,7 +682,7 @@ class AndroidSyncer:
         ws_changes = []
         if ws_changelog_path.exists():
             ws_cl = ws_changelog_path.read_text(encoding="utf-8")
-            ws_changes = extract_ws_changes_since(ws_cl, last_parity)
+            ws_changes = extract_ws_changes_since(ws_cl, last_parity, last_parity_build)
             self.log(f"Found {len(ws_changes)} WebServer version(s) since v{last_parity}")
         else:
             self.log("WebServer CHANGELOG.md not found", "WARN")
@@ -637,7 +726,7 @@ class AndroidSyncer:
 
         # ── CHANGELOG.md ──
         self.log("Updating CHANGELOG.md...")
-        entry = generate_changelog_entry(new_name, new_code, ws_version, ws_build, ws_changes)
+        entry = generate_changelog_entry(new_name, new_code, ws_version, ws_build, ws_changes, last_parity=last_parity, last_parity_build=last_parity_build)
         insert_changelog_entry(self.android_dir / "CHANGELOG.md", entry, self.dry_run)
         self.log("CHANGELOG.md updated", "SUCCESS")
 

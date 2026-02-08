@@ -22,25 +22,28 @@ The format is simple and practical:
 - Decks page: **Create New Deck** and **Redeem Invite Code** collapsed by default; expand/collapse on tap
 - Decks > Add Cards: new sub-tabs (**Add a New Card**, **Bulk Add with AI**) with AI generation (Keywords / Photo / Document) to add cards to an existing deck
 - Edit Deck modal: new **Add Card** tab with Bulk Add with AI locked to the deck being edited
+- Edit Decks → Add Cards AI: live “Example output” preview that updates as you type (Create Deck AI parity).
 
 ## Changed
 - Settings > Edit Decks renamed to **Decks**
 - AI Generator tab renamed to **Create Deck w/ AiGen**
 - Decks view resets back to **Switch** tab on exit (next open starts on Switch)
 - After adding cards via AI Generator, the Decks window closes and returns to Study
+- AI generator: clear Keywords/Instructions/preview/results on exit (close/cancel/leaving the Add Cards generator).
 
 ## Fixed
-- N/A
+- Decks: Add Cards / Create Deck / Deleted panes could appear blank because the tab sections were nested inside the Switch section; corrected the HTML structure so each tab renders independently.
+- Fixed Edit Decks → Add Cards AI “Example output” staying blank due to missing preview refresh path.
+- Fixed stale AI generator state persisting between Edit Deck modal opens.
 
 ## 8.7.0 (build 60) — 2026-02-06
 
 ### Added
-- AI generator **Instructions** box that overrides “Short answers only” when provided.
+- **AI generator **Instructions** box that overrides “Short answers only” when provided.
 - Deck AI setting (default OFF): show example format template buttons/dropdown for Term/Definition templates.
 - Deck AI setting (default ON): show a live “Example output” preview before generating when inputs are provided.
 
 ### Changed
-
 - AI Template “Field(s) to change” redesigned as a compact dropdown (Definition, Terms, Definition + Term, Pronunciation, Group).
 - AI Deck Generator controls refined: Generate button spacing/size, plus Preview All + Cancel actions.
 - Treat AI instructions as an explicit formatting/behavior override (client + server).

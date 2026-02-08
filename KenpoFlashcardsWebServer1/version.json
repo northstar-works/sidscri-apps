@@ -1,8 +1,0 @@
-{
-  "name": "Advanced Flashcards WebAppServer",
-  "version": "8.7.0",
-  "build": 60,
-  "released": "2026-02-06",
-  "is_packaged": false,
-  "notes": "8.7.0 (b60): AI Deck Generator UX refinements (Clear always visible, textarea auto-expands, clears keywords/resets max on exit) + settings label rename to \"Example format template\"."
-}

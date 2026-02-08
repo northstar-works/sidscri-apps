@@ -1,4 +1,4 @@
-START Fri 02/06/2026 11:59:27.92
+START Sat 02/07/2026 18:10:49.16
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid
 VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToAndroid\version.json
@@ -15,15 +15,15 @@ Running 7z (from stage)...
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-4 folders, 16 files, 115948 bytes (114 KiB)
+12 folders, 41 files, 395226 bytes (386 KiB)
 
 Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToAndroid-v2.1.0 v5.zip
 
-Add new data to archive: 4 folders, 16 files, 115948 bytes (114 KiB)
+Add new data to archive: 12 folders, 41 files, 395226 bytes (386 KiB)
 
 
-Files read from disk: 16
-Archive size: 42831 bytes (42 KiB)
+Files read from disk: 41
+Archive size: 149510 bytes (147 KiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 Verified: no .venv paths detected

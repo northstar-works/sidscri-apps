@@ -173,73 +173,153 @@ class VersionBumper:
 
 
 class ChangelogAnalyzer:
-    """Analyzes web server changelog to extract changes since last sync."""
-    
+    """Analyzes web server changelog and reconstructs release notes for downstream projects."""
+
+    SECTION_ORDER = ("Added", "Changed", "Fixed", "Security")
+
     @staticmethod
-    def extract_changes_since_version(changelog_content: str, since_version: str) -> List[Dict]:
-        """
-        Extract all changelog entries newer than the specified version.
-        Returns list of dicts with version info and changes.
-        """
-        changes = []
-        
-        # Parse version sections from changelog
-        # Pattern matches: ## 7.0.1 (build 34) — 2026-01-23 or ## v7.0.1 (build 34)
-        version_pattern = r'##\s+v?(\d+\.\d+\.\d+)\s+\(build\s+(\d+)\)[^\n]*'
-        
-        sections = re.split(version_pattern, changelog_content)
-        
-        # sections will be: [intro, version1, build1, content1, version2, build2, content2, ...]
-        i = 1
-        while i < len(sections) - 2:
-            version = sections[i]
-            build = sections[i + 1]
-            content = sections[i + 2] if i + 2 < len(sections) else ""
-            
-            # Check if this version is newer than our last sync
-            if ChangelogAnalyzer._is_newer_version(version, since_version):
-                changes.append({
-                    'version': version,
-                    'build': int(build),
-                    'content': content.strip()
-                })
-            
-            i += 3
-            
-        return changes
-    
+    def _parse_version_tuple(v: str):
+        m = re.match(r'v?(\d+)\.(\d+)\.(\d+)', (v or "").strip())
+        if not m:
+            return (0, 0, 0)
+        return tuple(int(x) for x in m.groups())
+
     @staticmethod
     def _is_newer_version(v1: str, v2: str) -> bool:
-        """Check if v1 is newer than v2."""
-        def parse(v):
-            match = re.match(r'v?(\d+)\.(\d+)\.(\d+)', v)
-            if match:
-                return tuple(int(x) for x in match.groups())
-            return (0, 0, 0)
-        return parse(v1) > parse(v2)
-    
+        return ChangelogAnalyzer._parse_version_tuple(v1) > ChangelogAnalyzer._parse_version_tuple(v2)
+
     @staticmethod
-    def summarize_changes(changes: List[Dict]) -> str:
-        """Create a human-readable summary of changes."""
-        if not changes:
-            return "No new changes detected."
-        
-        summary_lines = []
-        for change in changes:
-            summary_lines.append(f"### Web Server v{change['version']} (build {change['build']})")
-            summary_lines.append(change['content'])
-            summary_lines.append("")
-        
-        return "\n".join(summary_lines)
+    def _is_newer_or_equal(v1: str, v2: str) -> bool:
+        return ChangelogAnalyzer._parse_version_tuple(v1) >= ChangelogAnalyzer._parse_version_tuple(v2)
 
+    @staticmethod
+    def _extract_section_items(release_body: str) -> Dict[str, List[str]]:
+        """
+        Extract bullet items grouped by main sections (Added/Changed/Fixed/Security).
+        Keeps subheaders (#### ...) as bold bullets.
+        """
+        sections: Dict[str, List[str]] = {}
+        current = None
+        last_idx = None  # index of last bullet in current section list
 
+        for raw in (release_body or "").splitlines():
+            line = raw.rstrip("\n")
+
+            m = re.match(r'^\s*###\s+(Added|Changed|Fixed|Security)\s*$', line.strip(), re.IGNORECASE)
+            if m:
+                current = m.group(1).title()
+                sections.setdefault(current, [])
+                last_idx = None
+                continue
+
+            if current is None:
+                continue
+
+            m2 = re.match(r'^\s*####\s+(.+?)\s*$', line.strip())
+            if m2:
+                sub = m2.group(1).strip()
+                if sub:
+                    sections[current].append(f"**{sub}**")
+                    last_idx = len(sections[current]) - 1
+                continue
+
+            # bullet line
+            if re.match(r'^\s*-\s+', line):
+                bullet = re.sub(r'^\s*-\s+', '', line).strip()
+                if bullet:
+                    sections[current].append(bullet)
+                    last_idx = len(sections[current]) - 1
+                continue
+
+            # continuation line (indented)
+            if last_idx is not None and line.strip():
+                # only attach if it's clearly a continuation (indented or starts with backtick/| etc.)
+                if line.startswith("  ") or line.startswith("\t"):
+                    sections[current][last_idx] += "\n" + line.strip()
+
+        return sections
+
+    @staticmethod
+    def extract_releases_between(changelog_content: str, from_version: str, to_version: str) -> List[Dict]:
+        """
+        Extract all releases with from_version < version <= to_version.
+        Returns list of dicts: {version, build, body, sections}
+        """
+        releases: List[Dict] = []
+
+        # Matches: ## 8.6.2 (build 59) — 2026-02-04  OR  ## v8.6.2 (build 59)
+        version_pattern = r'##\s+v?(\d+\.\d+\.\d+)\s+\(build\s+(\d+)\)[^\n]*\n'
+
+        parts = re.split(version_pattern, changelog_content)
+
+        # parts: [intro, v1, b1, body1, v2, b2, body2, ...]
+        i = 1
+        while i < len(parts) - 2:
+            ver = parts[i].strip()
+            build = parts[i + 1].strip()
+            body = parts[i + 2] if i + 2 < len(parts) else ""
+
+            if ChangelogAnalyzer._is_newer_version(ver, from_version) and ChangelogAnalyzer._is_newer_or_equal(to_version, ver):
+                sec = ChangelogAnalyzer._extract_section_items(body)
+                releases.append({
+                    "version": ver,
+                    "build": int(build) if build.isdigit() else build,
+                    "body": body,
+                    "sections": sec
+                })
+            i += 3
+
+        # sort oldest -> newest
+        releases.sort(key=lambda r: ChangelogAnalyzer._parse_version_tuple(r["version"]))
+        return releases
+
+    @staticmethod
+    def merge_release_sections(releases: List[Dict]) -> Dict[str, List[str]]:
+        """
+        Merge section items across multiple releases into a single dict.
+        De-duplicates exact bullet strings while preserving first-seen order.
+        """
+        merged: Dict[str, List[str]] = {k: [] for k in ChangelogAnalyzer.SECTION_ORDER}
+        seen = set()
+
+        for rel in releases or []:
+            sec = rel.get("sections") or {}
+            for section in ChangelogAnalyzer.SECTION_ORDER:
+                for item in sec.get(section, []):
+                    key = (section, item.strip())
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    merged[section].append(item.strip())
+
+        # drop empty sections
+        merged = {k: v for k, v in merged.items() if v}
+        return merged
+
+    @staticmethod
+    def format_merged_sections_as_nested_bullets(merged: Dict[str, List[str]], indent: str = "  ") -> List[str]:
+        """
+        Format merged section dict as nested bullets suitable for inclusion under an 'including:' line.
+        """
+        if not merged:
+            return [f"{indent}- (No WebServer changelog details detected — parity metadata updated.)"]
+
+        lines: List[str] = []
+        for section in ChangelogAnalyzer.SECTION_ORDER:
+            items = merged.get(section)
+            if not items:
+                continue
+            lines.append(f"{indent}- **{section}**")
+            for item in items:
+                # keep subheaders bold; they still render as bullets
+                lines.append(f"{indent}  - {item}")
+        return lines
 class DocumentationUpdater:
     """Handles AI-assisted documentation updates."""
     
     def __init__(self, packaged_dir: Path, dry_run: bool = False):
         self.packaged_dir = packaged_dir
         self.dry_run = dry_run
-        
     def generate_changelog_entry(self, 
                                   new_version: str, 
                                   new_build: int,
@@ -250,38 +330,22 @@ class DocumentationUpdater:
                                   ws_changes: List[Dict],
                                   upgrade_level: int) -> str:
         """Generate a new CHANGELOG.md entry for the packaged version."""
-        
+
         today = datetime.now().strftime("%Y-%m-%d")
-        
-        # Build the changelog entry
+
         entry_lines = [
             f"## v{new_version} (build {new_build}) — {today}",
             "",
             "### Changed",
             f"- **Updated bundled Web Server to v{ws_version} (build {ws_build})** (from v{old_ws_version} build {old_ws_build}), including:"
         ]
-        
-        # Extract key features from web server changes
-        for change in ws_changes:
-            content = change['content']
-            
-            # Extract Added items
-            added_match = re.search(r'### Added\n(.*?)(?=###|\Z)', content, re.DOTALL)
-            if added_match:
-                items = re.findall(r'- \*\*([^*]+)\*\*', added_match.group(1))
-                for item in items[:6]:  # Limit to 6 items per version
-                    entry_lines.append(f"  - **{item.strip()}**")
-            
-            # Extract Changed items  
-            changed_match = re.search(r'### Changed\n(.*?)(?=###|\Z)', content, re.DOTALL)
-            if changed_match:
-                items = re.findall(r'- ([^\n]+)', changed_match.group(1))
-                for item in items[:3]:  # Limit to 3 items
-                    if not item.startswith('**'):
-                        entry_lines.append(f"  - {item.strip()}")
-        
+
+        # Reconstruct a complete, merged set of changes from the WebServer changelog
+        merged = ChangelogAnalyzer.merge_release_sections(ws_changes or [])
+        entry_lines.extend(ChangelogAnalyzer.format_merged_sections_as_nested_bullets(merged, indent="  "))
+
         entry_lines.append("")
-        
+
         return "\n".join(entry_lines)
     
     def update_changelog(self, new_entry: str) -> bool:
@@ -314,6 +378,71 @@ class DocumentationUpdater:
         print("  ✅ Updated CHANGELOG.md")
         return True
     
+
+    def repair_packaged_changelog(self, ws_changelog_content: str) -> bool:
+        """
+        Rebuild (or repair) the 'including:' blocks for *all* packaged versions that reference a
+        bundled WebServer delta. This fixes older synced versions that had incomplete placeholders.
+        """
+        changelog_path = self.packaged_dir / "CHANGELOG.md"
+        if not changelog_path.exists():
+            return False
+
+        original = changelog_path.read_text(encoding="utf-8")
+        lines = original.splitlines()
+
+        # Find each "Updated bundled Web Server..." line and replace the nested bullet block that follows it.
+        i = 0
+        changed_any = False
+
+        update_re = re.compile(
+            r'^\-\s+\*\*Updated bundled Web Server to v(?P<to_ver>\d+\.\d+\.\d+)\s+\(build\s+(?P<to_build>\d+)\)\*\*\s+\(from v(?P<from_ver>\d+\.\d+\.\d+)\s+build\s+(?P<from_build>\d+)\),\s+including:\s*$'
+        )
+
+        while i < len(lines):
+            m = update_re.match(lines[i].strip())
+            if not m:
+                i += 1
+                continue
+
+            to_ver = m.group("to_ver")
+            from_ver = m.group("from_ver")
+
+            # Compute merged sections from WebServer changelog
+            ws_rels = ChangelogAnalyzer.extract_releases_between(ws_changelog_content or "", from_ver, to_ver)
+            merged = ChangelogAnalyzer.merge_release_sections(ws_rels)
+            new_nested = ChangelogAnalyzer.format_merged_sections_as_nested_bullets(merged, indent="  ")
+
+            # Replace following block: all indented lines and blank lines until next top-level content
+            j = i + 1
+            while j < len(lines):
+                if lines[j].startswith("  ") or lines[j].strip() == "":
+                    j += 1
+                    continue
+                break
+
+            # Build replacement with a single blank line after nested bullets
+            replacement = new_nested + [""]
+
+            # Apply
+            lines = lines[:i+1] + replacement + lines[j:]
+            changed_any = True
+            i = i + 1 + len(replacement)
+            continue
+
+        if not changed_any:
+            return True
+
+        new_text = "\n".join(lines).rstrip() + "\n"
+
+        if self.dry_run:
+            print("  📝 Would repair older packaged CHANGELOG 'including:' blocks (reconstructed from WebServer changelog).")
+            return True
+
+        changelog_path.write_text(new_text, encoding="utf-8")
+        print("  ✅ Repaired packaged CHANGELOG.md (reconstructed bundled WebServer deltas)")
+        return True
+
     def generate_readme_whats_new(self,
                                    new_version: str,
                                    new_build: int,
@@ -322,37 +451,21 @@ class DocumentationUpdater:
                                    old_ws_version: str,
                                    old_ws_build: int,
                                    ws_changes: List[Dict]) -> str:
-        """Generate the 'What's new' section for README.md."""
-        
+        """Generate the 'What's new' section for README.md from WebServer changelog deltas."""
+
         lines = [
             f"## What's new in v{new_version} (build {new_build})",
             "",
             f"- **Bundled Web Server updated to v{ws_version} (build {ws_build})** (from v{old_ws_version} build {old_ws_build}), bringing:"
         ]
-        
-        # Extract key features from ALL web server changes
-        for change in ws_changes:
-            content = change['content']
-            
-            # Extract Added items (main features)
-            added_match = re.search(r'### Added\n(.*?)(?=###|\Z)', content, re.DOTALL)
-            if added_match:
-                items = re.findall(r'- \*\*([^*]+)\*\*[^-\n]*([^\n]*)?', added_match.group(1))
-                for item in items[:5]:
-                    feature_name = item[0].strip()
-                    # Get the rest of the line after the bold part if present
-                    desc = item[1].strip() if len(item) > 1 else ""
-                    if desc.startswith(':') or desc.startswith('—') or desc.startswith('-'):
-                        desc = desc[1:].strip()
-                    if desc:
-                        lines.append(f"  - **{feature_name}** — {desc[:80]}")
-                    else:
-                        lines.append(f"  - **{feature_name}**")
-        
+
+        merged = ChangelogAnalyzer.merge_release_sections(ws_changes or [])
+        nested = ChangelogAnalyzer.format_merged_sections_as_nested_bullets(merged, indent="  ")
+        lines.extend(nested)
         lines.append("")
-        
-        return "\n".join(lines)
-    
+
+        return "
+".join(lines)
     def update_readme(self, new_whats_new: str, new_version: str, new_build: int, 
                       ws_version: str, ws_build: int) -> bool:
         """Update README.md with new version info and What's new section."""
@@ -1104,8 +1217,8 @@ _seed_appdata_from_bundle()
         if ws_changelog_path.exists():
             with open(ws_changelog_path, 'r', encoding='utf-8') as f:
                 ws_changelog = f.read()
-            ws_changes = ChangelogAnalyzer.extract_changes_since_version(ws_changelog, old_ws_version)
-            self.log(f"Found {len(ws_changes)} web server version(s) to include")
+            ws_changes = ChangelogAnalyzer.extract_releases_between(ws_changelog, old_ws_version, ws_version)
+            self.log(f"Reconstructed changes from {len(ws_changes)} web server release(s) to include")
         else:
             ws_changes = []
             self.log("Web server CHANGELOG.md not found", "WARN")
@@ -1168,6 +1281,9 @@ _seed_appdata_from_bundle()
             ws_changes, upgrade_level
         )
         doc_updater.update_changelog(changelog_entry)
+
+        # Repair older packaged changelog entries (reconstruct bundled WebServer deltas)
+        doc_updater.repair_packaged_changelog(ws_changelog)
 
         # Generate and apply README update
         readme_whats_new = doc_updater.generate_readme_whats_new(

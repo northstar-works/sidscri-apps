@@ -228,10 +228,8 @@ app/src/main/
 
 | Version | Code | Key Changes |
 |---------|------|-------------|
-| **7.0.2** | 43 | Synced metadata from WebServer (TODO: add feature summary) |
-| **7.0.1** | 42 | Synced metadata from WebServer (TODO: add feature summary) |
-| **7.0.0** | 41 | Synced metadata from WebServer (TODO: add feature summary) |
-| **6.0.0** | 40 | Synced metadata from WebServer (TODO: add feature summary) |
+| **7.0.0** | 39 | Deck AI setting, AI generator **Instructions, AI template bulk editor, Edit Cards management, Edit Deck modal tabs, dmin/System version display, Packaged support version metadata, Packaged support metadata |
+| **6.0.0** | 39 | Controls row rearranged, Allow/Deny buttons, Deck Ownership section, /api/admin/user-deck-status` endpoint, Expandable admin stat tiles, Log download endpoint, Deck Short Answers mode, Manage Cards collapsible panes |
 | **5.6.0** | 39 | Admin access fix, concise AI definitions, per-deck descriptive toggle, server verification, AI deck description |
 | **5.5.0** | 38 | Feature parity with WebServer v8.4.0: deck editing, set/clear default deck, user card deletion sync |
 | **5.4.0** | 37 | GEN8: Token-admin deck config + invite/redeem codes, server-sourced admin status, deck logo support |

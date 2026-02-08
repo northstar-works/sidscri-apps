@@ -2,7 +2,9 @@
 
 I want to be able to bulk add cards to existing decks using ai generator. in ai generator i want the option from dropdown to select a deck to.
 
+New edit card pages have broken the Add Cards, AIGen page
 
+Need new page under Edit Cards to show exanple preview correctly like the other pages do.
 
 
 

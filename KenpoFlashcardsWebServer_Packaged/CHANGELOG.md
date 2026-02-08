@@ -2,6 +2,11 @@
 
 All notable changes to the Windows packaged/installer distribution are documented here.
 
+## v5.3.1 (build 23) — 2026-02-07
+
+### Changed
+- **Updated bundled Web Server to v8.8.0 (build 61)** (from v8.8.0 build 61), including:
+
 ## v5.3.0 (build 22) — 2026-02-06
 
 ### Changed
