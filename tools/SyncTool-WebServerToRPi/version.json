@@ -1,0 +1,7 @@
+{
+  "name": "SyncTool-WebServerToRPi",
+  "version": "1.0.0",
+  "build": 1,
+  "released": "2026-02-09",
+  "notes": "Initial release: push webserver code and/or data from Windows to Raspberry Pi."
+}

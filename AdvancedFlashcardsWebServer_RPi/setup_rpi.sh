@@ -9,6 +9,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_NAME="advanced-flashcards"
 INSTALL_DIR="/opt/advanced-flashcards"
+APP_DIR="${INSTALL_DIR}/app"
+REPO_DIR="${INSTALL_DIR}/repo"
+APP_USER="${SUDO_USER:-$(whoami)}"
+APP_GROUP="$(id -gn "${APP_USER}")"
 DATA_DIR="/opt/advanced-flashcards/data"
 LOG_DIR="/var/log/advanced-flashcards"
 VENV_DIR="/opt/advanced-flashcards/.venv"
@@ -98,7 +102,7 @@ header "Creating Directory Structure"
 mkdir -p "$INSTALL_DIR" "$DATA_DIR" "$LOG_DIR"
 
 # Sync webserver code (excluding data/ and logs/ to preserve user data)
-info "Syncing application code..."
+info "Syncing application code to ${APP_DIR}..."
 rsync -a --delete \
     --exclude 'data/' \
     --exclude 'logs/' \
@@ -108,7 +112,7 @@ rsync -a --delete \
     --exclude '.git' \
     --exclude '.gitignore' \
     --exclude 'START_KenpoFlashcardsWebServer.bat' \
-    "${WEBSERVER_SRC}/" "${INSTALL_DIR}/"
+    "${WEBSERVER_SRC}/" "${APP_DIR}/"
 
 # Seed data directory (copy defaults if data files don't exist yet)
 if [[ -d "${WEBSERVER_SRC}/data" ]]; then
@@ -171,7 +175,7 @@ KENPO_DATA_DIR=${DATA_DIR}
 KENPO_LOG_DIR=${LOG_DIR}
 
 # kenpo_words.json auto-discovery root
-KENPO_ROOT=${REPO_DIR}
+KENPO_ROOT=${APP_DIR}
 ENVEOF
     chown "$RUN_USER":"$RUN_USER" "$ENV_FILE"
     info "✓ Config created at ${ENV_FILE}"
@@ -192,7 +196,7 @@ Wants=network-online.target
 Type=simple
 User=${RUN_USER}
 Group=${RUN_USER}
-WorkingDirectory=${INSTALL_DIR}
+WorkingDirectory=${APP_DIR}
 EnvironmentFile=${INSTALL_DIR}/.env.rpi
 ExecStart=${VENV_DIR}/bin/python ${INSTALL_DIR}/app.py
 Restart=on-failure

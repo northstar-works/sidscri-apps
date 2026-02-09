@@ -1,0 +1,30 @@
+START Mon 02/09/2026 13:22:40.85
+BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
+SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\AdvancedFlashcardsWebServer_RPi
+VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\AdvancedFlashcardsWebServer_RPi\version.json
+SEVENZIP=C:\Program Files\7-Zip\7z.exe
+RAW_VER=1.0.0
+RAW_BUILD=1
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\AdvancedFlashcardsWebServer_RPi-v1.0.0 v1.zip
+STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_rpi
+
+ROBOCOPY_EXIT_CODE=1
+Could Not Find C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_rpi\AdvancedFlashcardsWebServer_RPi\*.pyc
+Running 7z (from stage)...
+
+7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
+
+Scanning the drive:
+1 folder, 12 files, 56668 bytes (56 KiB)
+
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\AdvancedFlashcardsWebServer_RPi-v1.0.0 v1.zip
+
+Add new data to archive: 1 folder, 12 files, 56668 bytes (56 KiB)
+
+
+Files read from disk: 12
+Archive size: 21798 bytes (22 KiB)
+Everything is Ok
+7Z_EXIT_CODE=0
+Verified: no .venv/__pycache__ paths detected
+SUCCESS

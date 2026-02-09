@@ -14,6 +14,10 @@
 set -euo pipefail
 
 INSTALL_DIR="/opt/advanced-flashcards"
+APP_DIR="${INSTALL_DIR}/app"
+REPO_DIR="${INSTALL_DIR}/repo"
+APP_USER="${SUDO_USER:-$(whoami)}"
+APP_GROUP="$(id -gn "${APP_USER}")"
 REPO_DIR="/opt/advanced-flashcards/repo"
 DATA_DIR="/opt/advanced-flashcards/data"
 LOG_DIR="/var/log/advanced-flashcards"
@@ -186,7 +190,7 @@ rsync -a --delete \
     --exclude '.gitignore' \
     --exclude 'START_KenpoFlashcardsWebServer.bat' \
     --exclude '.env.rpi' \
-    "${WEBSERVER_SRC}/" "${INSTALL_DIR}/"
+    "${WEBSERVER_SRC}/" "${APP_DIR}/"
 
 info "✓ Code synced"
 
