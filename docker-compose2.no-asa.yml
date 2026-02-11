@@ -1,0 +1,39 @@
+services:
+  xteve_a:
+    image: senexcrenshaw/xteve:latest
+    container_name: xteve_a
+    environment:
+      TZ: "America/Chicago"
+      XTEVE_PORT: "34400"
+    volumes:
+      - /mnt/docker/xteve_a:/config
+      - /mnt/docker/data/xteve_a:/data
+      - /mnt/docker/xteve_a:/root/.xteve
+      - /mnt/docker/data/xteve_a:/tmp/xteve
+    ports:
+      - "34400:34400"
+    networks:
+      - media_net
+    restart: unless-stopped
+
+  xteve_b:
+    image: senexcrenshaw/xteve:latest
+    container_name: xteve_b
+    environment:
+      TZ: "America/Chicago"
+      XTEVE_PORT: "34401"
+    volumes:
+      - /mnt/docker/xteve_b:/config
+      - /mnt/docker/data/xteve_b:/data
+      - /mnt/docker/xteve_b:/root/.xteve
+      - /mnt/docker/data/xteve_b:/tmp/xteve
+    ports:
+      - "34401:34401"
+    networks:
+      - media_net
+    restart: unless-stopped
+
+networks:
+  media_net:
+    name: media_net
+    driver: bridge

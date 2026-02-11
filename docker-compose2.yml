@@ -1,0 +1,61 @@
+services:
+  xteve_a:
+    image: senexcrenshaw/xteve:latest
+    container_name: xteve_a
+    environment:
+      TZ: "America/Chicago"
+      XTEVE_PORT: "34400"
+    volumes:
+      # Your requested standard mounts
+      - /mnt/docker/xteve_a:/config
+      - /mnt/docker/data/xteve_a:/data
+      # xTeVe persists its config under ~/.xteve; in the container that's typically /root/.xteve
+      - /mnt/docker/xteve_a:/root/.xteve
+      # temp/buffer workspace (optional but useful)
+      - /mnt/docker/data/xteve_a:/tmp/xteve
+    ports:
+      - "34400:34400"
+    networks:
+      - media_net
+    restart: unless-stopped
+
+  xteve_b:
+    image: senexcrenshaw/xteve:latest
+    container_name: xteve_b
+    environment:
+      TZ: "America/Chicago"
+      XTEVE_PORT: "34401"
+    volumes:
+      - /mnt/docker/xteve_b:/config
+      - /mnt/docker/data/xteve_b:/data
+      - /mnt/docker/xteve_b:/root/.xteve
+      - /mnt/docker/data/xteve_b:/tmp/xteve
+    ports:
+      - "34401:34401"
+    networks:
+      - media_net
+    restart: unless-stopped
+
+  # NOTE: ASA is amd64-only. Keep it disabled on the Pi; run it on an amd64 host (e.g., your server).
+  asa_server_1:
+    profiles: ["amd64-only"]
+    platform: linux/amd64
+    image: mschnitzer/asa-linux-server:latest
+    container_name: asa_server_1
+    environment:
+      ASA_START_PARAMS: "TheIsland_WP?listen?Port=7777?RCONPort=27020?RCONEnabled=True -WinLiveMaxPlayers=30"
+      ENABLE_DEBUG: "0"
+    volumes:
+      - /mnt/docker/asa_server_1:/config
+      - /mnt/docker/data/asa_server_1:/data
+    ports:
+      - "7777:7777/udp"
+      - "27020:27020/tcp"
+    networks:
+      - media_net
+    restart: unless-stopped
+
+networks:
+  media_net:
+    name: media_net
+    driver: bridge

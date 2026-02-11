@@ -1,3 +1,7 @@
+sudo mkdir -p /mnt/docker /mnt/docker/data
+sudo chown -R 1000:1000 /mnt/docker
+
+
 sudo systemctl daemon-reload
 sudo mount -a
 
@@ -14,38 +18,44 @@ sudo chmod 600 /etc/samba/creds_windows
 
 Add to /etc/fstab
 
+# ---- local share ----#
+
+/opt/appdata/<service>/config:/config
+/opt/<service>/data:/data
+
 # ---- 192.168.0.129 (grab) ----
 # NOTE: spaces in share names are escaped as \040
 
-//192.168.0.129/m                              /mnt/grab-m                    cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/c                              /mnt/grab-c                    cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/media                          /mnt/media                     cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/downloads                      /mnt/downloads                 cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/TempComplete                   /mnt/tempcomplete              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/GitHub                         /mnt/grab-github               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/sidscri-apps                   /mnt/sidscri-apps              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/Users/Sidscri                  /mnt/grab-sidscri              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/AppData/Local                  /mnt/grab-local                cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.129/AppData/Roaming                /mnt/grab-roaming              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/m                              /mnt/lan/grab-m                    cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/c                              /mnt/lan/grab-c                    cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/media                          /mnt/lan/media                     cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/downloads                      /mnt/lan/downloads                 cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/TempComplete                   /mnt/lan/tempcomplete              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/GitHub                         /mnt/lan/grab-github               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/sidscri-apps                   /mnt/lan/sidscri-apps              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/Users/Sidscri                  /mnt/lan/grab-sidscri              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/AppData/Local                  /mnt/lan/grab-local                cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.129/AppData/Roaming                /mnt/lan/grab-roaming              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
 
 # ---- 192.168.0.10 (server) ----
 
-//192.168.0.10/c                               /mnt/server-c              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/d                               /mnt/server-d               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/e                               /mnt/server-e               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/f                               /mnt/server-f               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/g                               /mnt/server-g               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/h                               /mnt/server-h               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/i                               /mnt/server-i               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/j                               /mnt/server-j               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/k                               /mnt/server-k               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/l                               /mnt/server-l               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/m                               /mnt/server-m               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/n                               /mnt/server-n               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
-//192.168.0.10/Users/Sidscri                   /mnt/server-sidscri         cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/c                               /mnt/lan/server-c              cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/d                               /mnt/lan/server-d               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/e                               /mnt/lan/server-e               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/f                               /mnt/lan/server-f               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/g                               /mnt/lan/server-g               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/h                               /mnt/lan/server-h               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/i                               /mnt/lan/server-i               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/j                               /mnt/lan/server-j               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/k                               /mnt/lan/server-k               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/l                               /mnt/lan/server-l               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/m                               /mnt/lan/server-m               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/n                               /mnt/lan/server-n               cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
+//192.168.0.10/Users/Sidscri                   /mnt/lan/server-sidscri         cifs  credentials=/etc/samba/credentials_media,uid=1000,gid=1000,iocharset=utf8,file_mode=0775,dir_mode=0775,_netdev,nofail,x-systemd.automount  0  0
 
 sudo mount -a
-ls -la /mnt/media
+ls -la /mnt/lan/media
 
-
+cd C:/Users/Sidscri/Downloads/
+docker compose up -d
 

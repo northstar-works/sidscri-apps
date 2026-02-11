@@ -1,4 +1,4 @@
-START Tue 02/10/2026  1:28:34.26
+START Tue 02/10/2026  3:24:21.71
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\AdvancedFlashcardsWebServer_RPi
 VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\AdvancedFlashcardsWebServer_RPi\version.json
@@ -15,15 +15,15 @@ Running 7z (from stage)...
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-1 folder, 12 files, 57058 bytes (56 KiB)
+1 folder, 14 files, 71981 bytes (71 KiB)
 
 Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\AdvancedFlashcardsWebServer_RPi-v1.0.0 v1.zip
 
-Add new data to archive: 1 folder, 12 files, 57058 bytes (56 KiB)
+Add new data to archive: 1 folder, 14 files, 71981 bytes (71 KiB)
 
 
-Files read from disk: 12
-Archive size: 21940 bytes (22 KiB)
+Files read from disk: 14
+Archive size: 24832 bytes (25 KiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 Verified: no .venv/__pycache__ paths detected

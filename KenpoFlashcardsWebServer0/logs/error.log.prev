@@ -1,0 +1,4 @@
+2026-02-07 15:06:31,070 | ERROR | werkzeug | 3.135.20.78 - - [07/Feb/2026 15:06:31] code 400, message Bad request version ('À\x14À')
+2026-02-07 15:07:33,096 | ERROR | werkzeug | 3.129.58.48 - - [07/Feb/2026 15:07:33] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x8cLN\x8d*ÞNr¿ß\x86\x8e-zSô+îVz\x00¹çPq\x95(\x99ªÒ\x13¬\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+2026-02-07 15:08:11,027 | ERROR | werkzeug | 3.135.20.78 - - [07/Feb/2026 15:08:11] code 400, message Bad request syntax ('SSH-2.0-Go')
+2026-02-07 15:09:34,125 | ERROR | werkzeug | 3.135.20.78 - - [07/Feb/2026 15:09:34] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ÉÏé')

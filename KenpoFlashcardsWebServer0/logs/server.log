@@ -1,0 +1,7 @@
+{"timestamp": "2026-02-09 11:16:13", "level": "info", "message": "=== Server started ===", "user": ""}
+2026-02-09 11:16:13,830 | INFO | advanced_flashcards | [READY] Advanced Flashcards WebApp started successfully. Open: http://127.0.0.1:8010 • http://192.168.0.129:8010
+2026-02-09 11:16:13,849 | INFO | werkzeug | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8010
+ * Running on http://192.168.0.129:8010
+2026-02-09 11:16:13,849 | INFO | werkzeug | [33mPress CTRL+C to quit[0m

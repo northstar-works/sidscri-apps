@@ -1,0 +1,54 @@
+[
+  {
+    "id": "kenpo",
+    "name": "Kenpo Vocabulary",
+    "description": "Korean martial arts terminology for Kenpo students",
+    "isDefault": true,
+    "isBuiltIn": true,
+    "sourceFile": "kenpo_words.json",
+    "cardCount": 88,
+    "createdAt": 0,
+    "updatedAt": 0,
+    "logoPath": "/res/decklogos/kenpo_vocabulary.png"
+  },
+  {
+    "id": "deck_7bb3a7af",
+    "name": "Basic Spanish Words 3rd Grade Level",
+    "description": "Basic Spanish Words 3rd Grade Level",
+    "isDefault": false,
+    "isBuiltIn": false,
+    "sourceFile": null,
+    "cardCount": 0,
+    "createdAt": 1769270478,
+    "updatedAt": 1769270478,
+    "ownerId": "1cc70e61cd9e",
+    "createdBy": "1cc70e61cd9e"
+  },
+  {
+    "id": "deck_22e1482a",
+    "name": "USA State Capitals",
+    "description": "USA State Capitals",
+    "isDefault": false,
+    "isBuiltIn": false,
+    "sourceFile": null,
+    "cardCount": 0,
+    "ownerId": "1cc70e61cd9e",
+    "createdBy": "1cc70e61cd9e",
+    "createdAt": 1769754536,
+    "updatedAt": 1769754536
+  },
+  {
+    "id": "deck_493b9893",
+    "name": "USPAP Real Estate Appraiser",
+    "description": "USPAP Real Estate Appraiser",
+    "isDefault": false,
+    "isBuiltIn": false,
+    "sourceFile": null,
+    "cardCount": 0,
+    "ownerId": "1cc70e61cd9e",
+    "createdBy": "1cc70e61cd9e",
+    "createdAt": 1770487425,
+    "updatedAt": 1770487950,
+    "logoPath": "/res/decklogos/user/1cc70e61cd9e/deck_493b9893_1770487950.jpg"
+  }
+]
