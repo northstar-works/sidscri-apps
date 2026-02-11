@@ -1,9 +1,0 @@
-{
-  "name": "Advanced Flashcards WebAppServer",
-  "version": "8.8.0",
-  "build": 61,
-  "released": "2026-02-07",
-  "is_packaged": false,
-  "notes": "8.8.1 (b62): Decks UI updates (collapsed Create New Deck / Redeem), Add Cards sub-tabs (manual + Bulk Add with AI), AI Generator renamed to 'Create Deck w/ AiGen', Edit Deck modal adds 'Add Card' tab (Bulk AI), defaults back to Switch on exit; version bump. FIX: Corrected Decks tab HTML nesting so Add Cards/Create Deck/Deleted render properly.",
-  "date": "2026-02-07"
-}

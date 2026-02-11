@@ -18,10 +18,11 @@ sudo chmod 600 /etc/samba/creds_windows
 
 Add to /etc/fstab
 
-# ---- local share ----#
 
-/opt/appdata/<service>/config:/config
-/opt/<service>/data:/data
+# ---- Pi local ----#
+/opt/appdata/<service>:/config
+/opt/appdata/<service>/data:/data
+
 
 # ---- 192.168.0.129 (grab) ----
 # NOTE: spaces in share names are escaped as \040
