@@ -9,7 +9,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_NAME="advanced-flashcards"
 INSTALL_DIR="/opt/advanced-flashcards"
-APP_DIR="${INSTALL_DIR}/app"
+APP_DIR="${INSTALL_DIR}"
 REPO_DIR="${INSTALL_DIR}/repo"
 APP_USER="${SUDO_USER:-$(whoami)}"
 APP_GROUP="$(id -gn "${APP_USER}")"
@@ -107,6 +107,10 @@ rsync -a --delete \
     --exclude 'data/' \
     --exclude 'logs/' \
     --exclude '.venv/' \
+    --exclude 'repo/' \
+    --exclude 'backups/' \
+    --exclude '.env.rpi' \
+    --exclude 'af-rpi-*.sh' \
     --exclude '__pycache__/' \
     --exclude '*.pyc' \
     --exclude '.git' \
