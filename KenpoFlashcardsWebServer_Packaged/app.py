@@ -622,6 +622,7 @@ PROFILES_PATH = os.path.join(DATA_DIR, "profiles.json")
 SECRET_PATH = os.path.join(DATA_DIR, "secret_key.txt")
 API_KEYS_PATH = os.path.join(DATA_DIR, "api_keys.enc")  # Encrypted API keys storage
 ADMIN_USERS_PATH = os.path.join(DATA_DIR, "admin_users.json")  # Admin users SoT
+REMOTE_CONFIG_PATH = os.path.join(DATA_DIR, "remote_config.json")  # Android remote config push
 
 def _load_admin_usernames() -> set:
     """Load admin usernames from admin_users.json (Source of Truth)."""
@@ -3370,6 +3371,64 @@ def api_admin_user_deck_status():
     })
 
 
+# ============================================================
+# Remote Config API – push server connection settings to Android apps
+# ============================================================
+
+@app.get("/api/admin/remote-config")
+def api_admin_get_remote_config():
+    """Admin: get the current remote config that Android apps poll for."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+    user = _get_user(uid)
+    if not user or not _is_admin_user(user.get("username", "")):
+        return jsonify({"error": "admin_required"}), 403
+    return jsonify(_load_remote_config())
+
+
+@app.post("/api/admin/remote-config")
+def api_admin_save_remote_config():
+    """Admin: save/update the remote config that Android apps will pick up on next poll."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "login_required"}), 401
+    user = _get_user(uid)
+    username = user.get("username", "") if user else ""
+    if not _is_admin_user(username):
+        return jsonify({"error": "admin_required"}), 403
+
+    payload = request.get_json(force=True, silent=True) or {}
+    server_type = str(payload.get("server_type", "standalone")).strip()
+    host = str(payload.get("host", "sidscri.tplinkdns.com")).strip()
+    port = payload.get("port", 8009)
+
+    valid_types = {"standalone", "packaged", "rpi"}
+    if server_type not in valid_types:
+        return jsonify({"error": f"server_type must be one of: {', '.join(sorted(valid_types))}"}), 400
+    if not host:
+        return jsonify({"error": "host is required"}), 400
+    try:
+        port = int(port)
+        if not (1 <= port <= 65535):
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify({"error": "port must be a number 1–65535"}), 400
+
+    import datetime
+    config = {
+        "server_type": server_type,
+        "host": host,
+        "port": port,
+        "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "updated_by": username
+    }
+    _save_remote_config(config)
+    log_activity("info", f"Remote config updated: {server_type} @ {host}:{port}", username)
+    return jsonify({"success": True, "config": config})
+
+
+
 @app.post("/api/redeem-invite-code")
 def api_redeem_invite_code():
     """Redeem an invite code to unlock a deck."""
@@ -3860,6 +3919,54 @@ def android_auth_required(f):
         request.android_uid, request.android_user = result
         return f(*args, **kwargs)
     return decorated
+
+
+@app.get("/api/sync/remote-config")
+def api_sync_get_remote_config():
+    """Public Android endpoint – returns active server connection config.
+    Android apps call this on startup to check if the admin has changed
+    the host/port/server-type they should be connecting to.
+    No authentication required; payload contains only connection metadata.
+    """
+    return jsonify(_load_remote_config())
+
+
+@app.post("/api/sync/admin/remote-config")
+@android_auth_required
+def api_sync_admin_save_remote_config():
+    """Android admin endpoint – update remote config from the Android admin panel."""
+    username = (request.android_user or {}).get("username", "")
+    if not _is_admin_user(username):
+        return jsonify({"error": "admin_required"}), 403
+
+    payload = request.get_json(force=True, silent=True) or {}
+    server_type = str(payload.get("server_type", "standalone")).strip()
+    host = str(payload.get("host", "sidscri.tplinkdns.com")).strip()
+    port = payload.get("port", 8009)
+
+    valid_types = {"standalone", "packaged", "rpi"}
+    if server_type not in valid_types:
+        return jsonify({"error": f"server_type must be one of: {', '.join(sorted(valid_types))}"}), 400
+    if not host:
+        return jsonify({"error": "host is required"}), 400
+    try:
+        port = int(port)
+        if not (1 <= port <= 65535):
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify({"error": "port must be a number 1–65535"}), 400
+
+    import datetime
+    config = {
+        "server_type": server_type,
+        "host": host,
+        "port": port,
+        "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "updated_by": username
+    }
+    _save_remote_config(config)
+    log_activity("info", f"[Android Admin] Remote config updated: {server_type} @ {host}:{port}", username)
+    return jsonify({"success": True, "config": config})
 
 
 
@@ -4639,6 +4746,40 @@ USER_CARDS_DIR = os.path.join(DATA_DIR, "user_cards")
 DECK_CARDS_DIR = os.path.join(DATA_DIR, "deck_cards")
 DECK_ACCESS_PATH = os.path.join(DATA_DIR, "deck_access.json")
 DECK_CONFIG_PATH = os.path.join(DATA_DIR, "deck_config.json")
+
+# ============================================================
+# Remote Config (Push config to Android apps)
+# ============================================================
+
+DEFAULT_REMOTE_CONFIG = {
+    "server_type": "standalone",
+    "host": "sidscri.tplinkdns.com",
+    "port": 8009,
+    "updated_at": "",
+    "updated_by": ""
+}
+
+def _load_remote_config() -> Dict[str, Any]:
+    """Load the remote config that Android apps poll for server settings."""
+    try:
+        if os.path.exists(REMOTE_CONFIG_PATH):
+            with open(REMOTE_CONFIG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            # Merge with defaults in case new keys were added
+            merged = dict(DEFAULT_REMOTE_CONFIG)
+            merged.update(data)
+            return merged
+    except Exception as e:
+        print(f"[WARN] Could not load remote_config.json: {e}")
+    return dict(DEFAULT_REMOTE_CONFIG)
+
+def _save_remote_config(config: Dict[str, Any]) -> None:
+    """Persist remote config to disk."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    tmp = REMOTE_CONFIG_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(config, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, REMOTE_CONFIG_PATH)
 
 
 def _load_deck_config() -> Dict[str, Any]:

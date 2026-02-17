@@ -273,6 +273,7 @@
         <button class="admin-tab" data-tab="users"><span>👥</span> Users</button>
         <button class="admin-tab" data-tab="decks"><span>📁</span> Decks</button>
         <button class="admin-tab" data-tab="system"><span>🖥️</span> System</button>
+        <button class="admin-tab" data-tab="android"><span>📱</span> Android</button>
         <button class="admin-tab" data-tab="logs"><span>📋</span> Logs</button>
       </div>
       
@@ -475,6 +476,57 @@
         </div>
       </div>
       
+      <!-- Android Tab -->
+      <div class="tab-content" id="tab-android">
+        <div class="section-card">
+          <div class="section-title"><span>📡</span> Remote Server Config (Push to Android Apps)</div>
+          <div class="section-desc">
+            Set the active server host and port. Android apps call <code>/api/sync/remote-config</code> on startup and
+            will automatically switch to the configured server. Default: <strong>sidscri.tplinkdns.com:8009</strong>.
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px;max-width:520px;">
+            <div class="form-group">
+              <label class="form-label">Server Type</label>
+              <select class="form-select" id="rcServerType">
+                <option value="standalone">Standalone (WebServer – Python/dev)</option>
+                <option value="packaged">Packaged (Windows EXE installer)</option>
+                <option value="rpi">Raspberry Pi (RPi deployment)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Host / URL</label>
+              <input type="text" class="form-input" id="rcHost" placeholder="sidscri.tplinkdns.com" value="sidscri.tplinkdns.com">
+              <div style="font-size:11px;color:#666;margin-top:4px;">Domain name or IP address (no http:// prefix)</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Port</label>
+              <input type="number" class="form-input" id="rcPort" placeholder="8009" value="8009" min="1" max="65535" style="max-width:160px;">
+            </div>
+          </div>
+
+          <div class="quick-actions" style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="saveRemoteConfig()">📡 Save & Push to Apps</button>
+            <button class="btn btn-secondary" onclick="loadRemoteConfig()">🔄 Reload</button>
+          </div>
+          <div id="rcResult" style="margin-top:16px;padding:12px;background:rgba(0,0,0,0.2);border-radius:8px;font-size:13px;color:#aaa;display:none;"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title"><span>ℹ️</span> How Android Apps Use This Config</div>
+          <div class="section-desc" style="line-height:1.7;">
+            <strong>On startup:</strong> The Android app calls <code>GET /api/sync/remote-config</code> on its currently
+            configured server. If the returned <code>host</code> or <code>port</code> differs from what the app has saved
+            locally, the app will prompt the user to switch servers (or auto-switch if enabled).<br><br>
+            <strong>Server Types:</strong><br>
+            &bull; <em>Standalone</em> – Python Flask server running directly (dev or manual deploy)<br>
+            &bull; <em>Packaged</em> – Windows EXE installer version<br>
+            &bull; <em>Raspberry Pi</em> – RPi-specific deployment package<br><br>
+            <strong>No push notifications required</strong> – the app polls this endpoint on each login/startup.
+          </div>
+        </div>
+      </div>
+
       <!-- Logs Tab -->
       <div class="tab-content" id="tab-logs">
         <div class="section-card">
@@ -575,6 +627,8 @@
           __systemHealthLoaded = true;
           try { checkHealth(); } catch(e) { console.error('Health check failed:', e); }
         }
+        // Load remote config when Android tab opened
+        if(tab.dataset.tab === 'android') loadRemoteConfig();
       });
     });
     
@@ -1429,6 +1483,59 @@ if(!userId || !deckId){
         const txt = r.textContent.toLowerCase();
         r.style.display = (!q || txt.includes(q)) ? "" : "none";
       });
+    }
+
+    // ── Remote Config (Android tab) ──────────────────────────────
+    async function loadRemoteConfig() {
+      const resultEl = document.getElementById('rcResult');
+      try {
+        const data = await jget('/api/admin/remote-config');
+        document.getElementById('rcServerType').value = data.server_type || 'standalone';
+        document.getElementById('rcHost').value = data.host || 'sidscri.tplinkdns.com';
+        document.getElementById('rcPort').value = data.port || 8009;
+        if (data.updated_at) {
+          resultEl.style.display = 'block';
+          resultEl.style.color = '#9ca3af';
+          const updatedAt = data.updated_at ? new Date(data.updated_at).toLocaleString() : 'never';
+          resultEl.innerHTML = `ℹ️ Last saved: ${updatedAt}${data.updated_by ? ' by <strong>' + escHtml(data.updated_by) + '</strong>' : ''}`;
+        } else {
+          resultEl.style.display = 'none';
+        }
+      } catch(e) {
+        resultEl.style.display = 'block';
+        resultEl.style.color = '#f87171';
+        resultEl.textContent = '❌ Failed to load config: ' + e.message;
+      }
+    }
+
+    async function saveRemoteConfig() {
+      const resultEl = document.getElementById('rcResult');
+      resultEl.style.display = 'block';
+      resultEl.style.color = '#9ca3af';
+      resultEl.textContent = 'Saving…';
+      try {
+        const payload = {
+          server_type: document.getElementById('rcServerType').value,
+          host: document.getElementById('rcHost').value.trim(),
+          port: parseInt(document.getElementById('rcPort').value, 10)
+        };
+        const data = await jpost('/api/admin/remote-config', payload);
+        if (data.success) {
+          resultEl.style.color = '#4ade80';
+          const typeLabel = {'standalone':'Standalone','packaged':'Packaged (Windows)','rpi':'Raspberry Pi'}[payload.server_type] || payload.server_type;
+          resultEl.innerHTML = `✅ Config saved! Android apps will connect to <strong>${escHtml(payload.host)}:${payload.port}</strong> (${typeLabel}) on next startup.`;
+        } else {
+          resultEl.style.color = '#f87171';
+          resultEl.textContent = '❌ ' + (data.error || 'Unknown error');
+        }
+      } catch(e) {
+        resultEl.style.color = '#f87171';
+        resultEl.textContent = '❌ Save failed: ' + e.message;
+      }
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 </script>
 

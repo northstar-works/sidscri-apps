@@ -1,11 +1,11 @@
 {
   "app_name": "AdvancedFlashcardsWebAppServer_Packaged",
-  "version": "5.3.1",
-  "build": 23,
-  "release_date": "2026-02-07",
-  "notes": "Synced to web server v8.8.0.",
-  "webserver_version": "8.8.0",
-  "webserver_build": 61,
-  "last_sync": "2026-02-07T11:34:41.735215",
+  "version": "5.4.0",
+  "build": 24,
+  "release_date": "2026-02-17",
+  "notes": "Synced to web server v8.9.0. Remote Config Push feature: admin Android tab, /api/sync/remote-config endpoint.",
+  "webserver_version": "8.9.0",
+  "webserver_build": 63,
+  "last_sync": "2026-02-17T00:00:00.000000",
   "is_packaged": true
 }

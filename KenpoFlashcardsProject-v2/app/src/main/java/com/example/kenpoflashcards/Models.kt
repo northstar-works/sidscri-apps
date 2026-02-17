@@ -116,6 +116,43 @@ data class TermBreakdown(
 }
 
 /**
+ * Remote server config pushed by the admin via the web server Admin → Android tab.
+ * Android apps poll GET /api/sync/remote-config on startup (no auth required) to
+ * auto-discover the current target server set by the admin.
+ * Added: v7.1.0 – Remote Config Push feature.
+ */
+data class RemoteConfig(
+    /** "standalone" | "packaged" | "rpi" */
+    val serverType: String = "standalone",
+    /** Hostname or IP without scheme (e.g. "sidscri.tplinkdns.com" or "192.168.1.50") */
+    val host: String = "sidscri.tplinkdns.com",
+    val port: Int = 8009,
+    val updatedAt: String = "",
+    val updatedBy: String = ""
+) {
+    /** Builds a full base URL: http://<host>:<port>  (no trailing slash) */
+    fun toBaseUrl(): String {
+        val cleanHost = host
+            .removePrefix("http://")
+            .removePrefix("https://")
+            .trimEnd('/')
+        return "http://$cleanHost:$port"
+    }
+
+    val serverTypeLabel: String
+        get() = when (serverType) {
+            "packaged" -> "Packaged (Windows EXE)"
+            "rpi"      -> "Raspberry Pi"
+            else       -> "Standalone"
+        }
+
+    companion object {
+        val DEFAULT = RemoteConfig()
+        val VALID_SERVER_TYPES = listOf("standalone", "packaged", "rpi")
+    }
+}
+
+/**
  * Progress state - now tracks full status instead of just learned/deleted sets
  */
 data class ProgressState(

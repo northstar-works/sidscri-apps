@@ -6,14 +6,17 @@
 Flask-based web application providing sync API and web UI for Advanced Flashcards WebApp.
 
 
-**Current Version:** v8.8.0 (build 61)  
+**Current Version:** v8.9.0 (build 63)  
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 
-## ✅ Recent FAC (v8.8.0 build 61)
+## ✅ Recent (v8.9.0 build 63)
 
-### Fixed
-- Decks: Add Cards / Create Deck / Deleted panes could appear blank due to HTML nesting; corrected tab section structure.
+### Added
+- **Remote Config Push** – Admin → 📱 Android tab: set the `host`, `port`, and `server_type` (Standalone / Packaged / Raspberry Pi) that Android apps receive when they poll the server on startup
+- `GET /api/sync/remote-config` – public endpoint (no auth); Android apps call this to auto-detect server connection changes. Defaults to `sidscri.tplinkdns.com:8009`
+- `POST /api/admin/remote-config` / `POST /api/sync/admin/remote-config` – admin save endpoints (web session and Android Bearer token)
+- `data/remote_config.json` – persists config; auto-created with defaults on first admin save
 
 ### Added
 - **Decks UI improvements**

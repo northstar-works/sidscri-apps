@@ -2,8 +2,8 @@
 
 Deploy the Advanced Flashcards WebApp Server on a Raspberry Pi 5 (or newer) as an always-on home server. Clones from GitHub, runs as a systemd service, and includes tools to sync data between your Windows dev machine and the Pi.
 
-**RPi Package Version:** 1.0.0 (build 1)
-**Based on WebServer:** v8.8.0 (build 61)
+**RPi Package Version:** 1.1.0 (build 3)
+**Based on WebServer:** v8.9.0 (build 63)
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 **Install Guide:** [INSTALL_GUIDE.md](INSTALL_GUIDE.md)
 

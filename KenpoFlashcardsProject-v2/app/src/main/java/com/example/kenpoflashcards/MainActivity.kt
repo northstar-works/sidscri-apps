@@ -1236,7 +1236,21 @@ fun AdminScreen(nav: NavHostController, repo: Repository) {
     var chatGptModel by remember(adminSettings) { mutableStateOf(adminSettings.chatGptModel) }
     var geminiKey by remember(adminSettings) { mutableStateOf(adminSettings.geminiApiKey) }
     var geminiModel by remember(adminSettings) { mutableStateOf(adminSettings.geminiModel) }
-    var managedServerUrl by remember(adminSettings) { mutableStateOf(adminSettings.webAppUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }) }
+    var managedHost by remember(adminSettings) {
+        mutableStateOf(
+            adminSettings.webAppUrl
+                .removePrefix("http://").removePrefix("https://")
+                .substringBefore(":").ifBlank { "sidscri.tplinkdns.com" }
+        )
+    }
+    var managedPort by remember(adminSettings) {
+        mutableStateOf(
+            adminSettings.webAppUrl.substringAfterLast(":").takeIf { it.all(Char::isDigit) && it.isNotBlank() }
+                ?: "8009"
+        )
+    }
+    var managedServerType by remember(adminSettings) { mutableStateOf(adminSettings.serverType.ifBlank { "standalone" }) }
+    var showServerTypeDropdown by remember { mutableStateOf(false) }
 
     var statusMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -1505,57 +1519,111 @@ Spacer(Modifier.height(16.dp))
             
 
 
-            // ==================== SERVER URL (ADMIN) ====================
-            Text("Server URL", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+            // ==================== REMOTE CONFIG (Admin) ====================
+            Text("📱 Remote Config Push", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
             Spacer(Modifier.height(4.dp))
-            Text("Admins can update the sync server URL and push it to all users via the web server config.", color = DarkMuted, fontSize = 11.sp)
+            Text("Set the server Android apps should connect to. Apps auto-discover changes on startup.", color = DarkMuted, fontSize = 11.sp)
+            Spacer(Modifier.height(10.dp))
+
+            // Server Type dropdown
+            val serverTypeOptions = listOf(
+                "standalone" to "Standalone (Python)",
+                "packaged"   to "Packaged (Windows EXE)",
+                "rpi"        to "Raspberry Pi"
+            )
+            Box {
+                OutlinedTextField(
+                    value = serverTypeOptions.find { it.first == managedServerType }?.second ?: managedServerType,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Server Type") },
+                    modifier = Modifier.fillMaxWidth().clickable { showServerTypeDropdown = true },
+                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, "Select", Modifier.clickable { showServerTypeDropdown = true }) },
+                    textStyle = LocalTextStyle.current.copy(fontSize = 12.sp)
+                )
+                DropdownMenu(showServerTypeDropdown, { showServerTypeDropdown = false }) {
+                    serverTypeOptions.forEach { (id, label) ->
+                        DropdownMenuItem(text = { Text(label, color = Color.White) }, onClick = {
+                            managedServerType = id; showServerTypeDropdown = false
+                        })
+                    }
+                }
+            }
             Spacer(Modifier.height(8.dp))
+
             OutlinedTextField(
-                managedServerUrl,
-                { managedServerUrl = it },
+                managedHost, { managedHost = it },
                 Modifier.fillMaxWidth(),
-                label = { Text("Managed Server URL (Admin)") },
+                label = { Text("Host / IP (no http://)") },
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
-                leadingIcon = { Icon(Icons.Default.Cloud, "Server") }
+                leadingIcon = { Icon(Icons.Default.Cloud, "Host") },
+                placeholder = { Text("sidscri.tplinkdns.com", color = DarkMuted, fontSize = 11.sp) }
+            )
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                managedPort, { managedPort = it.filter(Char::isDigit).take(5) },
+                Modifier.fillMaxWidth(),
+                label = { Text("Port") },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
+                placeholder = { Text("8009", color = DarkMuted) }
             )
             Spacer(Modifier.height(8.dp))
 
+            val previewUrl = "http://${managedHost.trim()}:${managedPort.trim()}"
+            Text("Preview: $previewUrl", color = DarkMuted, fontSize = 11.sp)
+            Spacer(Modifier.height(8.dp))
+
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Save locally (updates webAppUrl + serverType)
                 Button({
                     scope.launch {
-                        repo.saveAdminSettings(adminSettings.copy(webAppUrl = managedServerUrl))
-                        statusMessage = "Server URL saved locally"
+                        repo.saveAdminSettings(adminSettings.copy(webAppUrl = previewUrl, serverType = managedServerType))
+                        statusMessage = "Remote config saved locally"
                     }
                 }, Modifier.weight(1f)) { Text("Save Locally") }
 
+                // Push to server
                 Button({
                     if (adminSettings.authToken.isBlank()) { statusMessage = "Error: Login required"; return@Button }
                     isLoading = true
                     scope.launch {
-                        val res = repo.syncPushManagedServerUrl(adminSettings.authToken, adminSettings.webAppUrl, managedServerUrl)
-                        statusMessage = if (res.success) "Server URL pushed to server!" else "Error: ${res.error}"
+                        val config = RemoteConfig(
+                            serverType = managedServerType,
+                            host = managedHost.trim(),
+                            port = managedPort.trim().toIntOrNull() ?: 8009
+                        )
+                        // Save locally first
+                        repo.saveAdminSettings(adminSettings.copy(webAppUrl = previewUrl, serverType = managedServerType))
+                        val res = repo.syncPushRemoteConfig(adminSettings.authToken, adminSettings.webAppUrl, config)
+                        statusMessage = if (res.success) "Remote config pushed to server! Apps will update on next startup." else "Error: ${res.error}"
                         isLoading = false
                     }
-                }, Modifier.weight(1f), enabled = !isLoading && adminSettings.isLoggedIn) { Text(if (isLoading) "..." else "Push URL") }
+                }, Modifier.weight(1f), enabled = !isLoading && adminSettings.isLoggedIn) {
+                    Text(if (isLoading) "..." else "Push to Apps")
+                }
             }
 
             Spacer(Modifier.height(8.dp))
             OutlinedButton({
-                if (adminSettings.authToken.isBlank()) { statusMessage = "Error: Login required"; return@OutlinedButton }
                 isLoading = true
                 scope.launch {
-                    val cfg = repo.syncPullServerConfig(adminSettings.authToken, adminSettings.webAppUrl)
-                    if (cfg.success && cfg.managedServerUrl.isNotBlank()) {
-                        managedServerUrl = cfg.managedServerUrl
-                        repo.saveAdminSettings(adminSettings.copy(webAppUrl = cfg.managedServerUrl))
-                        statusMessage = "Server URL pulled from server"
+                    val res = repo.syncPullRemoteConfig(adminSettings.webAppUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL })
+                    if (res.success) {
+                        managedHost = res.config.host
+                        managedPort = res.config.port.toString()
+                        managedServerType = res.config.serverType
+                        statusMessage = "Remote config pulled. Updated: ${res.config.serverType} @ ${res.config.host}:${res.config.port}"
                     } else {
-                        statusMessage = "Error: ${cfg.error.ifBlank { "Config endpoint not available" }}"
+                        statusMessage = "Pull failed: ${res.error.ifBlank { "Endpoint not available" }}"
                     }
                     isLoading = false
                 }
-            }, Modifier.fillMaxWidth(), enabled = !isLoading && adminSettings.isLoggedIn) { Text(if (isLoading) "..." else "Pull URL from Server") }
+            }, Modifier.fillMaxWidth(), enabled = !isLoading) {
+                Text(if (isLoading) "..." else "Pull Current Config from Server")
+            }
 
             Spacer(Modifier.height(20.dp)); HorizontalDivider(color = DarkBorder); Spacer(Modifier.height(16.dp))
             // Sync API Keys with Server

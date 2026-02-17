@@ -12,7 +12,25 @@ Format: **Added** / **Changed** / **Fixed** / **Removed**
 
 ---
 
-## 1.0.0 (build 1) — 2026-02-09
+## 1.1.0 (build 3) — 2026-02-17
+
+Based on: KenpoFlashcardsWebServer v8.9.0 (build 63)
+
+### Added
+- **Remote Config Push** (from webserver v8.9.0):
+  - `GET /api/sync/remote-config` – public endpoint Android apps poll on startup to get active server connection info (host, port, server_type). No auth required. Defaults to `sidscri.tplinkdns.com:8009`.
+  - `POST /api/admin/remote-config` – admin endpoint (web session) to save config
+  - `POST /api/sync/admin/remote-config` – admin endpoint (Android Bearer token) to save config
+  - Admin → 📱 Android tab: new UI panel to set server type (`standalone` / `packaged` / `rpi`), host URL, and port
+  - `data/remote_config.json` persists config; auto-created with defaults on first admin save
+
+### Changed
+- Updated bundled webserver from v8.8.0 (build 61) → v8.9.0 (build 63)
+- `version.json`: bumped to 1.1.0 (build 3), updated `based_on_webserver` fields
+
+---
+
+## 1.0.1 (build 2) — 2026-02-09
 
 Based on: KenpoFlashcardsWebServer v8.8.0 (build 61)
 

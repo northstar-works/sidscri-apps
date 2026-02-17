@@ -1,8 +1,25 @@
 # Changelog — AdvancedFlashcardsProject (Android)
 
-## v7.0.0 (build 41) — 2026-02-06
+## v7.1.0 (build 42) — 2026-02-17
 
-- **Synced WebServer parity to v8.7.0 (build 60)** (from v8.6.1 build 58), including:
+### Added
+- **Remote Config Push:** Admin screen → new "📱 Remote Config Push" section replaces the old single "Server URL" field.
+  - Separate **Host**, **Port**, and **Server Type** (Standalone / Packaged / Raspberry Pi) fields for clarity.
+  - **Push to Apps** button sends config to `POST /api/sync/admin/remote-config`; all Android clients auto-discover the change on next startup/login.
+  - **Pull Current Config from Server** button fetches `GET /api/sync/remote-config` and populates the fields.
+  - Live URL preview updates as you type.
+- **`RemoteConfig` data class** (`Models.kt`): holds `serverType`, `host`, `port`, `updatedAt`, `updatedBy`; `toBaseUrl()` builds the full HTTP URL.
+- **`WebAppSync.pullRemoteConfig()`**: polls `GET /api/sync/remote-config` (no auth required).
+- **`WebAppSync.pushRemoteConfig()`**: pushes to `POST /api/sync/admin/remote-config` (admin Bearer token).
+- **`Repository.checkAndApplyRemoteConfig()`**: called silently after each successful login; if the server returns a different host/port/type, saves the new `webAppUrl` and `serverType` to DataStore automatically.
+- **`AdminSettings.serverType`** field added (persisted to DataStore); default `"standalone"`.
+
+### Changed
+- Old "Server URL" text field in Admin screen replaced by the new Remote Config Push section. The previous `syncPushManagedServerUrl` / `syncPullServerConfig` functions remain for backwards compatibility.
+
+
+
+- **Updated bundled Web Server to v8.7.0 (build 60)** (from v8.6.1 build 58), including:
 
 ### Added
 - **Packaged support metadata:** add `webappserver_version.json` (web server core version file).
@@ -56,7 +73,7 @@
 
 ## v6.0.0 (build 40) — 2026-02-03
 
-- **Synced WebServer parity to v8.6.0 (build 57)** (from v8.5.1 build 54), including:
+- **Updated bundled Web Server to v8.6.0 (build 57)** (from v8.5.1 build 54), including:
 
 ### Changed
 

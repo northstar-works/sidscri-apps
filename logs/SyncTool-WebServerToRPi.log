@@ -1,11 +1,11 @@
-START Tue 02/10/2026  3:24:10.51
+START Tue 02/17/2026  1:39:55.77
 BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
 SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToRPi
 VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\tools\SyncTool-WebServerToRPi\version.json
 SEVENZIP=C:\Program Files\7-Zip\7z.exe
-RAW_VER=1.0.0
-RAW_BUILD=1
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToRPi-v1.0.0 v1.zip
+RAW_VER=1.1.0
+RAW_BUILD=2
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToRPi-v1.1.0 v2.zip
 STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage
 
 ROBOCOPY_EXIT_CODE=1
@@ -15,15 +15,15 @@ Running 7z (from stage)...
 7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
 
 Scanning the drive:
-1 folder, 3 files, 17534 bytes (18 KiB)
+1 folder, 3 files, 19136 bytes (19 KiB)
 
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToRPi-v1.0.0 v1.zip
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\SyncTool-WebServerToRPi-v1.1.0 v2.zip
 
-Add new data to archive: 1 folder, 3 files, 17534 bytes (18 KiB)
+Add new data to archive: 1 folder, 3 files, 19136 bytes (19 KiB)
 
 
 Files read from disk: 3
-Archive size: 5075 bytes (5 KiB)
+Archive size: 5485 bytes (6 KiB)
 Everything is Ok
 7Z_EXIT_CODE=0
 Verified: no .venv paths detected

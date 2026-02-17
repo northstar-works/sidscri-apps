@@ -16,7 +16,22 @@ The format is simple and practical:
 
 ---
 
-## 8.8.0 (build 61) — 2026-02-06
+## 8.9.0 (build 63) — 2026-02-17
+
+### Added
+- **Remote Config Push** – new Admin → 📱 Android tab lets admins set the active server `host`, `port`, and `server_type` (Standalone / Packaged / Raspberry Pi) that Android apps will receive when they poll the server on startup
+- `GET /api/sync/remote-config` – public endpoint (no auth) Android apps call on startup to discover the current server connection config; defaults to `sidscri.tplinkdns.com:8009`
+- `GET /api/admin/remote-config` – admin-only endpoint to retrieve current saved config
+- `POST /api/admin/remote-config` – admin-only endpoint to save updated server config (web session auth)
+- `POST /api/sync/admin/remote-config` – Android admin endpoint to update config via Bearer token auth
+- `data/remote_config.json` – new persisted config file; created automatically with defaults on first save
+
+### Changed
+- Admin panel now has a 5th tab: **📱 Android** (between System and Logs)
+
+---
+
+## 8.8.1 (build 62) — 2026-02-07
 
 ## Added
 - Decks page: **Create New Deck** and **Redeem Invite Code** collapsed by default; expand/collapse on tap

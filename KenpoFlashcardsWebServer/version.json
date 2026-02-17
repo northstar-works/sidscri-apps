@@ -1,9 +1,9 @@
 {
   "name": "Advanced Flashcards WebAppServer",
-  "version": "8.8.1",
-  "build": 62,
-  "released": "2026-02-07",
+  "version": "8.9.0",
+  "build": 63,
+  "released": "2026-02-17",
   "is_packaged": false,
-  "notes": "8.8.1 (b62): Custom Deck Added Unlearned status page and tab.",
-  "date": "2026-02-07"
+  "notes": "8.9.0 (b63): Remote Config push – admin can set host/port/server-type that Android apps receive on startup via GET /api/sync/remote-config.",
+  "date": "2026-02-17"
 }

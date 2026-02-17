@@ -16,7 +16,7 @@ let breakdownIds = new Set();
 let learnedViewMode = "list"; // list | study
 
 // Custom Set view filter
-let customViewMode = "unlearned"; // unlearned | unsure | learned | all
+let customViewMode = "all"; // all | unsure | learned
 
 function updateFilterHighlight(){
   const btn = $("allCardsBtn");
@@ -44,14 +44,12 @@ function updateCustomViewHighlight(){
   if(!wrap) return;
   const show = (activeTab === "custom");
   wrap.classList.toggle("hidden", !show);
-  const bUnlearned = $("customViewUnlearnedBtn");
+  const bAll = $("customViewAllBtn");
   const bUnsure = $("customViewUnsureBtn");
   const bLearned = $("customViewLearnedBtn");
-  const bAll = $("customViewAllBtn");
-  if(bUnlearned) bUnlearned.classList.toggle("active", customViewMode === "unlearned");
+  if(bAll) bAll.classList.toggle("active", customViewMode === "all");
   if(bUnsure) bUnsure.classList.toggle("active", customViewMode === "unsure");
   if(bLearned) bLearned.classList.toggle("active", customViewMode === "learned");
-  if(bAll) bAll.classList.toggle("active", customViewMode === "all");
 }
 
 let deck = [];
@@ -1311,15 +1309,13 @@ async function loadCustomSetForStudy(){
     let cards = res.cards || [];
     
     // Filter by custom view mode
-    if(customViewMode === "unlearned"){
-      cards = cards.filter(c => c.custom_status === "active");
-    } else if(customViewMode === "unsure"){
+    if(customViewMode === "unsure"){
       cards = cards.filter(c => c.custom_status === "unsure");
     } else if(customViewMode === "learned"){
       cards = cards.filter(c => c.custom_status === "learned");
     } else {
-      // "all" - include all custom-set statuses
-      // (no status filter)
+      // "all" - show active and unsure only (exclude custom-learned)
+      cards = cards.filter(c => c.custom_status !== "learned");
     }
     
     // Apply search filter
@@ -1683,10 +1679,8 @@ async function refresh(){
       updateHeaderCardCount(Array.isArray(deck) ? deck.length : 0);
 
       // Ensure the status line reflects Custom Set mode
-      const cvmLabel = (customViewMode === "unlearned") ? "Unlearned"
-                    : (customViewMode === "unsure") ? "Unsure"
-                    : (customViewMode === "learned") ? "Learned"
-                    : "All";
+      const cvmLabel = customViewMode === "unsure" ? "Unsure"
+                    : (customViewMode === "learned" ? "Learned" : "Unlearned");
       const prefix = (customRandomLimit > 0) ? "🎲 " : "";
       setStatus(`${prefix}Custom Set • Studying: ${cvmLabel}`);
       return;
@@ -2255,8 +2249,8 @@ async function main(){
   });
 
   // Custom Set view toggle
-  bind("customViewUnlearnedBtn","click", async ()=>{
-    customViewMode = "unlearned";
+  bind("customViewAllBtn","click", async ()=>{
+    customViewMode = "all";
     customRandomLimit = 0;
     updateCustomViewHighlight();
     await refresh();
@@ -2269,12 +2263,6 @@ async function main(){
   });
   bind("customViewLearnedBtn","click", async ()=>{
     customViewMode = "learned";
-    customRandomLimit = 0;
-    updateCustomViewHighlight();
-    await refresh();
-  });
-  bind("customViewAllBtn","click", async ()=>{
-    customViewMode = "all";
     customRandomLimit = 0;
     updateCustomViewHighlight();
     await refresh();

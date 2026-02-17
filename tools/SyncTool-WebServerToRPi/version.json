@@ -1,7 +1,7 @@
 {
   "name": "SyncTool-WebServerToRPi",
-  "version": "1.0.0",
-  "build": 1,
-  "released": "2026-02-09",
-  "notes": "Initial release: push webserver code and/or data from Windows to Raspberry Pi."
+  "version": "1.1.0",
+  "build": 3,
+  "released": "2026-02-17",
+  "notes": "v1.1.0: Interactive IP prompt when run with no args. Saved IP via rpi_config.txt. --save-ip flag. | build 3: accepts saved URL (http://x:8009), normalizes host, quotes ssh/scp, runs pip install -r."
 }

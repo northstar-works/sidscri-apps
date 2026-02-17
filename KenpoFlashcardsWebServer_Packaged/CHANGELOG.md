@@ -2,6 +2,21 @@
 
 All notable changes to the Windows packaged/installer distribution are documented here.
 
+## v5.4.0 (build 24) — 2026-02-17
+
+### Added
+- **Remote Config Push** synced from web server v8.9.0 (build 63)
+  - New Admin → 📱 Android tab: set `host`, `port`, and `server_type` (Standalone / Packaged / Raspberry Pi)
+  - `GET /api/sync/remote-config` – public endpoint Android apps call on startup to auto-update server connection
+  - `POST /api/admin/remote-config` – admin save (web session auth)
+  - `POST /api/sync/admin/remote-config` – admin save (Android Bearer token auth)
+  - `data/remote_config.json` – new persisted config file; defaults to `sidscri.tplinkdns.com:8009`
+
+### Changed
+- **Updated bundled Web Server to v8.9.0 (build 63)** (from v8.8.1 build 62)
+
+---
+
 ## v5.3.1 (build 23) — 2026-02-07
 
 ### Changed

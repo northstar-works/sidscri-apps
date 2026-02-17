@@ -1,0 +1,2 @@
+Advanced Flashcards WebAppServer v8.9.0 (build 63) — 2026-02-17
+Remote Config Push: admin can configure host/port/server-type pushed to Android apps.

@@ -198,7 +198,12 @@ suspend fun deleteBreakdown(cardId: String) = store.deleteBreakdown(cardId)
     suspend fun syncLogin(username: String, password: String, overrideServerUrl: String = ""): WebAppSync.LoginResult {
         val admin = adminSettingsFlow().first()
         val serverUrl = overrideServerUrl.ifBlank { admin.webAppUrl }.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
-        return WebAppSync.login(serverUrl, username, password)
+        val result = WebAppSync.login(serverUrl, username, password)
+        // On successful login, silently check if remote config (host/port) has changed
+        if (result.success) {
+            try { checkAndApplyRemoteConfig() } catch (_: Exception) {}
+        }
+        return result
     }
     
     suspend fun syncPushProgress(): WebAppSync.SyncResult {
@@ -381,6 +386,43 @@ suspend fun deleteBreakdown(cardId: String) = store.deleteBreakdown(cardId)
         if (token.isBlank()) return WebAppSync.SyncResult(false, error = "No auth token")
         val url = serverUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
         return WebAppSync.pushManagedServerUrl(url, token, newServerUrl)
+    }
+
+    // ── Remote Config Push (v7.1.0) ─────────────────────────────────────────
+
+    /**
+     * Pull remote config from the server (no auth required).
+     * If the server returns a different host/port than what we have saved, updates
+     * webAppUrl and serverType in AdminSettings and returns the new config.
+     * Returns null if unreachable, endpoint not present, or config unchanged.
+     */
+    suspend fun checkAndApplyRemoteConfig(): RemoteConfig? {
+        val admin = adminSettingsFlow().first()
+        val currentUrl = admin.webAppUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
+        val result = WebAppSync.pullRemoteConfig(currentUrl)
+        if (!result.success) return null
+
+        val newUrl = result.config.toBaseUrl()
+        if (newUrl == currentUrl && result.config.serverType == admin.serverType) return null
+
+        // Config changed — save new URL + serverType
+        store.saveAdminSettings(
+            admin.copy(webAppUrl = newUrl, serverType = result.config.serverType)
+        )
+        return result.config
+    }
+
+    /** Pull remote config without auto-applying — for admin UI display. */
+    suspend fun syncPullRemoteConfig(serverUrl: String): WebAppSync.RemoteConfigResult {
+        val url = serverUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
+        return WebAppSync.pullRemoteConfig(url)
+    }
+
+    /** Push remote config to server (admin only). */
+    suspend fun syncPushRemoteConfig(token: String, serverUrl: String, config: RemoteConfig): WebAppSync.SyncResult {
+        if (token.isBlank()) return WebAppSync.SyncResult(false, error = "No auth token")
+        val url = serverUrl.ifBlank { WebAppSync.DEFAULT_SERVER_URL }
+        return WebAppSync.pushRemoteConfig(url, token, config)
     }
 
     

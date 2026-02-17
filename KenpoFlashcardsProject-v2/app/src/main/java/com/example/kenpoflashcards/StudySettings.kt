@@ -96,6 +96,8 @@ data class StudySettings(
 data class AdminSettings(
     // Web app sync
     val webAppUrl: String = "",
+    /** Last server type received from Remote Config: "standalone" | "packaged" | "rpi" */
+    val serverType: String = "standalone",
     val authToken: String = "",
     val username: String = "",
     val isLoggedIn: Boolean = false,

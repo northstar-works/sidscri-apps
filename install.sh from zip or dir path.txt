@@ -1,0 +1,12 @@
+cd "/home/sidscri/Downloads/server_app_fixed"
+chmod +x install.sh
+sudo bash install.sh
+sudo systemctl restart pi-dashboard
+
+----From Zipped----
+
+unzip -o /home/sidscri/Downloads/SidscriPi-Dashboard-v2.1.0-FIXED.zip
+cd "/home/sidscri/Downloads/server_app_fixed"
+chmod +x install.sh
+sudo bash install.sh
+sudo systemctl restart pi-dashboard

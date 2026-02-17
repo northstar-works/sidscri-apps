@@ -400,6 +400,17 @@ object WebAppSync {
     )
 
     /**
+     * Remote config result – holds host/port/serverType from the new
+     * GET /api/sync/remote-config endpoint (no auth required).
+     * Added: v7.1.0
+     */
+    data class RemoteConfigResult(
+        val success: Boolean,
+        val config: RemoteConfig = RemoteConfig.DEFAULT,
+        val error: String = ""
+    )
+
+    /**
      * Pull app config from server (available to any logged-in user).
      * Endpoint: GET /api/app/config  -> { "server_url": "...", "config_version": 1 }
      * If the endpoint is not implemented yet, this will fail gracefully.
@@ -455,6 +466,74 @@ object WebAppSync {
             }
         } catch (e: Exception) {
             SyncResult(success = false, error = e.message ?: "Config push failed")
+        }
+    }
+
+    // ── Remote Config Push (v7.1.0) ─────────────────────────────────────────
+
+    /**
+     * Poll GET /api/sync/remote-config – no auth required.
+     * Called on app startup to detect if the admin changed the target server.
+     */
+    suspend fun pullRemoteConfig(serverUrl: String): RemoteConfigResult = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$serverUrl/api/sync/remote-config")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
+
+            val code = conn.responseCode
+            if (code == 200) {
+                val body = conn.inputStream.bufferedReader().readText()
+                val json = JSONObject(body)
+                val config = RemoteConfig(
+                    serverType = json.optString("server_type", "standalone"),
+                    host       = json.optString("host", "sidscri.tplinkdns.com"),
+                    port       = json.optInt("port", 8009),
+                    updatedAt  = json.optString("updated_at", ""),
+                    updatedBy  = json.optString("updated_by", "")
+                )
+                RemoteConfigResult(success = true, config = config)
+            } else {
+                RemoteConfigResult(success = false, error = "HTTP $code")
+            }
+        } catch (e: Exception) {
+            RemoteConfigResult(success = false, error = e.message ?: "Remote config pull failed")
+        }
+    }
+
+    /**
+     * Push remote config as admin.
+     * POST /api/sync/admin/remote-config  (Bearer token required)
+     */
+    suspend fun pushRemoteConfig(serverUrl: String, token: String, config: RemoteConfig): SyncResult = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$serverUrl/api/sync/admin/remote-config")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.doOutput = true
+            conn.connectTimeout = 10000
+            conn.readTimeout = 10000
+
+            val body = JSONObject().apply {
+                put("server_type", config.serverType)
+                put("host", config.host)
+                put("port", config.port)
+            }
+            conn.outputStream.use { it.write(body.toString().toByteArray()) }
+
+            if (conn.responseCode == 200) {
+                SyncResult(success = true, message = "Remote config pushed")
+            } else {
+                val err = try { conn.errorStream?.bufferedReader()?.readText() ?: "" } catch (_: Exception) { "" }
+                val msg = try { JSONObject(err).optString("error", "HTTP ${conn.responseCode}") } catch (_: Exception) { "HTTP ${conn.responseCode}" }
+                SyncResult(success = false, error = msg)
+            }
+        } catch (e: Exception) {
+            SyncResult(success = false, error = e.message ?: "Remote config push failed")
         }
     }
 

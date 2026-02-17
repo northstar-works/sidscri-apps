@@ -379,7 +379,7 @@ private fun decodeProgressEntries(raw: String): Map<String, ProgressEntry> {
 
     private fun encodeAdminSettings(s: AdminSettings): String {
         val o = JSONObject()
-        o.put("webAppUrl", s.webAppUrl); o.put("authToken", s.authToken); o.put("username", s.username); o.put("isLoggedIn", s.isLoggedIn); o.put("lastSyncTime", s.lastSyncTime); o.put("isAdmin", s.isAdmin)
+        o.put("webAppUrl", s.webAppUrl); o.put("serverType", s.serverType); o.put("authToken", s.authToken); o.put("username", s.username); o.put("isLoggedIn", s.isLoggedIn); o.put("lastSyncTime", s.lastSyncTime); o.put("isAdmin", s.isAdmin)
         o.put("chatGptApiKey", s.chatGptApiKey); o.put("chatGptEnabled", s.chatGptEnabled); o.put("chatGptModel", s.chatGptModel)
         o.put("geminiApiKey", s.geminiApiKey); o.put("geminiEnabled", s.geminiEnabled); o.put("geminiModel", s.geminiModel)
         o.put("autoPullOnLogin", s.autoPullOnLogin); o.put("autoPushOnChange", s.autoPushOnChange); o.put("pendingSync", s.pendingSync)
@@ -392,7 +392,7 @@ private fun decodeProgressEntries(raw: String): Map<String, ProgressEntry> {
         return try {
             val o = JSONObject(raw)
             AdminSettings(
-                webAppUrl = o.optString("webAppUrl", ""), authToken = o.optString("authToken", ""), username = o.optString("username", ""),
+                webAppUrl = o.optString("webAppUrl", ""), serverType = o.optString("serverType", "standalone"), authToken = o.optString("authToken", ""), username = o.optString("username", ""),
                 isLoggedIn = o.optBoolean("isLoggedIn", false), lastSyncTime = o.optLong("lastSyncTime", 0),
                 chatGptApiKey = o.optString("chatGptApiKey", ""), chatGptEnabled = o.optBoolean("chatGptEnabled", false),
                 chatGptModel = o.optString("chatGptModel", "gpt-4o"),
