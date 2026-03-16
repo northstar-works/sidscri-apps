@@ -2498,6 +2498,8 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
     var uploadedFileName by remember { mutableStateOf("") }
     var uploadedCreateMethod by remember { mutableStateOf("") }  // Track which method the file was selected for
     var selectedDocumentUri by remember { mutableStateOf<Uri?>(null) }
+    var jsonImportPreviewCards by remember { mutableStateOf<List<ImportedJsonDeckCard>>(emptyList()) }
+    var jsonImportPreviewDeckName by remember { mutableStateOf("") }
     
     // File picker launchers
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -2515,7 +2517,27 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
             uploadedFileName = fileName
             uploadedCreateMethod = "upload_document"
             selectedDocumentUri = uri
-            statusMessage = "Document selected: $fileName"
+
+            if (fileName.lowercase().endsWith(".json")) {
+                try {
+                    val imported = parseJsonDeckFromUri(
+                        context = context,
+                        uri = uri,
+                        fallbackDeckName = fileName.substringBeforeLast('.')
+                    )
+                    jsonImportPreviewCards = imported.cards
+                    jsonImportPreviewDeckName = imported.name
+                    statusMessage = "JSON selected: ${imported.cards.size} cards found"
+                } catch (e: Exception) {
+                    jsonImportPreviewCards = emptyList()
+                    jsonImportPreviewDeckName = ""
+                    statusMessage = "Selected file is not a valid JSON deck: ${e.message ?: "Unknown error"}"
+                }
+            } else {
+                jsonImportPreviewCards = emptyList()
+                jsonImportPreviewDeckName = ""
+                statusMessage = "Document selected: $fileName"
+            }
         }
     }
     
@@ -3671,6 +3693,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                     }
                                 }
                             }
+                        }
 
                         // Create Deck Button
                         if (showAiResults && selectedAiTerms.isNotEmpty()) {
