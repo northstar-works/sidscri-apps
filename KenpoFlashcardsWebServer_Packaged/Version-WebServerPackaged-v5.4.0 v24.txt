@@ -1,3 +1,0 @@
-Advanced Flashcards WebApp Server Packaged v5.4.0 (build 24) — 2026-02-17
-Bundled WebServer: v8.9.0 (build 63)
-Remote Config Push: admin Android tab, /api/sync/remote-config endpoint.

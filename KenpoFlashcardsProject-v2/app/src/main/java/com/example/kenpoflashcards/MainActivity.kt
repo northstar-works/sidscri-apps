@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -100,6 +101,33 @@ fun AppRoot() {
     val store = remember { Store(context) }
     val repo = remember { Repository(context, store) }
     val nav = rememberNavController()
+    val adminSettings by repo.adminSettingsFlow().collectAsState(initial = AdminSettings())
+
+    // Automatic pull on app start for logged-in users.
+    LaunchedEffect(adminSettings.isLoggedIn, adminSettings.authToken, adminSettings.webAppUrl) {
+        if (adminSettings.isLoggedIn && adminSettings.authToken.isNotBlank()) {
+            runCatching {
+                repo.syncPullAll(adminSettings.authToken, adminSettings.webAppUrl)
+                val keysResult = repo.syncPullApiKeysForUser(adminSettings.authToken, adminSettings.webAppUrl)
+                if (keysResult.success) {
+                    repo.saveAdminSettings(
+                        adminSettings.copy(
+                            chatGptApiKey = keysResult.chatGptKey,
+                            chatGptModel = keysResult.chatGptModel,
+                            geminiApiKey = keysResult.geminiKey,
+                            geminiModel = keysResult.geminiModel,
+                            chatGptEnabled = keysResult.chatGptKey.isNotBlank(),
+                            geminiEnabled = keysResult.geminiKey.isNotBlank(),
+                            lastSyncTime = System.currentTimeMillis()
+                        )
+                    )
+                } else {
+                    repo.saveAdminSettings(adminSettings.copy(lastSyncTime = System.currentTimeMillis()))
+                }
+            }
+        }
+    }
+
     NavHost(navController = nav, startDestination = Route.Active.path) {
         composable(Route.Active.path) { StudyScreen(nav, repo, CardStatus.ACTIVE) }
         composable(Route.Unsure.path) { StudyScreen(nav, repo, CardStatus.UNSURE) }
@@ -2090,13 +2118,13 @@ fun LoginScreen(nav: NavHostController, repo: Repository) {
                             
                             // First login OR auto-pull enabled: always sync
                             if (isFirstLogin || adminSettings.autoPullOnLogin) {
-                                statusMessage = "Login successful! Syncing..."
-                                val pullResult = repo.syncPullProgressWithToken(result.token, effectiveUrl)
+                                statusMessage = "Login successful! Syncing decks, cards, progress, and AI access..."
+                                val pullResult = repo.syncPullAll(result.token, effectiveUrl)
                                 val breakdownResult = repo.syncBreakdowns()
                                 // If local had newer offline changes, try pushing them back up (best-effort)
                                 val pushPendingResult = repo.syncPushPendingProgressWithToken(result.token, effectiveUrl)
                                 statusMessage = if (pullResult.success && breakdownResult.success && pushPendingResult.success) {
-                                    "Login successful! Progress and breakdowns synced."
+                                    "Login successful! Decks, cards, progress, and breakdowns synced."
                                 } else {
                                     "Login successful! Some sync errors occurred."
                                 }
@@ -2200,7 +2228,7 @@ fun SyncProgressScreen(nav: NavHostController, repo: Repository) {
             
             Text("Manual Sync", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
             Spacer(Modifier.height(4.dp))
-            Text("Push sends your progress to server. Pull downloads server progress to device.", color = DarkMuted, fontSize = 10.sp)
+            Text("Push sends decks, deck cards, and progress to the server. Pull downloads accessible decks, deck cards, progress, and AI access to this device.", color = DarkMuted, fontSize = 10.sp)
             Spacer(Modifier.height(8.dp))
             
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2209,23 +2237,38 @@ fun SyncProgressScreen(nav: NavHostController, repo: Repository) {
                     if (adminSettings.authToken.isBlank()) { statusMessage = "Error: No auth token"; return@Button }
                     isLoading = true
                     scope.launch { 
-                        val result = repo.syncPushProgressWithToken(adminSettings.authToken, adminSettings.webAppUrl)
-                        statusMessage = if (result.success) "Progress pushed!" else "Error: ${result.error}"
+                        val result = repo.syncPushAll(adminSettings.authToken, adminSettings.webAppUrl)
+                        statusMessage = if (result.success) "Push complete: decks, cards, and progress sent." else "Error: ${result.error}"
                         if (result.success) { repo.saveAdminSettings(adminSettings.copy(lastSyncTime = System.currentTimeMillis(), pendingSync = false)) }
                         isLoading = false 
                     } 
-                }, Modifier.weight(1f), enabled = !isLoading && adminSettings.isLoggedIn) { Text(if (isLoading) "..." else "Push") }
+                }, Modifier.weight(1f), enabled = !isLoading && adminSettings.isLoggedIn) { Text(if (isLoading) "..." else "Push All") }
                 Button({ 
                     if (!adminSettings.isLoggedIn) { statusMessage = "Please login first"; return@Button }
                     if (adminSettings.authToken.isBlank()) { statusMessage = "Error: No auth token"; return@Button }
                     isLoading = true
                     scope.launch { 
-                        val result = repo.syncPullProgressWithToken(adminSettings.authToken, adminSettings.webAppUrl)
-                        statusMessage = if (result.success) "Progress pulled!" else "Error: ${result.error}"
-                        if (result.success) repo.saveAdminSettings(adminSettings.copy(lastSyncTime = System.currentTimeMillis()))
+                        val result = repo.syncPullAll(adminSettings.authToken, adminSettings.webAppUrl)
+                        if (result.success) {
+                            val keysResult = repo.syncPullApiKeysForUser(adminSettings.authToken, adminSettings.webAppUrl)
+                            repo.saveAdminSettings(
+                                adminSettings.copy(
+                                    lastSyncTime = System.currentTimeMillis(),
+                                    chatGptApiKey = if (keysResult.success) keysResult.chatGptKey else adminSettings.chatGptApiKey,
+                                    chatGptModel = if (keysResult.success) keysResult.chatGptModel else adminSettings.chatGptModel,
+                                    geminiApiKey = if (keysResult.success) keysResult.geminiKey else adminSettings.geminiApiKey,
+                                    geminiModel = if (keysResult.success) keysResult.geminiModel else adminSettings.geminiModel,
+                                    chatGptEnabled = if (keysResult.success) keysResult.chatGptKey.isNotBlank() else adminSettings.chatGptEnabled,
+                                    geminiEnabled = if (keysResult.success) keysResult.geminiKey.isNotBlank() else adminSettings.geminiEnabled
+                                )
+                            )
+                            statusMessage = "Pull complete: decks, cards, progress, and AI access refreshed."
+                        } else {
+                            statusMessage = "Error: ${result.error}"
+                        }
                         isLoading = false 
                     } 
-                }, Modifier.weight(1f), enabled = !isLoading && adminSettings.isLoggedIn) { Text(if (isLoading) "..." else "Pull") }
+                }, Modifier.weight(1f), enabled = !isLoading && adminSettings.isLoggedIn) { Text(if (isLoading) "..." else "Pull All") }
             }
             
             Spacer(Modifier.height(20.dp)); HorizontalDivider(color = DarkBorder); Spacer(Modifier.height(16.dp))
@@ -2455,10 +2498,6 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
     var uploadedFileName by remember { mutableStateOf("") }
     var uploadedCreateMethod by remember { mutableStateOf("") }  // Track which method the file was selected for
     var selectedDocumentUri by remember { mutableStateOf<Uri?>(null) }
-    val isSelectedJsonDocument =
-        uploadedFileName.isNotBlank() &&
-        uploadedCreateMethod == "upload_document" &&
-        uploadedFileName.lowercase().endsWith(".json")
     
     // File picker launchers
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -3439,10 +3478,10 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                             "upload_document" -> {
                                 Text("Upload Document", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
                                 Spacer(Modifier.height(8.dp))
+                                val isSelectedJsonDocument = uploadedFileName.isNotBlank() && uploadedCreateMethod == "upload_document" && uploadedFileName.lowercase().endsWith(".json")
                                 Text("Supported: JSON (.json), PDF, Word (.docx), Text (.txt), CSV, Excel (.xlsx)", color = DarkMuted, fontSize = 11.sp)
                                 Spacer(Modifier.height(12.dp))
-                                
-                                // File selection button
+
                                 OutlinedButton(
                                     onClick = { documentPickerLauncher.launch("*/*") },
                                     modifier = Modifier.fillMaxWidth()
@@ -3451,8 +3490,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                     Spacer(Modifier.width(8.dp))
                                     Text(if (uploadedFileName.isNotBlank() && uploadedCreateMethod == "upload_document") "Change Document" else "Select Document")
                                 }
-                                
-                                // Show selected file
+
                                 if (uploadedFileName.isNotBlank() && uploadedCreateMethod == "upload_document") {
                                     Spacer(Modifier.height(8.dp))
                                     Card(colors = CardDefaults.cardColors(containerColor = DarkPanel2), modifier = Modifier.fillMaxWidth()) {
@@ -3461,18 +3499,59 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                             Spacer(Modifier.width(8.dp))
                                             Column(Modifier.weight(1f)) {
                                                 Text("Selected:", color = DarkMuted, fontSize = 10.sp)
-                                                Text(uploadedFileName, color = Color.White, fontSize = 12.sp, maxLines = 1)
+                                                Text(uploadedFileName, color = Color.White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                Text(
+                                                    when {
+                                                        isSelectedJsonDocument && jsonImportPreviewCards.isNotEmpty() ->
+                                                            "Valid JSON • ${jsonImportPreviewCards.size} cards" + if (jsonImportPreviewDeckName.isNotBlank()) " • ${jsonImportPreviewDeckName}" else ""
+                                                        isSelectedJsonDocument -> "JSON selected"
+                                                        else -> "Document selected"
+                                                    },
+                                                    color = DarkMuted,
+                                                    fontSize = 10.sp
+                                                )
                                             }
-                                            IconButton({ uploadedFileName = ""; selectedDocumentUri = null }, Modifier.size(28.dp)) {
+                                            IconButton({
+                                                uploadedFileName = ""
+                                                uploadedCreateMethod = ""
+                                                selectedDocumentUri = null
+                                                jsonImportPreviewCards = emptyList()
+                                                jsonImportPreviewDeckName = ""
+                                            }, Modifier.size(28.dp)) {
                                                 Icon(Icons.Default.Close, "Remove", tint = DarkMuted, modifier = Modifier.size(18.dp))
                                             }
                                         }
                                     }
-                                    
+
+                                    if (isSelectedJsonDocument && jsonImportPreviewCards.isNotEmpty()) {
+                                        Spacer(Modifier.height(8.dp))
+                                        Card(colors = CardDefaults.cardColors(containerColor = DarkPanel2), modifier = Modifier.fillMaxWidth()) {
+                                            Column(Modifier.padding(12.dp)) {
+                                                Text("JSON Preview", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
+                                                Spacer(Modifier.height(6.dp))
+                                                val previewCount = minOf(5, jsonImportPreviewCards.size)
+                                                for (i in 0 until previewCount) {
+                                                    val card = jsonImportPreviewCards[i]
+                                                    Text(
+                                                        "• ${card.term} — ${card.definition}",
+                                                        color = DarkMuted,
+                                                        fontSize = 11.sp,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+                                                if (jsonImportPreviewCards.size > previewCount) {
+                                                    Spacer(Modifier.height(4.dp))
+                                                    Text("+ ${jsonImportPreviewCards.size - previewCount} more cards", color = AccentBlue, fontSize = 10.sp)
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     Spacer(Modifier.height(12.dp))
-                                    Button(
-                                        onClick = {
-                                            if (isSelectedJsonDocument) {
+                                    if (isSelectedJsonDocument) {
+                                        Button(
+                                            onClick = {
                                                 isLoading = true
                                                 statusMessage = "Importing JSON deck..."
                                                 scope.launch {
@@ -3515,7 +3594,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                                                 description = finalDescription,
                                                                 isDefault = false,
                                                                 isBuiltIn = false,
-                                                                sourceFile = null,
+                                                                sourceFile = uploadedFileName,
                                                                 cardCount = cards.size,
                                                                 createdAt = System.currentTimeMillis(),
                                                                 updatedAt = System.currentTimeMillis()
@@ -3528,57 +3607,71 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                                         uploadedFileName = ""
                                                         uploadedCreateMethod = ""
                                                         selectedDocumentUri = null
+                                                        jsonImportPreviewCards = emptyList()
+                                                        jsonImportPreviewDeckName = ""
                                                     } catch (e: Exception) {
                                                         statusMessage = "Error: ${e.message ?: "Unable to import JSON"}"
                                                     }
                                                     isLoading = false
                                                 }
-                                                return@Button
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            enabled = !isLoading
+                                        ) {
+                                            if (isLoading) {
+                                                CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                                            } else {
+                                                Icon(Icons.Default.Check, "Import JSON")
                                             }
-                                            if (!hasAiAccess) {
-                                                statusMessage = "Error: Configure AI in Admin Settings first"
-                                                return@Button
-                                            }
-                                            isLoading = true
-                                            statusMessage = "Processing document with AI..."
-                                            scope.launch {
-                                                statusMessage = "Document processing coming soon. Use AI Search for now."
-                                                isLoading = false
-                                            }
-                                        },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        enabled = (isSelectedJsonDocument || hasAiAccess) && !isLoading
-                                    ) {
-                                        if (isLoading) {
-                                            CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                                        } else {
-                                            Icon(if (isSelectedJsonDocument) Icons.Default.Check else Icons.Default.DocumentScanner, if (isSelectedJsonDocument) "Import JSON" else "Process")
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(if (isLoading) "Importing JSON..." else "Create Deck from JSON")
                                         }
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(
-                                            when {
-                                                isLoading && isSelectedJsonDocument -> "Importing JSON..."
-                                                isLoading -> "Processing..."
-                                                isSelectedJsonDocument -> "Create Deck from JSON"
-                                                else -> "Process Document with AI"
+                                    } else {
+                                        Button(
+                                            onClick = {
+                                                if (!hasAiAccess) {
+                                                    statusMessage = "AI document processing is not enabled for this user."
+                                                    return@Button
+                                                }
+                                                isLoading = true
+                                                statusMessage = "Document AI import is not implemented in Android yet. Use a valid JSON file for direct import, or use the web app for AI document creation."
+                                                scope.launch { isLoading = false }
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            enabled = !isLoading
+                                        ) {
+                                            if (isLoading) {
+                                                CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                                            } else {
+                                                Icon(Icons.Default.DocumentScanner, "Process")
                                             }
-                                        )
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(if (isLoading) "Processing..." else "Process Document with AI")
+                                        }
                                     }
                                 }
-                                
-                                if (!hasAiAccess) {
+
+                                if (isSelectedJsonDocument) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Card(colors = CardDefaults.cardColors(containerColor = DarkPanel2), modifier = Modifier.fillMaxWidth()) {
+                                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.Info, "Info", tint = AccentBlue)
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("Valid JSON files can create a deck directly without AI.", color = AccentBlue, fontSize = 11.sp)
+                                        }
+                                    }
+                                } else if (!hasAiAccess) {
                                     Spacer(Modifier.height(8.dp))
                                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF3D2D12)), modifier = Modifier.fillMaxWidth()) {
                                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                             Icon(Icons.Default.Warning, "Warning", tint = Color.Yellow)
                                             Spacer(Modifier.width(8.dp))
-                                            Text("AI not configured. Go to Admin Settings to add API keys.", color = Color.Yellow, fontSize = 11.sp)
+                                            Text("AI not configured or not allowed for this user. Admin can enable AI access per user on the web server.", color = Color.Yellow, fontSize = 11.sp)
                                         }
                                     }
                                 }
                             }
-                        }
-                        
+
                         // Create Deck Button
                         if (showAiResults && selectedAiTerms.isNotEmpty()) {
                             Spacer(Modifier.height(16.dp))

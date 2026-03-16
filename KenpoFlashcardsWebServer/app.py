@@ -1347,6 +1347,28 @@ def _get_user_by_username(username: str) -> Optional[Tuple[str, Dict[str, Any]]]
             return uid, udata
     return None
 
+def _is_ai_allowed_for_user(user_id: str) -> bool:
+    """Admins always have AI. Regular users must be explicitly allowed."""
+    user = _get_user(user_id)
+    username = user.get("username", "") if user else ""
+    if _is_admin_user(username):
+        return True
+    profiles = _load_profiles()
+    u = profiles.get("users", {}).get(user_id, {})
+    return bool(u.get("allow_ai", False))
+
+
+def _set_user_ai_access(target_user_id: str, enabled: bool) -> bool:
+    profiles = _load_profiles()
+    user = profiles.get("users", {}).get(target_user_id)
+    if not isinstance(user, dict):
+        return False
+    user["allow_ai"] = bool(enabled)
+    profiles["users"][target_user_id] = user
+    _save_profiles(profiles)
+    return True
+
+
 
 def _progress_path(user_id: str) -> str:
     udir = os.path.join(USERS_DIR, user_id)
@@ -2640,6 +2662,7 @@ def api_admin_stats():
                 "username": uname,
                 "is_admin": is_admin,
                 "password_reset_required": udata.get("password_reset_required", False),
+                "allow_ai": bool(udata.get("allow_ai", False)) or is_admin,
                 "learned": learned,
                 "unsure": unsure,
                 "active": active,
@@ -2930,6 +2953,7 @@ def api_admin_user_update():
     data = request.get_json() or {}
     target_user_id = data.get("user_id", "")
     is_admin = data.get("is_admin", False)
+    allow_ai = data.get("allow_ai", False)
     
     if not target_user_id:
         return jsonify({"error": "user_id required"}), 400
@@ -2955,7 +2979,8 @@ def api_admin_user_update():
     else:
         admins.discard(target_username.lower())
     
-    admin_data["admins"] = list(admins)
+    admin_data["admin_usernames"] = sorted(list(admins))
+    admin_data.pop("admins", None)
     with open(admin_users_path, "w", encoding="utf-8") as f:
         json.dump(admin_data, f, ensure_ascii=False, indent=2)
     
@@ -6895,6 +6920,8 @@ def api_sync_push_decks():
                 "createdAt": incoming.get("createdAt", int(time.time())),
                 "updatedAt": int(time.time()),
                 "logoPath": incoming.get("logoPath", None),
+                "ownerId": uid,
+                "createdBy": uid,
             }
             existing_decks.append(new_deck)
     

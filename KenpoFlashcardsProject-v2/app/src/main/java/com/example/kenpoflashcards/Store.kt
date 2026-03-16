@@ -479,6 +479,19 @@ private fun decodeProgressEntries(raw: String): Map<String, ProgressEntry> {
         }
     }
 
+
+    /**
+     * Replace local user/deck cards with the server-authoritative set.
+     * Used after a successful full pull so decks do not duplicate across syncs.
+     */
+    suspend fun replaceUserCardsFromServer(cards: List<FlashCard>) {
+        context.dataStore.edit { prefs ->
+            val arr = JSONArray()
+            cards.forEach { arr.put(encodeUserCard(it)) }
+            prefs[KEY_USER_CARDS_JSON] = arr.toString()
+        }
+    }
+
 suspend fun addDeck(deck: StudyDeck) {
         context.dataStore.edit { prefs ->
             val raw = prefs[KEY_DECKS_JSON] ?: "[]"

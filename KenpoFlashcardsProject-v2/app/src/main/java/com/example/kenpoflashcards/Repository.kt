@@ -529,12 +529,8 @@ suspend fun deleteBreakdown(cardId: String) = store.deleteBreakdown(cardId)
         
         val result = WebAppSync.pullDecks(url, token)
         if (result.success) {
-            // Save decks locally
-            result.decks.forEach { deck ->
-                if (!deck.isBuiltIn) {
-                    store.addDeck(deck)
-                }
-            }
+            // Replace local deck list with the server-authoritative accessible deck set
+            store.replaceDecksFromServer(result.decks)
             // Update active deck setting
             if (result.activeDeckId.isNotBlank()) {
                 val currentSettings = store.deckSettingsFlow().first()
@@ -568,10 +564,8 @@ suspend fun deleteBreakdown(cardId: String) = store.deleteBreakdown(cardId)
         
         val result = WebAppSync.pullUserCards(url, token, deckId)
         if (result.success) {
-            // Merge pulled cards with local cards
-            result.cards.forEach { card ->
-                store.addUserCard(card)
-            }
+            // Replace local synced cards with the server-authoritative card set
+            store.replaceUserCardsFromServer(result.cards)
         }
         return result
     }

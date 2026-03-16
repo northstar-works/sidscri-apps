@@ -1,9 +1,8 @@
 {
   "name": "Advanced Flashcards WebAppServer",
-  "version": "8.10.0",
-  "build": 65,
+  "version": "8.11.0",
+  "build": 66,
   "released": "2026-03-15",
   "is_packaged": false,
-  "notes": "8.10.0 (b65): Fixed /api/version to include app_name field for Android app compatibility. | 8.10.0 (b65): Remote Config push.",
   "date": "2026-03-15"
 }
