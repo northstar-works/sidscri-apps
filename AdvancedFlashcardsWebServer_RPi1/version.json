@@ -1,9 +1,0 @@
-{
-  "name": "Advanced Flashcards WebServer RPi",
-  "version": "1.1.1",
-  "build": 4,
-  "released": "2026-02-17",
-  "based_on_webserver": "8.9.0",
-  "based_on_webserver_build": 63,
-  "notes": "Remote Config Push: GET /api/sync/remote-config for Android apps, admin Android tab to set host/port/server-type. | build 4: fix install layout to /opt/advanced-flashcards root, preserve repo/.env/backups during rsync."
-}

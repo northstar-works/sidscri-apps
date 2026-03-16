@@ -891,7 +891,7 @@
                   <span>Max Cards to Generate</span>
                   <input id="aiGenPhotoMaxCards" type="number" value="20" min="1" max="200" style="width: 100px;" />
                 </label>
-                <button id="aiGenPhotoBtn" class="appBtn primary" disabled>🔍 Extract</button>
+                <button id="aiGenPhotoBtn" class="appBtn primary" disabled>📥 Import / Extract</button>
               </div>
 
               <!-- Document Method -->
@@ -900,8 +900,8 @@
                 <div class="uploadZone" id="docUploadZone">
                   <div class="uploadIcon">📄</div>
                   <div class="uploadText">Click or drag document here</div>
-                  <div class="uploadSubtext">Supports: PDF, TXT, MD</div>
-                  <input type="file" id="docFileInput" accept=".pdf,.txt,.md,.text" hidden />
+                  <div class="uploadSubtext">Supports: JSON, PDF, TXT, MD</div>
+                  <input type="file" id="docFileInput" accept=".json,.pdf,.txt,.md,.text,application/json" hidden />
                 </div>
                 <div class="uploadPreview hidden" id="docPreview">
                   <div class="docFileName" id="docFileName"></div>

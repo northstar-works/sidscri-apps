@@ -1810,20 +1810,54 @@ def health():
 
 def get_install_type():
     """
-    Return install type string:
-      - "packaged" when running from the packaged EXE/MSI project
-      - "webserver" when running the standalone web server project
-    Controlled by data/install_type.txt (optional). Defaults to "webserver".
+    Return install type string understood by the Android app:
+      - "packaged"   - Windows EXE/MSI installer build
+      - "rpi"        - Raspberry Pi deployment
+      - "docker"     - Running inside a Docker container
+      - "standalone" - Standalone Python/Flask server (default)
+
+    Detection priority:
+      1. data/install_type.txt  (explicit override – highest priority)
+      2. INSTALL_TYPE env var
+      3. Docker auto-detect     (/.dockerenv exists OR DOCKER_CONTAINER env set)
+      4. "standalone"           (safe default – accepted by Android app)
+
+    NOTE: The old default "webserver" is NOT recognised by the Android app.
+    If you have a data/install_type.txt containing "webserver", rename it to "standalone".
     """
+    # 1) Explicit file override
     try:
         p = os.path.join(DATA_DIR, "install_type.txt")
         if os.path.exists(p):
             val = (open(p, "r", encoding="utf-8").read() or "").strip().lower()
+            # Normalise legacy "webserver" -> "standalone" so old deployments don't break
+            if val == "webserver":
+                val = "standalone"
             if val:
                 return val
     except Exception:
         pass
-    return "webserver"
+
+    # 2) Environment variable override
+    env_val = (os.environ.get("INSTALL_TYPE") or "").strip().lower()
+    if env_val == "webserver":
+        env_val = "standalone"
+    if env_val:
+        return env_val
+
+    # 3) Docker auto-detect
+    try:
+        if (
+            os.path.exists("/.dockerenv")
+            or os.environ.get("DOCKER_CONTAINER")
+            or os.environ.get("container") == "docker"
+        ):
+            return "docker"
+    except Exception:
+        pass
+
+    # 4) Safe default (recognised by Android app)
+    return "standalone"
 
 
 @app.get("/api/version")
@@ -3404,7 +3438,7 @@ def api_admin_save_remote_config():
     host = str(payload.get("host", "sidscri.tplinkdns.com")).strip()
     port = payload.get("port", 8009)
 
-    valid_types = {"standalone", "packaged", "rpi"}
+    valid_types = {"standalone", "packaged", "rpi", "docker"}
     if server_type not in valid_types:
         return jsonify({"error": f"server_type must be one of: {', '.join(sorted(valid_types))}"}), 400
     if not host:
@@ -3824,13 +3858,17 @@ def api_ai_status():
     except Exception:
         prov = "auto"
 
+    keys = _load_encrypted_api_keys()
+    openai_available = bool(OPENAI_API_KEY or keys.get("chatGptKey"))
+    gemini_available = bool(GEMINI_API_KEY or keys.get("geminiKey"))
+
     return jsonify({
         "ok": True,
         "selected_provider": prov,
-        "openai_available": bool(OPENAI_API_KEY),
-        "openai_model": OPENAI_MODEL if OPENAI_API_KEY else "",
-        "gemini_available": bool(GEMINI_API_KEY),
-        "gemini_model": GEMINI_MODEL if GEMINI_API_KEY else "",
+        "openai_available": openai_available,
+        "openai_model": OPENAI_MODEL if OPENAI_MODEL else str(keys.get("chatGptModel") or ""),
+        "gemini_available": gemini_available,
+        "gemini_model": GEMINI_MODEL if GEMINI_MODEL else str(keys.get("geminiModel") or ""),
     })
 
 
@@ -3945,7 +3983,7 @@ def api_sync_admin_save_remote_config():
     host = str(payload.get("host", "sidscri.tplinkdns.com")).strip()
     port = payload.get("port", 8009)
 
-    valid_types = {"standalone", "packaged", "rpi"}
+    valid_types = {"standalone", "packaged", "rpi", "docker"}
     if server_type not in valid_types:
         return jsonify({"error": f"server_type must be one of: {', '.join(sorted(valid_types))}"}), 400
     if not host:
@@ -4758,6 +4796,14 @@ DEFAULT_REMOTE_CONFIG = {
     "port": 8009,
     "updated_at": "",
     "updated_by": ""
+}
+
+# Human-readable labels for each server type
+SERVER_TYPE_LABELS = {
+    "standalone": "Standalone (Windows/Mac/Linux)",
+    "packaged":   "Packaged (EXE/Installer)",
+    "rpi":        "Raspberry Pi (RPi deployment)",
+    "docker":     "Docker Container",
 }
 
 def _load_remote_config() -> Dict[str, Any]:
@@ -5778,8 +5824,9 @@ def api_ai_generate_definition():
     if not term:
         return jsonify({"error": "Term is required"}), 400
     
-    if not OPENAI_API_KEY and not GEMINI_API_KEY:
-        return jsonify({"error": "No AI provider configured"}), 400
+    encrypted_keys = _load_encrypted_api_keys()
+    ai_available = bool(OPENAI_API_KEY or GEMINI_API_KEY or encrypted_keys.get("chatGptKey") or encrypted_keys.get("geminiKey"))
+
     
     # Build context from deck info
     context = f"{deck_name}"
@@ -6224,6 +6271,131 @@ def api_ai_generate_deck_preview():
         return jsonify({"error": str(e)}), 500
 
 
+
+def _normalize_imported_json_card(item: dict) -> Optional[dict]:
+    """Normalize flexible JSON card objects into AI-generator-style cards."""
+    if not isinstance(item, dict):
+        return None
+    term = str(item.get("term") or item.get("front") or item.get("question") or item.get("title") or "").strip()
+    definition = str(
+        item.get("definition")
+        or item.get("meaning")
+        or item.get("back")
+        or item.get("answer")
+        or item.get("description")
+        or ""
+    ).strip()
+    pronunciation = str(item.get("pronunciation") or item.get("pron") or item.get("phonetic") or "").strip()
+    group = str(item.get("group") or item.get("category") or item.get("tag") or item.get("section") or "").strip()
+    if not term:
+        return None
+    return {
+        "term": term,
+        "definition": definition,
+        "pronunciation": pronunciation,
+        "group": group,
+    }
+
+
+def _extract_cards_from_json_payload(payload: Any) -> List[dict]:
+    """Accept either a card array or an object containing cards."""
+    raw_cards = []
+    if isinstance(payload, list):
+        raw_cards = payload
+    elif isinstance(payload, dict):
+        if isinstance(payload.get("cards"), list):
+            raw_cards = payload.get("cards") or []
+        elif isinstance(payload.get("items"), list):
+            raw_cards = payload.get("items") or []
+        else:
+            raw_cards = [payload]
+    cards = []
+    for item in raw_cards:
+        norm = _normalize_imported_json_card(item)
+        if norm:
+            cards.append(norm)
+    return cards
+
+
+@app.post("/api/decks/import_json")
+def api_import_json_deck():
+    """Create a new deck and populate it directly from a JSON payload without AI."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json() or {}
+    payload = data.get("payload")
+    name = str(data.get("name", "")).strip()
+    description = str(data.get("description", "")).strip()
+
+    cards = _extract_cards_from_json_payload(payload)
+    if not cards:
+        return jsonify({"error": "No valid cards found in JSON"}), 400
+
+    if not name and isinstance(payload, dict):
+        name = str(payload.get("name") or payload.get("title") or "").strip()
+        if not description:
+            description = str(payload.get("description") or "").strip()
+
+    if not name:
+        name = "Imported JSON Deck"
+
+    decks = _load_decks(include_all=True)
+    lower_name = name.lower()
+    for d in decks:
+        dname = str(d.get("name", "")).strip().lower()
+        if not dname:
+            continue
+        if d.get("isBuiltIn") and dname == lower_name:
+            return jsonify({"error": "This deck name is reserved"}), 400
+        if (not d.get("isBuiltIn")) and (_deck_owner_id(d) == uid) and dname == lower_name:
+            return jsonify({"error": "You already have a deck with this name"}), 400
+
+    new_deck = {
+        "id": f"deck_{uuid.uuid4().hex[:8]}",
+        "name": name,
+        "description": description,
+        "isDefault": False,
+        "isBuiltIn": False,
+        "sourceFile": None,
+        "cardCount": len(cards),
+        "ownerId": uid,
+        "createdBy": uid,
+        "createdAt": int(time.time()),
+        "updatedAt": int(time.time()),
+    }
+    decks.append(new_deck)
+    _save_decks(decks)
+
+    added = []
+    for card in cards:
+        new_card = {
+            "id": _generate_card_id(),
+            "term": card["term"],
+            "meaning": card.get("definition", ""),
+            "pron": card.get("pronunciation", ""),
+            "group": card.get("group", ""),
+            "subgroup": "",
+            "deckId": new_deck["id"],
+            "isUserCreated": True,
+            "createdAt": int(time.time()),
+            "updatedAt": int(time.time()),
+        }
+        added.append(new_card)
+
+    deck_meta = _get_deck_by_id(new_deck["id"])
+    if _deck_owner_id(deck_meta):
+        existing = _load_deck_cards(new_deck["id"])
+        existing.extend(added)
+        _save_deck_cards(new_deck["id"], existing)
+    else:
+        existing = _load_user_cards(uid)
+        existing.extend(added)
+        _save_user_cards(uid, existing)
+
+    return jsonify({"success": True, "deck": new_deck, "cardsAdded": len(added)})
+
 @app.post("/api/ai/generate_deck")
 def api_ai_generate_deck():
     """Generate flashcard deck from keywords, photo, or document using AI."""
@@ -6240,6 +6412,31 @@ def api_ai_generate_deck():
     instructions = str(data.get("instructions", "") or "").strip()
     
     try:
+        if gen_type == "document":
+            doc = data.get("document", {}) or {}
+            doc_name = str(doc.get("name", "")).strip().lower()
+            if doc_name.endswith(".json"):
+                raw_content = doc.get("content")
+                if isinstance(raw_content, str) and raw_content.startswith("data:"):
+                    raw_content = raw_content.split(",", 1)[1]
+                    try:
+                        raw_content = base64.b64decode(raw_content).decode("utf-8")
+                    except Exception:
+                        raw_content = ""
+                if not isinstance(raw_content, str):
+                    raw_content = ""
+                try:
+                    payload = json.loads(raw_content)
+                except Exception:
+                    return jsonify({"error": "Invalid JSON document"}), 400
+                cards = _extract_cards_from_json_payload(payload)
+                if not cards:
+                    return jsonify({"error": "No valid cards found in JSON"}), 400
+                return jsonify({"cards": cards[:max_cards]})
+
+        if not ai_available:
+            return jsonify({"error": "No AI provider configured"}), 400
+
         if gen_type == "keywords":
             keywords = str(data.get("keywords", "")).strip()
             if not keywords:

@@ -5024,7 +5024,7 @@ function bulkHandleDocFile(file){
   reader.onload = (e) => {
     bulkAiDocData = {
       name: file.name,
-      type: file.type || (ext === ".pdf" ? "application/pdf" : "text/plain"),
+      type: file.type || (ext === ".pdf" ? "application/pdf" : (ext === ".json" ? "application/json" : "text/plain")),
       content: e.target.result
     };
     showEditDecksStatus("Document loaded. Ready to generate.", "success");
@@ -5406,7 +5406,7 @@ function editBulkHandleDocFile(file){
   reader.onload = (e) => {
     editBulkAiDocData = {
       name: file.name,
-      type: file.type || (ext === ".pdf" ? "application/pdf" : "text/plain"),
+      type: file.type || (ext === ".pdf" ? "application/pdf" : (ext === ".json" ? "application/json" : "text/plain")),
       content: e.target.result
     };
     showEditDecksStatus("Document loaded. Ready to generate.", "success");
@@ -5789,12 +5789,12 @@ function clearPhotoUpload(){
 }
 
 function handleDocFile(file){
-  const validTypes = ["application/pdf", "text/plain", "text/markdown"];
-  const validExts = [".pdf", ".txt", ".md", ".text"];
+  const validTypes = ["application/pdf", "text/plain", "text/markdown", "application/json", "text/json"];
+  const validExts = [".json", ".pdf", ".txt", ".md", ".text"];
   const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
   
   if(!validTypes.includes(file.type) && !validExts.includes(ext)){
-    showEditDecksStatus("Please select a PDF or text file", "error");
+    showEditDecksStatus("Please select a JSON, PDF, or text file", "error");
     return;
   }
   
@@ -5802,7 +5802,7 @@ function handleDocFile(file){
   reader.onload = (e) => {
     aiDocData = {
       name: file.name,
-      type: file.type || (ext === ".pdf" ? "application/pdf" : "text/plain"),
+      type: file.type || (ext === ".pdf" ? "application/pdf" : (ext === ".json" ? "application/json" : "text/plain")),
       content: e.target.result
     };
     $("docFileName").textContent = file.name;

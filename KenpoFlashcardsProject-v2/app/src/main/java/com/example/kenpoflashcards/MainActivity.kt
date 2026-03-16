@@ -2454,6 +2454,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
     var selectedAiTerms by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var uploadedFileName by remember { mutableStateOf("") }
     var uploadedCreateMethod by remember { mutableStateOf("") }  // Track which method the file was selected for
+    var selectedDocumentUri by remember { mutableStateOf<Uri?>(null) }
     
     // File picker launchers
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -2470,6 +2471,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
             val fileName = uri.lastPathSegment ?: "document"
             uploadedFileName = fileName
             uploadedCreateMethod = "upload_document"
+            selectedDocumentUri = uri
             statusMessage = "Document selected: $fileName"
         }
     }
@@ -3296,7 +3298,16 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                     Text(if (isLoading) "Searching..." else "Search with AI")
                                 }
                                 
-                                if (!hasAiAccess) {
+                                if (isSelectedJsonDocument) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Card(colors = CardDefaults.cardColors(containerColor = DarkPanel2), modifier = Modifier.fillMaxWidth()) {
+                                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.Info, "Info", tint = AccentBlue)
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("Valid JSON files can create a deck directly without AI.", color = AccentBlue, fontSize = 11.sp)
+                                        }
+                                    }
+                                } else if (!hasAiAccess) {
                                     Spacer(Modifier.height(8.dp))
                                     Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF3D2D12)), modifier = Modifier.fillMaxWidth()) {
                                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -3374,7 +3385,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                                 Text("Selected:", color = DarkMuted, fontSize = 10.sp)
                                                 Text(uploadedFileName, color = Color.White, fontSize = 12.sp, maxLines = 1)
                                             }
-                                            IconButton({ uploadedFileName = "" }, Modifier.size(28.dp)) {
+                                            IconButton({ uploadedFileName = ""; selectedDocumentUri = null }, Modifier.size(28.dp)) {
                                                 Icon(Icons.Default.Close, "Remove", tint = DarkMuted, modifier = Modifier.size(18.dp))
                                             }
                                         }
@@ -3424,7 +3435,8 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                             "upload_document" -> {
                                 Text("Upload Document", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
                                 Spacer(Modifier.height(8.dp))
-                                Text("Supported: PDF, Word (.docx), Text (.txt), CSV, Excel (.xlsx)", color = DarkMuted, fontSize = 11.sp)
+                                val isSelectedJsonDocument = uploadedFileName.isNotBlank() && uploadedCreateMethod == "upload_document" && uploadedFileName.lowercase().endsWith(".json")
+                                Text("Supported: JSON (.json), PDF, Word (.docx), Text (.txt), CSV, Excel (.xlsx)", color = DarkMuted, fontSize = 11.sp)
                                 Spacer(Modifier.height(12.dp))
                                 
                                 // File selection button
@@ -3448,7 +3460,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                                 Text("Selected:", color = DarkMuted, fontSize = 10.sp)
                                                 Text(uploadedFileName, color = Color.White, fontSize = 12.sp, maxLines = 1)
                                             }
-                                            IconButton({ uploadedFileName = "" }, Modifier.size(28.dp)) {
+                                            IconButton({ uploadedFileName = ""; selectedDocumentUri = null }, Modifier.size(28.dp)) {
                                                 Icon(Icons.Default.Close, "Remove", tint = DarkMuted, modifier = Modifier.size(18.dp))
                                             }
                                         }
@@ -3457,6 +3469,69 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                     Spacer(Modifier.height(12.dp))
                                     Button(
                                         onClick = {
+                                            if (isSelectedJsonDocument) {
+                                                isLoading = true
+                                                statusMessage = "Importing JSON deck..."
+                                                scope.launch {
+                                                    try {
+                                                        val imported = parseJsonDeckFromUri(
+                                                            context = context,
+                                                            uri = selectedDocumentUri,
+                                                            fallbackDeckName = newDeckName.ifBlank { uploadedFileName.substringBeforeLast('.') }
+                                                        )
+                                                        val deckId = "deck_${System.currentTimeMillis()}"
+                                                        val finalDeckName = newDeckName.ifBlank { imported.name.ifBlank { uploadedFileName.substringBeforeLast('.') } }
+                                                        if (finalDeckName.isBlank()) {
+                                                            statusMessage = "Error: Deck name is required"
+                                                            isLoading = false
+                                                            return@launch
+                                                        }
+                                                        val finalDescription = newDeckDescription.ifBlank {
+                                                            imported.description.ifBlank { finalDeckName }
+                                                        }
+                                                        val cards = imported.cards.mapIndexed { idx, card ->
+                                                            FlashCard(
+                                                                id = "${deckId}_$idx",
+                                                                group = card.group.ifBlank { "General" },
+                                                                subgroup = null,
+                                                                term = card.term,
+                                                                pron = card.pronunciation.takeIf { it.isNotBlank() },
+                                                                meaning = card.definition,
+                                                                deckId = deckId
+                                                            )
+                                                        }
+                                                        if (cards.isEmpty()) {
+                                                            statusMessage = "Error: JSON file has no valid cards"
+                                                            isLoading = false
+                                                            return@launch
+                                                        }
+                                                        repo.addDeck(
+                                                            StudyDeck(
+                                                                id = deckId,
+                                                                name = finalDeckName,
+                                                                description = finalDescription,
+                                                                isDefault = false,
+                                                                isBuiltIn = false,
+                                                                sourceFile = null,
+                                                                cardCount = cards.size,
+                                                                createdAt = System.currentTimeMillis(),
+                                                                updatedAt = System.currentTimeMillis()
+                                                            )
+                                                        )
+                                                        repo.addUserCards(cards)
+                                                        statusMessage = "Created deck '$finalDeckName' with ${cards.size} cards from JSON"
+                                                        newDeckName = ""
+                                                        newDeckDescription = ""
+                                                        uploadedFileName = ""
+                                                        uploadedCreateMethod = ""
+                                                        selectedDocumentUri = null
+                                                    } catch (e: Exception) {
+                                                        statusMessage = "Error: ${e.message ?: "Unable to import JSON"}"
+                                                    }
+                                                    isLoading = false
+                                                }
+                                                return@Button
+                                            }
                                             if (!hasAiAccess) {
                                                 statusMessage = "Error: Configure AI in Admin Settings first"
                                                 return@Button
@@ -3464,22 +3539,27 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                             isLoading = true
                                             statusMessage = "Processing document with AI..."
                                             scope.launch {
-                                                // TODO: Implement actual document parsing + AI extraction
-                                                // For now, show placeholder message
                                                 statusMessage = "Document processing coming soon. Use AI Search for now."
                                                 isLoading = false
                                             }
                                         },
                                         modifier = Modifier.fillMaxWidth(),
-                                        enabled = hasAiAccess && !isLoading
+                                        enabled = (isSelectedJsonDocument || hasAiAccess) && !isLoading
                                     ) {
                                         if (isLoading) {
                                             CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
                                         } else {
-                                            Icon(Icons.Default.DocumentScanner, "Process")
+                                            Icon(if (isSelectedJsonDocument) Icons.Default.Check else Icons.Default.DocumentScanner, if (isSelectedJsonDocument) "Import JSON" else "Process")
                                         }
                                         Spacer(Modifier.width(8.dp))
-                                        Text(if (isLoading) "Processing..." else "Process Document with AI")
+                                        Text(
+                                            when {
+                                                isLoading && isSelectedJsonDocument -> "Importing JSON..."
+                                                isLoading -> "Processing..."
+                                                isSelectedJsonDocument -> "Create Deck from JSON"
+                                                else -> "Process Document with AI"
+                                            }
+                                        )
                                     }
                                 }
                                 
