@@ -50,6 +50,8 @@ KenpoFlashcardsWebServer_Service_Tray/
 **/dist/
 **/release/
 **/*.spec
+!KenpoFlashcardsWebServer_Packaged/packaging/pyinstaller/kenpo_tray.spec
+!KenpoFlashcardsWebServer_Packaged/packaging/pyinstaller/kenpo_server.spec
 
 # ---------- User additions / merged ----------
 *.exe
