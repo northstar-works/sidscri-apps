@@ -3695,6 +3695,7 @@ fun ManageDecksScreen(nav: NavHostController, repo: Repository) {
                                     }
                                 }
                             }
+                        }
 
                         // Create Deck Button
                         if (showAiResults && selectedAiTerms.isNotEmpty()) {
