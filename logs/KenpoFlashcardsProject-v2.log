@@ -1,31 +1,6 @@
-START Tue 02/24/2026 16:44:49.45
-BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
-SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2
-GRADLE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v2\app\build.gradle
-SEVENZIP=C:\Program Files\7-Zip\7z.exe
-PARSED_versionCode=43
-PARSED_versionName=7.1.1
-ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v7.1.1 v43.zip
-FIXES_NAME=Fixes v7.1.1 v43.txt
-STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject
-
-ROBOCOPY_EXIT_CODE=1
-Could Not Find C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\*.iml
-Fixes file already correct: "C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage_kfproject\KenpoFlashcardsProject-v2\Fixes v7.1.1 v43.txt"
-Running 7z (from stage)...
-
-7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
-
-Scanning the drive:
-33 folders, 85 files, 1664435 bytes (1626 KiB)
-
-Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsProject-v7.1.1 v43.zip
-
-Add new data to archive: 33 folders, 85 files, 1664435 bytes (1626 KiB)
-
-
-Files read from disk: 85
-Archive size: 1097240 bytes (1072 KiB)
-Everything is Ok
-7Z_EXIT_CODE=0
-SUCCESS
+START Sun 03/15/2026 14:41:48.20
+BASE=\\SIDSCRI-grab\sidscri-apps
+SRC=\\SIDSCRI-grab\sidscri-apps\KenpoFlashcardsProject-v2
+GRADLE=\\SIDSCRI-grab\sidscri-apps\KenpoFlashcardsProject-v2\app\build.gradle
+SEVENZIP=C:\Program Files (x86)\7-Zip\7z.exe
+ERROR: 7z.exe not found. Install 7-Zip.
