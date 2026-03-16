@@ -1,5 +1,5 @@
 # Feature Parity Report — 2026-03-15
-## WebServer v8.10.0 (build 65) vs Android v7.2.0 (build 44)
+## WebServer v8.10.0 (build 65) vs Android v7.3.0 (build 45)
 
 ### WebServer Changes Since Last Android Parity Sync
 

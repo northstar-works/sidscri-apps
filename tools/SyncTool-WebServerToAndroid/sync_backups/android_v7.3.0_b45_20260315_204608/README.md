@@ -220,8 +220,6 @@ app/src/main/
 
 | Version | Build | Date | Key Changes |
 |---------|-------|------|-------------|
-| **7.2.0** | 44 | 2026-03-15 |  |
-| **7.1.1** | 43 | 2026-02-17 |  |
 | **7.1.0** | 42 | 2026-02-17 | Remote Config Push, URL normalization, server name validation fix, 401 session-expired handling, in-app Debug Log |
 | **7.0.0** | 41 | 2026-02-09 | Deck AI setting, AI generator **Instructions, AI template bulk editor, Edit Cards management, Edit Deck modal tabs, dmin/System version display, Packaged support version metadata, Packaged support metadata, Packaged support metadata, Version API upgrade, Packaged support version metadata, Admin/System version display, User dropdown version display, Edit Deck modal tabs, Edit Cards management, Per‑card actions, Duplicate handling prompt |
 | **6.0.0** | 40 | 2026-02-03 | Allow/Deny access buttons, Deck Ownership, file-based logging, Deck Short Answers mode, collapsible Manage Cards panes |

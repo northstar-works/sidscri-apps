@@ -1,13 +1,30 @@
-<<<<<<< Updated upstream
-START Sun 03/15/2026 20:31:40.46
-BASE=\\SIDSCRI-grab\sidscri-apps
-SRC=\\SIDSCRI-grab\sidscri-apps\KenpoFlashcardsWebServer
-VERJSON=\\SIDSCRI-grab\sidscri-apps\KenpoFlashcardsWebServer\version.json
-=======
-START Sun 03/15/2026 20:26:12.52
-BASE=C:\Users\Sidsc\OneDrive\github repositories\sidscri-apps
-SRC=C:\Users\Sidsc\OneDrive\github repositories\sidscri-apps\KenpoFlashcardsWebServer
-VERJSON=C:\Users\Sidsc\OneDrive\github repositories\sidscri-apps\KenpoFlashcardsWebServer\version.json
->>>>>>> Stashed changes
-SEVENZIP=C:\Program Files (x86)\7-Zip\7z.exe
-ERROR: 7z.exe not found. Install 7-Zip.
+START Sun 03/15/2026 20:39:50.88
+BASE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps
+SRC=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer
+VERJSON=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer\version.json
+SEVENZIP=C:\Program Files\7-Zip\7z.exe
+RAW_VER=8.10.0
+RAW_BUILD=65
+ZIPPATH=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer-v8.10.0 v65.zip
+STAGE=C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage
+
+ROBOCOPY_EXIT_CODE=1
+Could Not Find C:\Users\Sidscri\Documents\GitHub\sidscri-apps\_zip_stage\KenpoFlashcardsWebServer\*.pyc
+Running 7z (from stage)...
+
+7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
+
+Scanning the drive:
+37 folders, 92 files, 3529984 bytes (3448 KiB)
+
+Creating archive: C:\Users\Sidscri\Documents\GitHub\sidscri-apps\KenpoFlashcardsWebServer-v8.10.0 v65.zip
+
+Add new data to archive: 37 folders, 92 files, 3529984 bytes (3448 KiB)
+
+
+Files read from disk: 92
+Archive size: 2498027 bytes (2440 KiB)
+Everything is Ok
+7Z_EXIT_CODE=0
+Verified: no .venv paths detected
+SUCCESS
